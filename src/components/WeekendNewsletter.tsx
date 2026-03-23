@@ -783,7 +783,7 @@ export default function WeekendNewsletter() {
   const [scrapeCount, setScrapeCount] = useState(0);
   const [triggering, setTriggering] = useState(false);
 
-  const weekKey = getWeekKey();
+  const weekKey = getDayKey();
 
   // ── Load activities from DB ──
   const loadActivities = useCallback(async () => {
