@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, ExternalLink } from "lucide-react";
+import { RefreshCw, ExternalLink, MapPin, Clock, Ticket, Sparkles, CalendarDays, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import {
   mockWeather,
-  mockCalendarEvents,
   mockBookings,
   mockActivities,
   mockFutureEvents,
@@ -15,7 +18,7 @@ import {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getDayKey(): string {
-  return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+  return new Date().toISOString().split("T")[0];
 }
 
 function getNextWeekendDates(): { saturday: Date; sunday: Date } {
@@ -56,11 +59,17 @@ const WEATHER_CODE_MAP: Record<string, { icon: string; desc: string }> = {
 };
 
 function getWeatherInfo(code: number) {
-  const key = String(code);
-  return WEATHER_CODE_MAP[key] ?? { icon: "⛅", desc: "Variable" };
+  return WEATHER_CODE_MAP[String(code)] ?? { icon: "⛅", desc: "Variable" };
 }
 
-// DB row → Activity
+interface WeatherDay {
+  day: string;
+  icon: string;
+  desc: string;
+  min: number;
+  max: number;
+}
+
 interface DbActivity {
   id: string;
   category: string;
@@ -100,578 +109,403 @@ function dbRowToActivity(row: DbActivity, index: number): Activity {
     is_future: false,
     badge: row.badge ?? undefined,
     cinemas: row.cinema_name
-      ? [
-          {
-            name: row.cinema_name,
-            url: row.cinema_url ?? "",
-            arrondissement: row.arrondissement ?? "",
-            travel_walk: row.travel_walk ?? "",
-            showtimes: row.showtimes ?? "",
-          },
-        ]
+      ? [{ name: row.cinema_name, url: row.cinema_url ?? "", arrondissement: row.arrondissement ?? "", travel_walk: row.travel_walk ?? "", showtimes: row.showtimes ?? "" }]
       : undefined,
   };
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── CATEGORY CONFIG ──────────────────────────────────────────────────────────
 
-interface WeatherDay {
-  day: string;
-  icon: string;
-  desc: string;
-  min: number;
-  max: number;
-}
+const CAT_CONFIG: Record<string, { label: string; emoji: string; bgClass: string; textClass: string; borderClass: string }> = {
+  cinema:   { label: "Cinéma",    emoji: "🎬", bgClass: "bg-ghibli-sky/15",    textClass: "text-ghibli-sky",    borderClass: "border-ghibli-sky/30" },
+  theatre:  { label: "Théâtre",   emoji: "🎭", bgClass: "bg-ghibli-petal/15",  textClass: "text-ghibli-petal",  borderClass: "border-ghibli-petal/30" },
+  expo:     { label: "Expo",      emoji: "🖼️", bgClass: "bg-ghibli-gold/15",   textClass: "text-ghibli-gold",   borderClass: "border-ghibli-gold/30" },
+  activite: { label: "Activité",  emoji: "🌿", bgClass: "bg-ghibli-meadow/15", textClass: "text-ghibli-meadow", borderClass: "border-ghibli-meadow/30" },
+};
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+// ─── SUB-COMPONENTS ───────────────────────────────────────────────────────────
+
+function SectionTitle({ children, emoji }: { children: React.ReactNode; emoji?: string }) {
   return (
-    <h2
-      style={{
-        fontSize: 13,
-        fontWeight: 700,
-        color: "#888",
-        letterSpacing: "0.05em",
-        textTransform: "lowercase",
-        marginBottom: 12,
-      }}
-    >
-      {children}
-    </h2>
+    <div className="flex items-center gap-2 mb-4">
+      {emoji && <span className="text-base">{emoji}</span>}
+      <h2 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+        {children}
+      </h2>
+      <div className="flex-1 h-px bg-border/60" />
+    </div>
   );
 }
 
-function Separator() {
+function GhibliSkeleton() {
   return (
-    <hr style={{ border: "none", borderTop: "1px solid #e8e8e8", margin: "40px 0" }} />
+    <div className="ghibli-card p-4 space-y-3 animate-pulse">
+      <div className="flex gap-3">
+        <div className="w-10 h-10 rounded-xl bg-muted" />
+        <div className="flex-1 space-y-2">
+          <div className="h-4 bg-muted rounded-full w-3/5" />
+          <div className="h-3 bg-muted rounded-full w-2/5" />
+        </div>
+      </div>
+      <div className="h-3 bg-muted rounded-full w-full" />
+      <div className="h-3 bg-muted rounded-full w-4/5" />
+    </div>
   );
 }
 
-function SkeletonCard() {
+// ─── WEATHER CARD ─────────────────────────────────────────────────────────────
+
+function WeatherStrip({ data, loading }: { data: WeatherDay[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="rounded-2xl bg-ghibli-sky/10 border border-ghibli-sky/20 p-4 animate-pulse">
+        <div className="h-4 bg-ghibli-sky/20 rounded-full w-2/5 mb-3" />
+        <div className="space-y-2">
+          <div className="h-5 bg-ghibli-sky/20 rounded-full w-4/5" />
+          <div className="h-5 bg-ghibli-sky/20 rounded-full w-3/5" />
+        </div>
+      </div>
+    );
+  }
   return (
-    <div style={{ background: "#fafafa", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
-      <div className="animate-pulse space-y-2">
-        <div style={{ height: 14, background: "#e8e8e8", borderRadius: 4, width: "60%" }} />
-        <div style={{ height: 12, background: "#e8e8e8", borderRadius: 4, width: "90%" }} />
-        <div style={{ height: 12, background: "#e8e8e8", borderRadius: 4, width: "75%" }} />
+    <div className="rounded-2xl bg-ghibli-sky/10 border border-ghibli-sky/20 p-4">
+      <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-sky mb-3">Météo ce week-end</p>
+      <div className="space-y-2">
+        {data.map((d) => (
+          <div key={d.day} className="flex items-center gap-2 text-sm">
+            <span className="text-lg leading-none">{d.icon}</span>
+            <span className="font-display font-semibold text-foreground">{d.day}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">{d.desc}</span>
+            <span className="ml-auto font-medium text-foreground/80">{d.min}°–{d.max}°C</span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function MetaGrid({
-  arrondissement,
-  travelWalk,
-  date,
-  duration,
-  bookingUrl,
-  showtimes,
+// ─── WEEKEND PLAN (merged bookings + agenda) ─────────────────────────────────
+
+interface AgendaEvent {
+  id: string;
+  title: string;
+  event_date: string;
+  emoji: string | null;
+  event_type: string | null;
+  notes: string | null;
+}
+
+const EMOJIS = ["🎂", "🎉", "🏋️", "📚", "🎭", "🎬", "🍕", "✈️", "🏖️", "🎁", "👨‍👩‍👧", "📅"];
+
+function WeekendPlanSection({
+  userId,
+  agendaEvents,
+  onEventsChange,
+  saturday,
+  sunday,
 }: {
-  arrondissement?: string;
-  travelWalk?: string;
-  date?: string;
-  duration?: string;
-  bookingUrl?: string;
-  showtimes?: string;
+  userId: string | null;
+  agendaEvents: AgendaEvent[];
+  onEventsChange: () => void;
+  saturday: Date;
+  sunday: Date;
 }) {
+  const [showForm, setShowForm] = useState(false);
+  const [formTitle, setFormTitle] = useState("");
+  const [formDate, setFormDate] = useState("");
+  const [formEmoji, setFormEmoji] = useState("📅");
+  const [formNotes, setFormNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // Combine real bookings + mock bookings for the weekend
+  const weekendISOSat = formatDateISO(saturday);
+  const weekendISOSun = formatDateISO(sunday);
+
+  // Filter agenda events for this weekend
+  const weekendAgendaEvents = agendaEvents.filter((ev) => {
+    const d = ev.event_date;
+    return d === weekendISOSat || d === weekendISOSun;
+  });
+
+  // Mock bookings always shown
+  const allItems = [
+    ...mockBookings.map((b, i) => ({
+      id: `booking-${i}`,
+      emoji: "🎟️",
+      title: b.event_name,
+      subtitle: `${b.location} · ${b.notes}`,
+      isBooking: true,
+    })),
+    ...weekendAgendaEvents.map((ev) => ({
+      id: ev.id,
+      emoji: ev.emoji ?? "📅",
+      title: ev.title,
+      subtitle: new Date(ev.event_date).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }) + (ev.notes ? ` · ${ev.notes}` : ""),
+      isBooking: false,
+    })),
+  ];
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userId) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("agenda_events").insert({
+        user_id: userId,
+        title: formTitle,
+        event_date: formDate,
+        emoji: formEmoji,
+        notes: formNotes || null,
+      });
+      if (error) throw error;
+      toast.success("Ajouté au programme 🌿");
+      setFormTitle(""); setFormDate(""); setFormNotes(""); setFormEmoji("📅");
+      setShowForm(false);
+      onEventsChange();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erreur");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (id.startsWith("booking-")) return;
+    await supabase.from("agenda_events").delete().eq("id", id);
+    onEventsChange();
+  };
+
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 4,
-        marginTop: 10,
-        fontSize: 12,
-        color: "#666",
-        lineHeight: 1.5,
-      }}
-    >
-      <div>
-        {arrondissement && (
-          <div>
-            📍 {arrondissement}
-            {travelWalk && ` · 🚶 ${travelWalk}`}
-          </div>
-        )}
-        {(date || showtimes) && <div>🗓️ {showtimes || date}</div>}
-      </div>
-      <div>
-        {duration && <div>⌛️ {duration}</div>}
-        {bookingUrl && bookingUrl !== "#" && (
-          <div>
-            <a
-              href={bookingUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: 12, fontWeight: 600, color: "#2563eb", textDecoration: "none" }}
-              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-            >
-              🔗 Réserver <ExternalLink style={{ display: "inline", width: 10, height: 10 }} />
-            </a>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Section: Météo ───────────────────────────────────────────────────────────
-
-function WeatherCard({ data, loading }: { data: WeatherDay[]; loading: boolean }) {
-  return (
-    <div style={{ background: "#eef4ff", borderRadius: 8, padding: "14px 16px" }}>
-      <h3
-        style={{
-          color: "#1a3a6e",
-          fontSize: 13,
-          fontWeight: 700,
-          letterSpacing: "0.05em",
-          marginBottom: 8,
-          textTransform: "lowercase",
-        }}
-      >
-        météo ce weekend
-      </h3>
-      {loading ? (
-        <div className="animate-pulse space-y-2">
-          <div style={{ height: 14, background: "#c8d8f0", borderRadius: 4, width: "80%" }} />
-          <div style={{ height: 14, background: "#c8d8f0", borderRadius: 4, width: "70%" }} />
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {data.map((d) => (
-            <div key={d.day} style={{ fontSize: 14, color: "#1a3a6e" }}>
-              {d.icon} <strong>{d.day}</strong> · {d.desc} · {d.min}°–{d.max}°C
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Section: Agenda ─────────────────────────────────────────────────────────
-
-function AgendaCard() {
-  return (
-    <div style={{ background: "#eef4ff", borderRadius: 8, padding: "14px 16px" }}>
-      <h3
-        style={{
-          color: "#1a3a6e",
-          fontSize: 13,
-          fontWeight: 700,
-          letterSpacing: "0.05em",
-          marginBottom: 8,
-          textTransform: "lowercase",
-        }}
-      >
-        tes projets ce weekend
-      </h3>
-      {mockCalendarEvents.length === 0 ? (
-        <p style={{ fontSize: 13, color: "#888", fontStyle: "italic" }}>
-          Week-end libre pour l'instant 🎉
-        </p>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {mockCalendarEvents.map((e, i) => (
-            <div key={i} style={{ fontSize: 13, color: "#1a3a6e" }}>
-              <strong>{e.day} {e.time}</strong> — {e.title}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Section: Réservations ───────────────────────────────────────────────────
-
-function BookingsSection() {
-  return (
-    <div>
-      <SectionTitle>tes réservations</SectionTitle>
-      {mockBookings.length === 0 ? (
-        <p style={{ fontSize: 13, color: "#888", fontStyle: "italic" }}>
-          Aucune réservation pour ce week-end
-        </p>
-      ) : (
-        mockBookings.map((b, i) => (
-          <div
-            key={i}
-            style={{
-              background: "#fafafa",
-              borderRadius: 8,
-              padding: "14px 16px",
-              marginBottom: 12,
-              transition: "box-shadow 0.2s",
-            }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.boxShadow = "none")
-            }
-          >
-            <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", lineHeight: 1.3 }}>
-              {b.event_name}
-            </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 4,
-                marginTop: 10,
-                fontSize: 12,
-                color: "#666",
-                lineHeight: 1.5,
-              }}
-            >
-              <div>
-                📍 {b.location}
-                <br />
-                🗓️ {b.notes}
-              </div>
-              <div />
-            </div>
-          </div>
-        ))
-      )}
-    </div>
-  );
-}
-
-// ─── Section: Ma reco ────────────────────────────────────────────────────────
-
-function RecoSection({ activity }: { activity: Activity }) {
-  return (
-    <div>
-      <SectionTitle>ma reco pour ce week-end</SectionTitle>
-      <div
-        style={{
-          background: "#fffbf0",
-          borderLeft: "3px solid #f0a500",
-          borderRadius: 8,
-          padding: "14px 16px",
-          transition: "box-shadow 0.2s",
-        }}
-        onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")
-        }
-        onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLElement).style.boxShadow = "none")
-        }
-      >
-        <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", lineHeight: 1.3 }}>
-          {activity.title}
-          {activity.is_exceptional && " 🌟"}
-        </div>
-        <p
-          style={{
-            fontSize: 13,
-            color: "#555",
-            lineHeight: 1.4,
-            marginTop: 6,
-            overflow: "hidden",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-          }}
+    <div className="rounded-2xl bg-ghibli-meadow/8 border border-ghibli-meadow/20 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-meadow">Programme du week-end</p>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-1 text-xs font-medium text-ghibli-meadow hover:text-primary transition-colors"
         >
-          Mon coup de cœur cette semaine. {activity.description}
-        </p>
-        <MetaGrid
-          arrondissement={activity.arrondissement}
-          travelWalk={activity.travel_walk}
-          date="Sam & Dim, 10h–12h"
-          duration={activity.duration}
-          bookingUrl={activity.booking_url}
-        />
+          {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+          {showForm ? "Fermer" : "Ajouter"}
+        </button>
       </div>
-    </div>
-  );
-}
 
-// ─── Section: Cinéma ─────────────────────────────────────────────────────────
+      {allItems.length === 0 && !showForm && (
+        <p className="text-sm text-muted-foreground italic">Week-end libre pour l'instant 🎉</p>
+      )}
 
-function CinemaSection({ activities }: { activities: Activity[] }) {
-  const films = activities.filter((a) => a.category === "cinema").slice(0, 2);
-  if (films.length === 0) return null;
-  return (
-    <div>
-      <SectionTitle>cinéma</SectionTitle>
-      <p style={{ fontSize: 12, color: "#888", marginTop: -8, marginBottom: 12 }}>
-        dessin animé · 2–5 ans
-      </p>
-      {films.map((film) => (
-        <div key={film.id} style={{ marginBottom: 20 }}>
-          <div
-            style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}
-          >
-            <span style={{ fontWeight: 700, fontSize: 16, color: "#1a1a1a" }}>{film.title}</span>
-            {film.badge && (
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: "#666",
-                  background: "#f5f5f5",
-                  padding: "2px 8px",
-                  borderRadius: 10,
-                }}
-              >
-                {film.badge}
-              </span>
-            )}
+      {allItems.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-start gap-2.5 group"
+        >
+          <span className="text-base flex-shrink-0 mt-0.5">{item.emoji}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground leading-tight">{item.title}</p>
+            <p className="text-xs text-muted-foreground">{item.subtitle}</p>
           </div>
-          <p
-            style={{
-              fontSize: 13,
-              color: "#555",
-              lineHeight: 1.4,
-              marginBottom: 8,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
-          >
-            {film.description}
-          </p>
-          {film.cinemas && film.cinemas.length > 0 && (
-            <div
-              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}
-              className="cinema-sub-grid"
+          {item.isBooking && (
+            <span className="flex-shrink-0 text-[10px] font-bold uppercase tracking-wider text-ghibli-gold bg-ghibli-gold/10 rounded-full px-2 py-0.5">
+              Réservé
+            </span>
+          )}
+          {!item.isBooking && (
+            <button
+              onClick={() => handleDelete(item.id)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive flex-shrink-0"
             >
-              {film.cinemas.map((c) => (
-                <div
-                  key={c.name}
-                  style={{
-                    background: "#fafafa",
-                    borderRadius: 6,
-                    padding: "10px 12px",
-                    fontSize: 12,
-                    color: "#666",
-                    lineHeight: 1.5,
-                    transition: "box-shadow 0.2s",
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLElement).style.boxShadow = "none")
-                  }
-                >
-                  <a
-                    href={c.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      fontWeight: 700,
-                      fontSize: 13,
-                      color: "#2563eb",
-                      textDecoration: "none",
-                      display: "block",
-                      marginBottom: 2,
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                    onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                  >
-                    {c.name}
-                  </a>
-                  <div>📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
-                  <div>🗓️ {c.showtimes}</div>
-                  <a
-                    href={c.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "#2563eb",
-                      textDecoration: "none",
-                      display: "inline-block",
-                      marginTop: 2,
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                    onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                  >
-                    🔗 Billets
-                  </a>
-                </div>
-              ))}
-            </div>
+              <X className="h-3.5 w-3.5" />
+            </button>
           )}
         </div>
       ))}
-    </div>
-  );
-}
 
-// ─── Section: Théâtre, Expos, Activités ──────────────────────────────────────
-
-function ActivityList({
-  title,
-  activities,
-  max,
-}: {
-  title: string;
-  activities: Activity[];
-  max: number;
-}) {
-  const items = activities.slice(0, max);
-  if (items.length === 0) return null;
-  return (
-    <div>
-      <SectionTitle>{title}</SectionTitle>
-      {items.map((act) => (
-        <div
-          key={act.id}
-          style={{
-            background: "#fafafa",
-            borderRadius: 8,
-            padding: "14px 16px",
-            marginBottom: 12,
-            transition: "box-shadow 0.2s",
-          }}
-          onMouseEnter={(e) =>
-            ((e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")
-          }
-          onMouseLeave={(e) =>
-            ((e.currentTarget as HTMLElement).style.boxShadow = "none")
-          }
-        >
-          <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", lineHeight: 1.3 }}>
-            {act.title}
-            {act.is_exceptional && " 🌟"}
+      {showForm && (
+        <form onSubmit={handleAdd} className="pt-2 space-y-2.5 border-t border-border/50 animate-fade-in">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs text-muted-foreground">Titre</Label>
+              <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="Brunch, ciné, musée…" required className="h-8 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Date</Label>
+              <Input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} required className="h-8 text-sm" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Note</Label>
+              <Input value={formNotes} onChange={(e) => setFormNotes(e.target.value)} placeholder="Détails" className="h-8 text-sm" />
+            </div>
           </div>
-          <p
-            style={{
-              fontSize: 13,
-              color: "#555",
-              lineHeight: 1.4,
-              marginTop: 4,
-              overflow: "hidden",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-            }}
-          >
-            {act.description}
-          </p>
-          <MetaGrid
-            arrondissement={act.arrondissement}
-            travelWalk={act.travel_walk}
-            date="Sam & Dim, 10h–12h"
-            duration={act.duration}
-            bookingUrl={act.booking_url}
-          />
-        </div>
-      ))}
+          <div className="flex flex-wrap gap-1">
+            {EMOJIS.map((em) => (
+              <button
+                key={em}
+                type="button"
+                onClick={() => setFormEmoji(em)}
+                className={`w-7 h-7 rounded-lg text-sm flex items-center justify-center transition-all ${formEmoji === em ? "bg-primary/20 ring-2 ring-primary scale-110" : "bg-muted hover:bg-secondary"}`}
+              >
+                {em}
+              </button>
+            ))}
+          </div>
+          <Button type="submit" disabled={saving} size="sm" className="w-full gradient-meadow text-primary-foreground rounded-xl font-semibold">
+            {saving ? "Ajout…" : "Ajouter au programme"}
+          </Button>
+        </form>
+      )}
     </div>
   );
 }
 
-// ─── Section: À venir ────────────────────────────────────────────────────────
+// ─── ACTIVITY CARD (Ghibli style) ─────────────────────────────────────────────
 
-function FutureSection({ futureEvents }: { futureEvents: FutureEvent[] }) {
+function GhibliActivityCard({ activity, reco = false }: { activity: Activity; reco?: boolean }) {
+  const cat = CAT_CONFIG[activity.category] ?? CAT_CONFIG.activite;
+
   return (
     <div
-      style={{
-        background: "#fff8ee",
-        marginLeft: "calc(-50vw + 50%)",
-        marginRight: "calc(-50vw + 50%)",
-        padding: "32px calc(50vw - 50% + 40px)",
-      }}
-      className="future-section-responsive"
+      className={`ghibli-card p-4 space-y-3 group relative overflow-hidden ${
+        reco ? "border-ghibli-gold/40 ring-1 ring-ghibli-gold/20" : ""
+      }`}
     >
-      <div style={{ marginBottom: 32 }}>
-        <div style={{ fontWeight: 700, fontSize: 15, color: "#a05a00", marginBottom: 12 }}>
-          week-end du {mockFutureWeekend.label}
+      {reco && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset" />
+      )}
+
+      <div className="flex items-start gap-3">
+        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 ${cat.bgClass}`}>
+          {cat.emoji}
         </div>
-        <div>
-          {mockFutureWeekend.events.map((e, i) => (
-            <div key={i}>
-              <div
-                style={{
-                  padding: "10px 0",
-                  fontSize: 13,
-                  color: "#555",
-                  display: "flex",
-                  gap: 8,
-                  alignItems: "baseline",
-                  flexWrap: "wrap",
-                }}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start gap-2 flex-wrap">
+            <h3 className="font-display font-bold text-foreground leading-snug flex-1">
+              {activity.title}
+              {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            <span className={`ghibli-tag border text-[11px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
+              {cat.label}
+            </span>
+            {activity.badge && (
+              <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[11px]">
+                {activity.badge}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{activity.description}</p>
+
+      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        {activity.arrondissement && (
+          <span className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" /> {activity.arrondissement}
+            {activity.travel_walk && ` · 🚶 ${activity.travel_walk}`}
+          </span>
+        )}
+        {activity.duration && (
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" /> {activity.duration}
+          </span>
+        )}
+        {activity.booking_url && activity.booking_url !== "#" && (
+          <a
+            href={activity.booking_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto flex items-center gap-1 text-primary font-semibold hover:underline"
+          >
+            <Ticket className="h-3 w-3" /> Réserver <ExternalLink className="h-2.5 w-2.5" />
+          </a>
+        )}
+      </div>
+
+      {/* Cinema sub-cards */}
+      {activity.cinemas && activity.cinemas.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          {activity.cinemas.map((c) => (
+            <div key={c.name} className="rounded-xl bg-ghibli-sky/8 border border-ghibli-sky/20 p-2.5 text-xs space-y-1">
+              <a
+                href={c.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-primary hover:underline block leading-tight"
               >
-                <span style={{ fontWeight: 600, color: "#1a1a1a" }}>{e.title}</span>
-                <span>📍 {e.location}</span>
-                <span>🗓️ {e.day} {e.time}</span>
-              </div>
-              {i < mockFutureWeekend.events.length - 1 && (
-                <div style={{ borderBottom: "1px dashed #e0d0b0" }} />
-              )}
+                {c.name}
+              </a>
+              <div className="text-muted-foreground">📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
+              <div className="text-muted-foreground">🗓️ {c.showtimes}</div>
+              <a
+                href={c.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:underline"
+              >
+                🔗 Billets
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── RECO CARD ────────────────────────────────────────────────────────────────
+
+function RecoCard({ activity }: { activity: Activity }) {
+  return (
+    <div className="space-y-3">
+      <SectionTitle emoji="✨">Coup de cœur de la semaine</SectionTitle>
+      <GhibliActivityCard activity={activity} reco />
+    </div>
+  );
+}
+
+// ─── FUTURE / PRE-BOOKING SECTION ─────────────────────────────────────────────
+
+function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
+  return (
+    <div className="rounded-3xl bg-ghibli-gold/8 border border-ghibli-gold/20 p-5 space-y-5">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-1">
+          Week-end du {mockFutureWeekend.label}
+        </p>
+        <div className="space-y-2">
+          {mockFutureWeekend.events.map((e, i) => (
+            <div key={i} className="flex items-center gap-2 text-sm">
+              <span className="text-ghibli-earth font-semibold">{e.title}</span>
+              <span className="text-muted-foreground text-xs">· 📍 {e.location} · 🗓️ {e.day} {e.time}</span>
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <div style={{ fontWeight: 700, fontSize: 15, color: "#a05a00", marginBottom: 12 }}>
-          à pré-booker
-        </div>
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
-          className="prebook-grid-responsive"
-        >
+        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-3">
+          À pré-réserver dès maintenant
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {futureEvents.map((evt) => (
             <div
               key={evt.id}
-              style={{
-                background: "#fff3e0",
-                borderRadius: 8,
-                padding: "12px 14px",
-                transition: "box-shadow 0.2s",
-              }}
-              onMouseEnter={(e) =>
-                ((e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")
-              }
-              onMouseLeave={(e) =>
-                ((e.currentTarget as HTMLElement).style.boxShadow = "none")
-              }
+              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 space-y-2 hover:shadow-card transition-shadow"
             >
-              <div style={{ fontWeight: 700, fontSize: 15, color: "#1a1a1a", lineHeight: 1.3 }}>
-                {evt.title}
-              </div>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#555",
-                  lineHeight: 1.4,
-                  marginTop: 4,
-                  overflow: "hidden",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                }}
-              >
-                {evt.description}
-              </p>
-              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.5, marginTop: 8 }}>
+              <p className="font-display font-bold text-foreground text-sm leading-snug">{evt.title}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2">{evt.description}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                 <span>📍 {evt.arrondissement}</span>
-                {" · "}
                 <span>🗓️ {evt.date}</span>
-                {" · "}
-                <span>⌛️ dès {evt.age}</span>
-                {" · "}
+                <span>⌛ dès {evt.age}</span>
                 {evt.booking_url && evt.booking_url !== "#" && (
                   <a
                     href={evt.booking_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ fontSize: 12, fontWeight: 600, color: "#2563eb", textDecoration: "none" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                    onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                    className="ml-auto font-semibold text-primary flex items-center gap-1 hover:underline"
                   >
-                    🔗 Réserver
+                    🔗 Réserver <ExternalLink className="h-2.5 w-2.5" />
                   </a>
                 )}
               </div>
@@ -683,7 +517,7 @@ function FutureSection({ futureEvents }: { futureEvents: FutureEvent[] }) {
   );
 }
 
-// ─── Scrape status banner ─────────────────────────────────────────────────────
+// ─── SCRAPE BANNER ────────────────────────────────────────────────────────────
 
 function ScrapeBanner({
   status,
@@ -698,75 +532,31 @@ function ScrapeBanner({
 }) {
   if (status === "done" && activitiesFound > 0) return null;
 
-  const msgs: Record<string, { bg: string; text: string; border: string; label: string }> = {
-    idle: {
-      bg: "#fffbf0",
-      border: "#f0a500",
-      text: "#a05a00",
-      label: "Données de la semaine non encore générées.",
-    },
-    no_data: {
-      bg: "#fffbf0",
-      border: "#f0a500",
-      text: "#a05a00",
-      label: "Aucune activité scrapée pour ce week-end.",
-    },
-    running: {
-      bg: "#eef4ff",
-      border: "#2563eb",
-      text: "#1a3a6e",
-      label: "Scraping en cours… (peut prendre ~2 min)",
-    },
-    error: {
-      bg: "#fff0f0",
-      border: "#dc2626",
-      text: "#7f1d1d",
-      label: "Erreur lors du scraping.",
-    },
-  };
-
-  const cfg = msgs[status] ?? msgs.idle;
+  const cfg = {
+    idle:    { bg: "bg-ghibli-gold/8 border-ghibli-gold/25",   text: "text-ghibli-earth", label: "Activités non encore générées pour ce week-end." },
+    no_data: { bg: "bg-ghibli-gold/8 border-ghibli-gold/25",   text: "text-ghibli-earth", label: "Aucune activité scrapée pour ce week-end." },
+    running: { bg: "bg-ghibli-sky/10 border-ghibli-sky/25",    text: "text-ghibli-deep",  label: "Scraping en cours… (~2 min)" },
+    error:   { bg: "bg-destructive/5 border-destructive/20",   text: "text-destructive",  label: "Erreur lors du scraping." },
+    done:    { bg: "bg-ghibli-gold/8 border-ghibli-gold/25",   text: "text-ghibli-earth", label: "" },
+  }[status] ?? { bg: "bg-ghibli-gold/8 border-ghibli-gold/25", text: "text-ghibli-earth", label: "" };
 
   return (
-    <div
-      style={{
-        background: cfg.bg,
-        border: `1px solid ${cfg.border}`,
-        borderRadius: 8,
-        padding: "12px 16px",
-        marginBottom: 20,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-        flexWrap: "wrap",
-      }}
-    >
-      <span style={{ fontSize: 13, color: cfg.text }}>{cfg.label}</span>
+    <div className={`rounded-2xl border ${cfg.bg} px-4 py-3 flex items-center justify-between gap-3 flex-wrap`}>
+      <span className={`text-sm ${cfg.text}`}>{cfg.label}</span>
       {status !== "running" && (
         <button
           onClick={onTrigger}
           disabled={triggering}
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#2563eb",
-            background: "none",
-            border: "1px solid #2563eb",
-            borderRadius: 6,
-            padding: "4px 12px",
-            cursor: "pointer",
-            opacity: triggering ? 0.6 : 1,
-          }}
+          className="text-xs font-semibold text-primary border border-primary/30 rounded-xl px-3 py-1.5 hover:bg-primary/5 transition-colors disabled:opacity-50"
         >
-          {triggering ? "Lancement…" : "Scraper maintenant"}
+          {triggering ? "Lancement…" : "🌿 Scraper maintenant"}
         </button>
       )}
     </div>
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 export default function WeekendNewsletter() {
   const { saturday, sunday } = getNextWeekendDates();
@@ -776,20 +566,43 @@ export default function WeekendNewsletter() {
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [spinning, setSpinning] = useState(false);
 
-  // Live activities from DB
   const [liveActivities, setLiveActivities] = useState<Activity[] | null>(null);
   const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [scrapeStatus, setScrapeStatus] = useState<"idle" | "done" | "running" | "error" | "no_data">("idle");
   const [scrapeCount, setScrapeCount] = useState(0);
   const [triggering, setTriggering] = useState(false);
 
+  const [agendaEvents, setAgendaEvents] = useState<AgendaEvent[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+
   const weekKey = getDayKey();
 
-  // ── Load activities from DB ──
+  // Get current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUserId(data.user.id);
+    });
+  }, []);
+
+  // Load agenda events
+  const loadAgendaEvents = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase
+      .from("agenda_events")
+      .select("*")
+      .eq("user_id", userId)
+      .order("event_date");
+    if (data) setAgendaEvents(data);
+  }, [userId]);
+
+  useEffect(() => {
+    if (userId) loadAgendaEvents();
+  }, [userId, loadAgendaEvents]);
+
+  // Load activities
   const loadActivities = useCallback(async () => {
     setActivitiesLoading(true);
     try {
-      // Check last scrape run
       const { data: run } = await supabase
         .from("scrape_runs")
         .select("status, activities_found")
@@ -798,16 +611,9 @@ export default function WeekendNewsletter() {
         .limit(1)
         .single();
 
-      if (run?.status === "running") {
-        setScrapeStatus("running");
-        setActivitiesLoading(false);
-        return;
-      }
-      if (run?.status === "error") {
-        setScrapeStatus("error");
-      }
+      if (run?.status === "running") { setScrapeStatus("running"); setActivitiesLoading(false); return; }
+      if (run?.status === "error") setScrapeStatus("error");
 
-      // Load activities
       const { data: rows } = await supabase
         .from("scraped_activities")
         .select("*")
@@ -830,7 +636,6 @@ export default function WeekendNewsletter() {
     }
   }, [weekKey]);
 
-  // ── Trigger scrape manually ──
   const triggerScrape = async (force = false) => {
     setTriggering(true);
     setScrapeStatus("running");
@@ -839,30 +644,17 @@ export default function WeekendNewsletter() {
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scrape-activities`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
           body: JSON.stringify({ force }),
         }
       );
       const data = await res.json();
-      if (data.success) {
-        await loadActivities();
-      } else if (data.fromCache) {
-        await loadActivities();
-      } else {
-        setScrapeStatus("error");
-      }
-    } catch (err) {
-      console.error("triggerScrape error:", err);
-      setScrapeStatus("error");
-    } finally {
-      setTriggering(false);
-    }
+      if (data.success || data.fromCache) await loadActivities();
+      else setScrapeStatus("error");
+    } catch { setScrapeStatus("error"); }
+    finally { setTriggering(false); }
   };
 
-  // ── Weather ──
   const fetchWeather = useCallback(async () => {
     setWeatherLoading(true);
     try {
@@ -872,18 +664,11 @@ export default function WeekendNewsletter() {
       const res = await fetch(url);
       const data = await res.json();
       if (data.daily) {
-        const days = ["Samedi", "Dimanche"];
         setWeatherData(
           data.daily.time.map((t: string, i: number) => {
             const code = data.daily.weathercode[i];
             const info = getWeatherInfo(code);
-            return {
-              day: days[i] ?? t,
-              icon: info.icon,
-              desc: info.desc,
-              min: Math.round(data.daily.temperature_2m_min[i]),
-              max: Math.round(data.daily.temperature_2m_max[i]),
-            };
+            return { day: ["Samedi", "Dimanche"][i] ?? t, ...info, min: Math.round(data.daily.temperature_2m_min[i]), max: Math.round(data.daily.temperature_2m_max[i]) };
           })
         );
       } else {
@@ -896,120 +681,61 @@ export default function WeekendNewsletter() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchWeather();
-    loadActivities();
-  }, [fetchWeather, loadActivities]);
+  useEffect(() => { fetchWeather(); loadActivities(); }, [fetchWeather, loadActivities]);
 
-  // Poll if scraping is running
   useEffect(() => {
     if (scrapeStatus !== "running") return;
-    const timer = setInterval(() => {
-      loadActivities();
-    }, 8000);
+    const timer = setInterval(() => loadActivities(), 8000);
     return () => clearInterval(timer);
   }, [scrapeStatus, loadActivities]);
 
   const handleRefresh = async () => {
     setSpinning(true);
-    await Promise.all([fetchWeather(), loadActivities()]);
+    await Promise.all([fetchWeather(), loadActivities(), loadAgendaEvents()]);
     setTimeout(() => setSpinning(false), 800);
   };
 
-  // Use live data if available, fall back to mock
   const activities = liveActivities ?? mockActivities;
-
   const theatreActivities = activities.filter((a) => a.category === "theatre");
   const expoActivities = activities.filter((a) => a.category === "expo");
   const otherActivities = activities.filter((a) => a.category === "activite");
-  const recoActivity = theatreActivities[1] ?? activities[3] ?? activities[0];
-
+  const cinemaActivities = activities.filter((a) => a.category === "cinema");
+  const recoActivity = theatreActivities[0] ?? activities[3] ?? activities[0];
   const isLive = liveActivities !== null && liveActivities.length > 0;
 
   return (
-    <>
-      <style>{`
-        body {
-          background: #ffffff;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          margin: 0;
-          color: #1a1a1a;
-        }
-        .newsletter-container {
-          max-width: 640px;
-          margin: 0 auto;
-          padding: 36px 40px;
-          background: #ffffff;
-        }
-        @media (max-width: 639px) {
-          .newsletter-container { padding: 16px; }
-          .weather-agenda-grid { grid-template-columns: 1fr !important; }
-          .cinema-sub-grid { grid-template-columns: 1fr !important; }
-          .prebook-grid-responsive { grid-template-columns: 1fr !important; }
-          .future-section-responsive {
-            padding-left: 16px !important;
-            padding-right: 16px !important;
-          }
-        }
-      `}</style>
+    <div className="min-h-screen bg-background">
+      {/* Decorative top strip */}
+      <div className="h-1.5 w-full gradient-meadow" />
 
-      <div className="newsletter-container">
-        {/* ── Header ── */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            marginBottom: 24,
-          }}
-        >
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-8 space-y-8 animate-fade-in">
+
+        {/* ── HEADER ── */}
+        <header className="flex items-start justify-between">
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: "#1a1a1a", margin: 0, lineHeight: 1.2 }}>
-              👋 Week-end avec Ariel & Gala
-            </h1>
-            <p style={{ fontSize: 14, color: "#888", margin: "4px 0 0" }}>{weekendLabel}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xl animate-sway inline-block">🌿</span>
+              <h1 className="font-display font-bold text-2xl text-foreground leading-tight">
+                Week-end avec Ariel & Gala
+              </h1>
+            </div>
+            <p className="text-sm text-muted-foreground ml-9">{weekendLabel}</p>
             {isLive && (
-              <span
-                style={{
-                  display: "inline-block",
-                  marginTop: 4,
-                  fontSize: 11,
-                  color: "#22c55e",
-                  background: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
-                  borderRadius: 10,
-                  padding: "1px 8px",
-                  fontWeight: 500,
-                }}
-              >
-                ✦ {scrapeCount} activités scrapées live
+              <span className="ml-9 mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/8 border border-primary/20 rounded-full px-2.5 py-0.5">
+                <Sparkles className="h-3 w-3" /> {scrapeCount} activités en direct
               </span>
             )}
           </div>
           <button
             onClick={handleRefresh}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: 4,
-              color: "#888",
-              display: "flex",
-              alignItems: "center",
-            }}
+            className="mt-1 p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/8 transition-all"
             title="Actualiser"
           >
-            <RefreshCw
-              size={18}
-              style={{
-                transition: "transform 0.6s",
-                transform: spinning ? "rotate(360deg)" : "rotate(0deg)",
-              }}
-            />
+            <RefreshCw className={`h-4 w-4 transition-transform duration-700 ${spinning ? "rotate-[720deg]" : ""}`} />
           </button>
-        </div>
+        </header>
 
-        {/* ── Scrape banner ── */}
+        {/* ── SCRAPE BANNER ── */}
         <ScrapeBanner
           status={activitiesLoading ? "running" : scrapeStatus}
           activitiesFound={scrapeCount}
@@ -1017,99 +743,98 @@ export default function WeekendNewsletter() {
           triggering={triggering}
         />
 
-        {/* ── Météo + Agenda ── */}
-        <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 40 }}
-          className="weather-agenda-grid"
-        >
-          <WeatherCard data={weatherData.length ? weatherData : mockWeather} loading={weatherLoading} />
-          <AgendaCard />
-        </div>
+        {/* ── MÉTÉO + PROGRAMME (merged) ── */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <WeatherStrip data={weatherData.length ? weatherData : mockWeather} loading={weatherLoading} />
+          <WeekendPlanSection
+            userId={userId}
+            agendaEvents={agendaEvents}
+            onEventsChange={loadAgendaEvents}
+            saturday={saturday}
+            sunday={sunday}
+          />
+        </section>
 
-        {/* ── Réservations ── */}
-        {activitiesLoading ? (
-          <>
-            <SectionTitle>tes réservations</SectionTitle>
-            <SkeletonCard />
-          </>
-        ) : (
-          <BookingsSection />
+        {/* ── COUP DE CŒUR ── */}
+        {recoActivity && (
+          <section>
+            <RecoCard activity={recoActivity} />
+          </section>
         )}
 
-        <Separator />
-
-        {/* ── Ma reco ── */}
-        {recoActivity && <RecoSection activity={recoActivity} />}
-
-        <Separator />
-
-        {/* ── Cinéma ── */}
-        {activitiesLoading ? (
-          <>
-            <SectionTitle>cinéma</SectionTitle>
-            <SkeletonCard /><SkeletonCard />
-          </>
-        ) : (
-          <CinemaSection activities={activities} />
+        {/* ── CINÉMA ── */}
+        {(activitiesLoading ? true : cinemaActivities.length > 0) && (
+          <section>
+            <SectionTitle emoji="🎬">Cinéma</SectionTitle>
+            <p className="text-xs text-muted-foreground -mt-2 mb-4">dessin animé · 2–8 ans</p>
+            {activitiesLoading ? (
+              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
+            ) : (
+              <div className="space-y-3">
+                {cinemaActivities.slice(0, 2).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
+              </div>
+            )}
+          </section>
         )}
 
-        <Separator />
-
-        {/* ── Théâtre ── */}
-        {activitiesLoading ? (
-          <>
-            <SectionTitle>théâtre & spectacles</SectionTitle>
-            <SkeletonCard /><SkeletonCard />
-          </>
-        ) : (
-          <ActivityList title="théâtre & spectacles" activities={theatreActivities} max={3} />
+        {/* ── THÉÂTRE ── */}
+        {(activitiesLoading ? true : theatreActivities.length > 0) && (
+          <section>
+            <SectionTitle emoji="🎭">Théâtre & Spectacles</SectionTitle>
+            {activitiesLoading ? (
+              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
+            ) : (
+              <div className="space-y-3">
+                {theatreActivities.slice(0, 3).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
+              </div>
+            )}
+          </section>
         )}
 
-        <Separator />
-
-        {/* ── Expos ── */}
-        {activitiesLoading ? (
-          <>
-            <SectionTitle>expositions & musées</SectionTitle>
-            <SkeletonCard /><SkeletonCard />
-          </>
-        ) : (
-          <ActivityList title="expositions & musées" activities={expoActivities} max={3} />
+        {/* ── EXPOS ── */}
+        {(activitiesLoading ? true : expoActivities.length > 0) && (
+          <section>
+            <SectionTitle emoji="🖼️">Expositions & Musées</SectionTitle>
+            {activitiesLoading ? (
+              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
+            ) : (
+              <div className="space-y-3">
+                {expoActivities.slice(0, 3).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
+              </div>
+            )}
+          </section>
         )}
 
-        <Separator />
-
-        {/* ── Activités ── */}
-        {activitiesLoading ? (
-          <>
-            <SectionTitle>activités</SectionTitle>
-            <SkeletonCard /><SkeletonCard />
-          </>
-        ) : (
-          <ActivityList title="activités" activities={otherActivities} max={3} />
+        {/* ── ACTIVITÉS ── */}
+        {(activitiesLoading ? true : otherActivities.length > 0) && (
+          <section>
+            <SectionTitle emoji="🌿">Activités</SectionTitle>
+            {activitiesLoading ? (
+              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
+            ) : (
+              <div className="space-y-3">
+                {otherActivities.slice(0, 3).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
+              </div>
+            )}
+          </section>
         )}
 
-        <Separator />
+        {/* ── À VENIR ── */}
+        <section>
+          <SectionTitle emoji="🗓️">À venir & à pré-réserver</SectionTitle>
+          <FutureBanner futureEvents={mockFutureEvents} />
+        </section>
+
+        {/* ── FOOTER ── */}
+        <footer className="text-center pb-8">
+          <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="text-lg">🌸</span>
+            Bon week-end avec Ariel et Gala !
+            <span className="text-lg">🌸</span>
+          </div>
+        </footer>
+
       </div>
-
-      {/* ── À venir (full bleed) ── */}
-      <div className="newsletter-container" style={{ maxWidth: 640, margin: "0 auto", padding: 0, overflow: "hidden" }}>
-        <FutureSection futureEvents={mockFutureEvents} />
-      </div>
-
-      {/* ── Footer ── */}
-      <div
-        style={{
-          maxWidth: 640,
-          margin: "0 auto",
-          padding: "32px 40px",
-          textAlign: "center",
-          fontSize: 13,
-          color: "#888",
-        }}
-      >
-        Bon week-end avec Ariel et Gala ! 🎉
-      </div>
-    </>
+    </div>
   );
 }

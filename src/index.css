@@ -2,104 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Nunito:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Warm cream background — like quality newsprint */
-    --background: 38 40% 97%;
-    --foreground: 25 30% 18%;
+    /* Ghibli palette — soft sky, meadow, warm parchment */
+    --background: 42 38% 96%;
+    --foreground: 30 25% 20%;
 
-    --card: 36 35% 99%;
-    --card-foreground: 25 30% 18%;
+    --card: 40 35% 98%;
+    --card-foreground: 30 25% 20%;
 
-    --popover: 36 35% 99%;
-    --popover-foreground: 25 30% 18%;
+    --popover: 40 35% 98%;
+    --popover-foreground: 30 25% 20%;
 
-    /* Deep warm terracotta as primary */
-    --primary: 16 72% 42%;
-    --primary-foreground: 36 100% 98%;
+    /* Ghibli teal-green as primary */
+    --primary: 168 42% 38%;
+    --primary-foreground: 42 60% 97%;
 
-    /* Soft warm beige secondary */
-    --secondary: 38 30% 90%;
-    --secondary-foreground: 25 30% 28%;
+    /* Soft parchment secondary */
+    --secondary: 42 30% 88%;
+    --secondary-foreground: 30 25% 28%;
 
-    --muted: 36 25% 92%;
-    --muted-foreground: 25 15% 52%;
+    --muted: 42 25% 91%;
+    --muted-foreground: 30 15% 55%;
 
-    /* Warm golden accent */
-    --accent: 42 85% 55%;
-    --accent-foreground: 25 40% 15%;
+    /* Warm sunset gold accent */
+    --accent: 35 80% 60%;
+    --accent-foreground: 30 40% 15%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 65% 52%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 35 20% 86%;
-    --input: 35 20% 86%;
-    --ring: 16 72% 42%;
+    --border: 38 22% 84%;
+    --input: 38 22% 84%;
+    --ring: 168 42% 38%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     /* Sidebar */
-    --sidebar-background: 36 30% 95%;
-    --sidebar-foreground: 25 30% 22%;
-    --sidebar-primary: 16 72% 42%;
-    --sidebar-primary-foreground: 36 100% 98%;
-    --sidebar-accent: 38 25% 88%;
-    --sidebar-accent-foreground: 25 30% 22%;
-    --sidebar-border: 35 20% 86%;
-    --sidebar-ring: 16 72% 42%;
+    --sidebar-background: 42 30% 93%;
+    --sidebar-foreground: 30 25% 22%;
+    --sidebar-primary: 168 42% 38%;
+    --sidebar-primary-foreground: 42 60% 97%;
+    --sidebar-accent: 42 25% 86%;
+    --sidebar-accent-foreground: 30 25% 22%;
+    --sidebar-border: 38 22% 84%;
+    --sidebar-ring: 168 42% 38%;
 
-    /* Custom palette tokens */
-    --warm-gold: 42 85% 55%;
-    --warm-amber: 35 90% 48%;
-    --soft-sage: 138 25% 52%;
-    --sky-blue: 205 65% 52%;
-    --blush: 345 55% 72%;
-    --newsletter-stripe: 38 30% 94%;
+    /* Ghibli custom tokens */
+    --ghibli-sky: 205 55% 70%;
+    --ghibli-meadow: 128 35% 52%;
+    --ghibli-sunset: 22 75% 62%;
+    --ghibli-mist: 210 30% 82%;
+    --ghibli-earth: 28 40% 45%;
+    --ghibli-petal: 345 50% 75%;
+    --ghibli-gold: 42 80% 62%;
+    --ghibli-deep: 168 40% 28%;
 
     /* Typography */
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-display: 'Lora', Georgia, serif;
+    --font-body: 'Nunito', system-ui, sans-serif;
 
-    /* Shadows */
-    --shadow-card: 0 2px 12px -2px hsl(25 30% 18% / 0.08), 0 1px 3px hsl(25 30% 18% / 0.05);
-    --shadow-hover: 0 8px 24px -4px hsl(16 72% 42% / 0.15), 0 2px 8px hsl(25 30% 18% / 0.06);
+    /* Shadows — soft, diffuse like Ghibli light */
+    --shadow-card: 0 2px 16px -4px hsl(168 42% 38% / 0.10), 0 1px 4px hsl(30 25% 20% / 0.04);
+    --shadow-hover: 0 8px 28px -6px hsl(168 42% 38% / 0.18), 0 2px 8px hsl(30 25% 20% / 0.05);
+    --shadow-float: 0 12px 40px -8px hsl(168 42% 38% / 0.20);
 
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(16 72% 42%), hsl(35 90% 48%));
-    --gradient-warm: linear-gradient(180deg, hsl(38 40% 97%) 0%, hsl(36 35% 99%) 100%);
-    --gradient-section: linear-gradient(135deg, hsl(42 85% 96%) 0%, hsl(36 35% 99%) 100%);
+    --gradient-sky: linear-gradient(160deg, hsl(205 55% 82%) 0%, hsl(168 42% 78%) 100%);
+    --gradient-meadow: linear-gradient(135deg, hsl(128 35% 52%), hsl(168 42% 38%));
+    --gradient-sunset: linear-gradient(135deg, hsl(22 75% 62%), hsl(35 80% 60%));
+    --gradient-warm: linear-gradient(180deg, hsl(42 38% 96%) 0%, hsl(40 35% 98%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(40 35% 99%) 0%, hsl(42 28% 95%) 100%);
   }
 
   .dark {
-    --background: 25 30% 10%;
-    --foreground: 36 30% 92%;
-    --card: 25 25% 13%;
-    --card-foreground: 36 30% 92%;
-    --popover: 25 25% 13%;
-    --popover-foreground: 36 30% 92%;
-    --primary: 16 65% 52%;
-    --primary-foreground: 36 100% 98%;
-    --secondary: 25 20% 22%;
-    --secondary-foreground: 36 30% 85%;
-    --muted: 25 20% 18%;
-    --muted-foreground: 36 15% 58%;
-    --accent: 42 80% 48%;
-    --accent-foreground: 25 40% 10%;
-    --destructive: 0 65% 48%;
+    --background: 30 25% 10%;
+    --foreground: 42 30% 90%;
+    --card: 30 20% 13%;
+    --card-foreground: 42 30% 90%;
+    --popover: 30 20% 13%;
+    --popover-foreground: 42 30% 90%;
+    --primary: 168 40% 48%;
+    --primary-foreground: 42 60% 97%;
+    --secondary: 30 18% 22%;
+    --secondary-foreground: 42 30% 82%;
+    --muted: 30 18% 18%;
+    --muted-foreground: 42 15% 58%;
+    --accent: 35 72% 52%;
+    --accent-foreground: 30 40% 10%;
+    --destructive: 0 60% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 25 20% 22%;
-    --input: 25 20% 22%;
-    --ring: 16 65% 52%;
-    --sidebar-background: 25 30% 8%;
-    --sidebar-foreground: 36 30% 88%;
-    --sidebar-primary: 16 65% 52%;
-    --sidebar-primary-foreground: 36 100% 98%;
-    --sidebar-accent: 25 20% 18%;
-    --sidebar-accent-foreground: 36 30% 88%;
-    --sidebar-border: 25 20% 18%;
-    --sidebar-ring: 16 65% 52%;
+    --border: 30 18% 22%;
+    --input: 30 18% 22%;
+    --ring: 168 40% 48%;
+    --sidebar-background: 30 25% 8%;
+    --sidebar-foreground: 42 30% 86%;
+    --sidebar-primary: 168 40% 48%;
+    --sidebar-primary-foreground: 42 60% 97%;
+    --sidebar-accent: 30 18% 18%;
+    --sidebar-accent-foreground: 42 30% 86%;
+    --sidebar-border: 30 18% 18%;
+    --sidebar-ring: 168 40% 48%;
   }
 }
 
@@ -114,7 +119,7 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3 {
+  h1, h2, h3, h4 {
     font-family: var(--font-display);
   }
 }
@@ -136,23 +141,50 @@
     box-shadow: var(--shadow-hover);
   }
 
+  .shadow-float {
+    box-shadow: var(--shadow-float);
+  }
+
+  .gradient-sky {
+    background: var(--gradient-sky);
+  }
+
+  .gradient-meadow {
+    background: var(--gradient-meadow);
+  }
+
+  .gradient-sunset {
+    background: var(--gradient-sunset);
+  }
+
   .gradient-hero {
-    background: var(--gradient-hero);
+    background: var(--gradient-meadow);
   }
 
   .newsletter-divider {
-    @apply border-t border-border/60 my-6;
+    @apply border-t border-border/50 my-8;
   }
 
   .section-badge {
     @apply inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full;
   }
 
-  .activity-card {
-    @apply bg-card rounded-xl border border-border/60 p-4 transition-all duration-200 hover:shadow-hover;
+  .ghibli-card {
+    background: var(--gradient-card);
+    @apply rounded-2xl border border-border/60 shadow-card transition-all duration-300 hover:shadow-hover;
   }
 
-  .highlighted-box {
-    @apply rounded-xl border-l-4 px-4 py-3;
+  .ghibli-tag {
+    @apply inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full;
+  }
+
+  /* Watercolor texture overlay via pseudo-element */
+  .texture-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='60' height='60' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+    border-radius: inherit;
+    pointer-events: none;
   }
 }
