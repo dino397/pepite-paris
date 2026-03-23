@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, ExternalLink, MapPin, Clock, Ticket, Sparkles, CalendarDays, Plus, X } from "lucide-react";
+import { RefreshCw, ExternalLink, MapPin, Clock, Ticket, Sparkles, CalendarDays, Plus, X, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -686,7 +686,7 @@ function ScrapeBanner({
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
-export default function WeekendNewsletter() {
+export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => void }) {
   const { saturday, sunday } = getNextWeekendDates();
   const weekendLabel = `${formatDate(saturday)} & ${formatDate(sunday)}`;
 
@@ -854,13 +854,24 @@ export default function WeekendNewsletter() {
               </span>
             )}
           </div>
-          <button
-            onClick={handleRefresh}
-            className="mt-1 p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/8 transition-all"
-            title="Actualiser"
-          >
-            <RefreshCw className={`h-4 w-4 transition-transform duration-700 ${spinning ? "rotate-[720deg]" : ""}`} />
-          </button>
+          <div className="flex items-center gap-1 mt-1">
+            <button
+              onClick={handleRefresh}
+              className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/8 transition-all"
+              title="Actualiser"
+            >
+              <RefreshCw className={`h-4 w-4 transition-transform duration-700 ${spinning ? "rotate-[720deg]" : ""}`} />
+            </button>
+            {onSignOut && (
+              <button
+                onClick={async () => { await supabase.auth.signOut(); onSignOut(); }}
+                className="p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-all"
+                title="Se déconnecter"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </header>
 
         {/* ── SCRAPE BANNER ── */}
