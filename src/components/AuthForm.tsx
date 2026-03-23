@@ -39,7 +39,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     <div className="min-h-screen bg-background flex flex-col overflow-hidden">
 
       {/* Illustration — bassin immense qui continue sous la card */}
-      <div className="relative flex-shrink-0" style={{ height: "66vh" }}>
+      <div className="relative flex-shrink-0 overflow-hidden" style={{ height: "66vh" }}>
         <img
           src={pepiteIllustration}
           alt=""
@@ -48,6 +48,58 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           width={1024}
           height={1280}
         />
+
+        {/* Nuages animés superposés — dérivent lentement */}
+        <svg
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ top: 0, left: 0 }}
+          viewBox="0 0 1024 820"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          <style>{`
+            @keyframes drift1 {
+              0%   { transform: translateX(0px); }
+              50%  { transform: translateX(28px); }
+              100% { transform: translateX(0px); }
+            }
+            @keyframes drift2 {
+              0%   { transform: translateX(0px); }
+              50%  { transform: translateX(-20px); }
+              100% { transform: translateX(0px); }
+            }
+            @keyframes drift3 {
+              0%   { transform: translateX(0px); }
+              50%  { transform: translateX(16px); }
+              100% { transform: translateX(0px); }
+            }
+            .cloud1 { animation: drift1 18s ease-in-out infinite; }
+            .cloud2 { animation: drift2 24s ease-in-out infinite; }
+            .cloud3 { animation: drift3 14s ease-in-out infinite; }
+          `}</style>
+
+          {/* Nuage gauche */}
+          <g className="cloud1" opacity="0.55">
+            <ellipse cx="160" cy="68" rx="80" ry="30" fill="#fff5e8"/>
+            <ellipse cx="120" cy="78" rx="55" ry="22" fill="#fdebd0"/>
+            <ellipse cx="200" cy="75" rx="50" ry="20" fill="#fdebd0"/>
+          </g>
+
+          {/* Nuage centre-droite */}
+          <g className="cloud2" opacity="0.45">
+            <ellipse cx="680" cy="50" rx="100" ry="28" fill="#fff5e8"/>
+            <ellipse cx="630" cy="62" rx="65" ry="21" fill="#fdebd0"/>
+            <ellipse cx="740" cy="58" rx="60" ry="20" fill="#fdebd0"/>
+          </g>
+
+          {/* Petit nuage haut droite */}
+          <g className="cloud3" opacity="0.40">
+            <ellipse cx="900" cy="38" rx="70" ry="22" fill="#fff5e8"/>
+            <ellipse cx="860" cy="48" rx="48" ry="17" fill="#fdebd0"/>
+            <ellipse cx="950" cy="44" rx="44" ry="16" fill="#fdebd0"/>
+          </g>
+        </svg>
+
         {/* Fondu très progressif — le bassin reste perceptible en dessous */}
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/70 to-transparent" />
       </div>
