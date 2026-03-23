@@ -37,6 +37,7 @@ export interface Activity {
   badge?: string;
   cinemas?: Cinema[];
   poster_url?: string;
+  google_maps_url?: string;
 }
 
 export interface FutureEvent {
