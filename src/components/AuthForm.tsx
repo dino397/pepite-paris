@@ -58,8 +58,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         {/* Brand — Cormorant Garamond, intemporel */}
         <div className="text-center mb-6">
           <h1
-            className="text-[62px] leading-none mb-2 text-foreground"
-            style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: "italic", letterSpacing: "-0.01em" }}
+            className="text-[64px] leading-none mb-3 text-foreground"
+            style={{
+              fontFamily: "'Fraunces', Georgia, serif",
+              fontWeight: 300,
+              fontStyle: "normal",
+              letterSpacing: "0.04em",
+              fontVariationSettings: "'opsz' 72, 'SOFT' 100, 'WONK' 0"
+            }}
           >
             Pépite
           </h1>
