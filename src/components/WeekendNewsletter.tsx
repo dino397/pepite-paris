@@ -863,7 +863,7 @@ export default function WeekendNewsletter() {
               <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
             ) : (
               <div className="space-y-3">
-                {cinemaActivities.slice(0, 2).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
+                {cinemaActivities.slice(0, 2).map((a) => <GhibliActivityCardWithCinemas key={a.id} activity={a} />)}
               </div>
             )}
           </section>
