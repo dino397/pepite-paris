@@ -370,12 +370,20 @@ function parseMins(s: string | undefined | null): number {
   return m ? parseInt(m[1], 10) : Infinity;
 }
 
-/** Returns the fastest travel option among walk/bike/car */
+/** Priority: walk ≤12 min → walk / bike ≤25 min → bike / else fastest */
 function fastestTravel(activity: Activity): { emoji: string; label: string } | null {
+  const walk = parseMins(activity.travel_walk);
+  const bike = parseMins(activity.travel_bike);
+  const car  = parseMins(activity.travel_car);
+
+  if (walk <= 12) return { emoji: "🚶", label: activity.travel_walk! };
+  if (bike <= 25)  return { emoji: "🚲", label: activity.travel_bike! };
+
+  // fallback: fastest among remaining options
   const options = [
-    { emoji: "🚶", label: activity.travel_walk, mins: parseMins(activity.travel_walk) },
-    { emoji: "🚲", label: activity.travel_bike, mins: parseMins(activity.travel_bike) },
-    { emoji: "🚗", label: activity.travel_car, mins: parseMins(activity.travel_car) },
+    { emoji: "🚶", label: activity.travel_walk, mins: walk },
+    { emoji: "🚲", label: activity.travel_bike, mins: bike },
+    { emoji: "🚗", label: activity.travel_car,  mins: car  },
   ].filter((o) => o.mins < Infinity);
   if (!options.length) return null;
   const best = options.reduce((a, b) => (a.mins <= b.mins ? a : b));
