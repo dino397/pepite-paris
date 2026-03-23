@@ -156,17 +156,21 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden">
 
-      {/* Top illustration — smaller strip */}
-      <div className="relative flex-shrink-0" style={{ height: "28vh", minHeight: "160px" }}>
-        <img
-          src={pepiteIllustration}
-          alt=""
-          aria-hidden="true"
-          className="w-full h-full object-cover object-top"
-          width={1024}
-          height={1280}
-        />
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
+      {/* Top illustration — changes per step */}
+      <div className="relative flex-shrink-0 overflow-hidden" style={{ height: "32vh", minHeight: "180px" }}>
+        {[pepiteIllustration, onboardingTheatre, onboardingCinema, onboardingAquarium, onboardingExpo].map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt=""
+            aria-hidden="true"
+            loading={i === 0 ? undefined : "lazy"}
+            className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-700 ${step === i ? "opacity-100" : "opacity-0"}`}
+            width={1024}
+            height={1280}
+          />
+        ))}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
       {/* Brand */}
