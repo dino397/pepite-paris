@@ -368,10 +368,30 @@ function googleMapsUrl(location: string, arrondissement: string): string {
   return `https://maps.google.com/?q=${query}`;
 }
 
+/** Parse "X min" → X minutes as number, or Infinity if missing */
+function parseMins(s: string | undefined | null): number {
+  if (!s) return Infinity;
+  const m = s.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : Infinity;
+}
+
+/** Returns the fastest travel option among walk/bike/car */
+function fastestTravel(activity: Activity): { emoji: string; label: string } | null {
+  const options = [
+    { emoji: "🚶", label: activity.travel_walk, mins: parseMins(activity.travel_walk) },
+    { emoji: "🚲", label: activity.travel_bike, mins: parseMins(activity.travel_bike) },
+    { emoji: "🚗", label: activity.travel_car, mins: parseMins(activity.travel_car) },
+  ].filter((o) => o.mins < Infinity);
+  if (!options.length) return null;
+  const best = options.reduce((a, b) => (a.mins <= b.mins ? a : b));
+  return { emoji: best.emoji, label: best.label! };
+}
+
 function GhibliActivityCard({ activity, reco = false }: { activity: Activity; reco?: boolean }) {
   const cat = CAT_CONFIG[activity.category] ?? CAT_CONFIG.activite;
   const showPoster = SHOW_POSTER_CATEGORIES.has(activity.category) && activity.poster_url;
   const mapsUrl = activity.google_maps_url || (activity.location ? googleMapsUrl(activity.location, activity.arrondissement) : null);
+  const travel = fastestTravel(activity);
 
   return (
     <div
@@ -388,7 +408,7 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
         <div className="flex-shrink-0 w-28 bg-muted overflow-hidden">
           <img
             src={activity.poster_url}
-            alt={`Affiche ${activity.title}`}
+            alt={`Visuel ${activity.title}`}
             className="w-full h-full object-cover object-center"
             loading="lazy"
             onError={(e) => {
@@ -455,8 +475,10 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
               <ExternalLink className="h-2.5 w-2.5 ml-0.5 opacity-60" />
             </a>
           )}
-          {activity.travel_walk && (
-            <span className="flex items-center gap-0.5">🚶 {activity.travel_walk}</span>
+          {travel && (
+            <span className="flex items-center gap-0.5 font-medium">
+              {travel.emoji} {travel.label}
+            </span>
           )}
           {activity.duration && (
             <span className="flex items-center gap-0.5 ml-auto">
@@ -474,13 +496,6 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
             </a>
           )}
         </div>
-
-        {/* Cinema sub-cards */}
-        {activity.cinemas && activity.cinemas.length > 0 && (
-          <div className="hidden">
-            {/* cinemas shown separately below card */}
-          </div>
-        )}
       </div>
     </div>
   );
