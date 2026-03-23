@@ -58,6 +58,9 @@ import posterChaperonRouge from "@/assets/poster-chaperon-rouge.jpg";
 import posterDigitalAbysse from "@/assets/poster-digital-abysse.jpg";
 import posterRenaissance from "@/assets/poster-renaissance.jpg";
 import posterPhilharmonie from "@/assets/poster-philharmonie.jpg";
+import posterSmileWorld from "@/assets/poster-smile-world.jpg";
+import posterPeintureFluo from "@/assets/poster-peinture-fluo.jpg";
+import posterCiteEnfants from "@/assets/poster-cite-enfants.jpg";
 
 export const mockActivities: Activity[] = [
   {
