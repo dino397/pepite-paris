@@ -89,6 +89,7 @@ interface DbActivity {
   cinema_url: string | null;
   date_start: string | null;
   date_end: string | null;
+  poster_url: string | null;
 }
 
 function dbRowToActivity(row: DbActivity, index: number): Activity {
@@ -108,6 +109,7 @@ function dbRowToActivity(row: DbActivity, index: number): Activity {
     is_exceptional: row.is_exceptional ?? false,
     is_future: false,
     badge: row.badge ?? undefined,
+    poster_url: row.poster_url ?? undefined,
     cinemas: row.cinema_name
       ? [{ name: row.cinema_name, url: row.cinema_url ?? "", arrondissement: row.arrondissement ?? "", travel_walk: row.travel_walk ?? "", showtimes: row.showtimes ?? "" }]
       : undefined,
