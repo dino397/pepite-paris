@@ -547,6 +547,46 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 </label>
               </div>
 
+              {/* Family members newsletter */}
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+                  👨‍👩‍👧 Autres membres de la famille
+                </p>
+                {familyMembers.map((member, i) => (
+                  <div key={i} className="flex gap-2 items-center bg-muted/40 rounded-2xl px-3 py-2.5">
+                    <Input
+                      value={member.name}
+                      onChange={(e) => updateFamilyMember(i, "name", e.target.value)}
+                      placeholder="Prénom"
+                      className="flex-1 h-9 bg-background/70 border-border/50 rounded-xl px-3 text-sm min-w-0"
+                    />
+                    <div className="relative flex-[2] min-w-0">
+                      <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 pointer-events-none" />
+                      <Input
+                        type="email"
+                        value={member.email}
+                        onChange={(e) => updateFamilyMember(i, "email", e.target.value)}
+                        placeholder="Email"
+                        className="h-9 bg-background/70 border-border/50 rounded-xl pl-7 pr-2 text-sm w-full"
+                      />
+                    </div>
+                    <button
+                      onClick={() => removeFamilyMember(i)}
+                      className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addFamilyMember}
+                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium pl-1"
+                >
+                  <Plus className="h-4 w-4" /> Ajouter un membre de la famille
+                </button>
+              </div>
+
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setStep(3)} className="flex-1 h-11 rounded-2xl border border-border/60 text-sm font-medium text-muted-foreground hover:text-foreground transition-all">
                   Retour
