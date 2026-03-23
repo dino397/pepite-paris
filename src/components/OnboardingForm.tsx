@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronRight, Heart, MapPin } from "lucide-react";
+import { Plus, Trash2, ChevronRight, Sparkles, MapPin, Mail } from "lucide-react";
 import onboardingExpo from "@/assets/onboarding-expo.png";
 import onboardingTheatre from "@/assets/onboarding-theatre.png";
 import onboardingCinema from "@/assets/onboarding-cinema.png";
@@ -32,19 +32,6 @@ interface OnboardingFormProps {
   onComplete: () => void;
 }
 
-const PREFERENCES = [
-  { label: "🎬 Cinéma", value: "cinéma" },
-  { label: "🏛️ Musées", value: "musées" },
-  { label: "🌳 Nature", value: "nature" },
-  { label: "🎭 Spectacles", value: "spectacles" },
-  { label: "🎨 Arts créatifs", value: "arts créatifs" },
-  { label: "⚽ Sport", value: "sport" },
-  { label: "📚 Livres & Bibliothèques", value: "bibliothèques" },
-  { label: "🍳 Cuisine", value: "cuisine" },
-  { label: "🎮 Jeux", value: "jeux" },
-  { label: "🏖️ Plein air", value: "plein air" },
-];
-
 const TRANSPORT_OPTIONS = [
   { label: "🚶 À pied", value: "pied" },
   { label: "🚲 Vélo", value: "vélo" },
@@ -73,16 +60,16 @@ const WEEKEND_ACTIVITIES = [
   { label: "🎭 Spectacle ou théâtre", value: "spectacle" },
 ];
 
-const STEPS = ["Bienvenue", "Vos enfants", "Mobilité", "Ce week-end", "Vos envies"];
-const STEP_EMOJIS = ["🗼", "👶", "🚀", "🗓️", "❤️"];
+const STEPS = ["Bienvenue", "Vos enfants", "Mobilité", "Ce week-end", "C'est parti !"];
+const STEP_EMOJIS = ["🗼", "👶", "🚀", "🗓️", "✨"];
 const STEP_SUBTITLES = [
   "Pour personnaliser Pépite à votre famille",
   "Pour adapter les activités à leur âge",
   "Pour vous proposer des activités accessibles",
   "Choisissez 4 activités que vous adoreriez faire",
-  "Quelles activités vous plaisent le plus ?",
+  "Vous êtes presque là !",
 ];
-const STEP_TITLES = ["Bienvenue !", "Vos enfants", "Votre mobilité", "Ce week-end…", "Vos envies"];
+const STEP_TITLES = ["Bienvenue !", "Vos enfants", "Votre mobilité", "Ce week-end…", "C'est parti !"];
 
 const GENDER_OPTIONS = [
   { label: "👦 Garçon", value: "garçon" },
@@ -102,10 +89,11 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const [children, setChildren] = useState<Child[]>([{ name: "", age_years: "", gender: "" }]);
-  const [preferences, setPreferences] = useState<string[]>([]);
   const [transportModes, setTransportModes] = useState<string[]>([]);
   const [maxTravelMinutes, setMaxTravelMinutes] = useState<number>(30);
   const [weekendPicks, setWeekendPicks] = useState<string[]>([]);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterOptIn, setNewsletterOptIn] = useState(true);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -128,7 +116,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   }, [addressQuery]);
 
   const selectAddress = (result: NominatimResult) => {
-    const { road, house_number, city: c, town, village, postcode } = result.address;
+    const { road, house_number, city: c, town, village } = result.address;
     const street = [house_number, road].filter(Boolean).join(" ");
     const detectedCity = c || town || village || "";
     setAddress(street || result.display_name.split(",")[0]);
@@ -144,9 +132,6 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
     updated[i] = { ...updated[i], [field]: value };
     setChildren(updated);
   };
-
-  const togglePref = (val: string) =>
-    setPreferences((prev) => prev.includes(val) ? prev.filter((p) => p !== val) : [...prev, val]);
 
   const toggleTransport = (val: string) =>
     setTransportModes((prev) => prev.includes(val) ? prev.filter((p) => p !== val) : [...prev, val]);
@@ -169,7 +154,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
           parent_name: parentName,
           city,
           postal_code: address,
-          preferences,
+          preferences: weekendPicks,
           transport_modes: transportModes,
           max_travel_minutes: maxTravelMinutes,
           weekend_picks: weekendPicks,
@@ -192,7 +177,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
         if (childrenError) throw childrenError;
       }
 
-      toast.success("Profil créé ! Votre newsletter est prête 🎉");
+      toast.success("Bienvenue sur Pépite ! 🎉");
       onComplete();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erreur lors de la sauvegarde";
@@ -504,24 +489,57 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
             </div>
           )}
 
-          {/* Step 4 */}
+          {/* Step 4 — Newsletter & CTA final */}
           {step === 4 && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {PREFERENCES.map((pref) => (
+            <div className="space-y-5">
+              {/* Value props */}
+              <div className="space-y-2.5">
+                <div className="flex items-start gap-3 bg-muted/40 rounded-2xl px-4 py-3">
+                  <span className="text-lg shrink-0">📱</span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Accès aux pépites</p>
+                    <p className="text-xs text-muted-foreground leading-snug mt-0.5">Retrouvez toutes vos activités personnalisées sur l'app et le site, quand vous voulez.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-muted/40 rounded-2xl px-4 py-3">
+                  <span className="text-lg shrink-0">📩</span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Newsletter du week-end</p>
+                    <p className="text-xs text-muted-foreground leading-snug mt-0.5">Recevez chaque vendredi vos meilleures idées d'activités, adaptées à la météo et à vos enfants.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Newsletter opt-in */}
+              <div className="space-y-2">
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
+                  <Input
+                    type="email"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    placeholder="Votre email pour la newsletter"
+                    className="h-11 bg-background/70 border-border/50 rounded-2xl pl-9 pr-4 text-sm placeholder:text-muted-foreground/50"
+                  />
+                </div>
+                <label className="flex items-center gap-2.5 cursor-pointer px-1">
                   <button
-                    key={pref.value}
-                    onClick={() => togglePref(pref.value)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
-                      preferences.includes(pref.value)
-                        ? "gradient-meadow text-primary-foreground border-primary"
-                        : "bg-background/70 text-foreground border-border/50 hover:border-primary"
+                    type="button"
+                    role="checkbox"
+                    aria-checked={newsletterOptIn}
+                    onClick={() => setNewsletterOptIn(!newsletterOptIn)}
+                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
+                      newsletterOptIn ? "gradient-meadow border-primary" : "border-border/60 bg-background/70"
                     }`}
                   >
-                    {pref.label}
+                    {newsletterOptIn && <span className="text-primary-foreground text-[10px] font-bold">✓</span>}
                   </button>
-                ))}
+                  <span className="text-xs text-muted-foreground leading-snug">
+                    Je veux recevoir la newsletter Pépite chaque vendredi 🌿
+                  </span>
+                </label>
               </div>
+
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setStep(3)} className="flex-1 h-11 rounded-2xl border border-border/60 text-sm font-medium text-muted-foreground hover:text-foreground transition-all">
                   Retour
@@ -529,12 +547,12 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 <button
                   onClick={handleFinish}
                   disabled={loading}
-                  className="flex-[2] h-11 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
+                  className="flex-[2] h-12 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 shadow-md"
                 >
                   {loading ? (
                     <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                   ) : (
-                    <><Heart className="h-4 w-4" /> Créer ma newsletter</>
+                    <><Sparkles className="h-4 w-4" /> Découvrir mes pépites</>
                   )}
                 </button>
               </div>
