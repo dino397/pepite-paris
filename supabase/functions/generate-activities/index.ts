@@ -27,7 +27,7 @@ serve(async (req) => {
     if (userError || !user) throw new Error("Unauthorized");
 
     const body = await req.json();
-    const { weatherData, forceRegenerate } = body;
+    const { weatherData, forceRegenerate, categoryToRefresh } = body;
 
     const { data: profile } = await supabase
       .from("family_profiles")
@@ -97,6 +97,10 @@ serve(async (req) => {
 
     const systemPrompt = `Tu es un assistant expert en activités famille en France. Tu génères des suggestions d'activités concrètes, réalistes et disponibles dans la ville mentionnée, adaptées aux âges des enfants et à la météo. Tu réponds UNIQUEMENT en JSON valide. Pas de markdown, pas d'explications.`;
 
+    const categoryInstruction = categoryToRefresh
+      ? `IMPORTANT: Génère UNIQUEMENT des activités de catégorie "${categoryToRefresh}" (différentes de celles habituelles). Le reste du JSON doit quand même être valide mais avec 0 activités dans les autres catégories pour weekend.activities. Génère 2 activités de catégorie "${categoryToRefresh}".`
+      : "";
+
     const userPrompt = `Génère des activités famille pour le week-end du ${formatDate(saturday)} & ${formatDate(sunday)}.
 
 FAMILLE:
@@ -109,6 +113,8 @@ ${weekendPicksDesc ? `- Activités souhaitées ce week-end: ${weekendPicksDesc}`
 
 MÉTÉO DU WEEK-END: ${weatherDesc}
 
+${categoryInstruction}
+
 Génère exactement ce JSON:
 {
   "weekend": {
@@ -119,13 +125,13 @@ Génère exactement ce JSON:
         "id": "unique_id",
         "title": "Nom de l'activité",
         "emoji": "🎯",
-        "category": "sortie | maison | culture | sport | créatif | spectacle",
+        "category": "sortie | maison | culture | sport | créatif | spectacle | cinema | expo | activite",
         "age_min": 3,
         "age_max": 12,
         "duration": "2h",
         "distance_km": 5,
         "transport": ["voiture"],
-        "description": "Description engageante de l'activité en 2 phrases. Pourquoi c'est top pour cette famille.",
+        "description": "Description engageante. Pour les activités highlighted=true: 3 phrases détaillées expliquant pourquoi c'est la pépite de la semaine et en quoi elle convient à CHACUN des enfants nommés (${childrenDesc}). Pour les autres: 2 phrases suffisent.",
         "practical_info": "Infos pratiques: adresse indicative, tarifs, horaires types",
         "requires_booking": false,
         "booking_url": null,
@@ -158,14 +164,14 @@ Génère exactement ce JSON:
 }
 
 RÈGLES ABSOLUES:
-- 6 activités dans weekend.activities (mix indoor/outdoor selon météo)
+- 6 activités dans weekend.activities (mix indoor/outdoor selon météo, catégories variées: cinema, expo, activite, sortie, maison, culture...)
 - Si pluie ou <12°C: au moins 4 activités indoor
 - Si beau temps: au moins 4 activités outdoor
 - 3 activités dans prebooking.activities (spectacles, ateliers, cinema... qui se réservent à l'avance)
 - Toutes les activités doivent être RÉALISTES et accessibles depuis ${profile.city}
 - Respecter le transport disponible (${transportDesc}) et le trajet max (${maxTravelDesc})
 - Adapter aux âges: ${childrenDesc}
-- highlighted: true pour 1-2 coups de coeur
+- highlighted: true pour exactement 1 activité "Pépite de la semaine" — elle doit convenir à TOUS les enfants et sa description doit être en 3 phrases nommant chaque enfant
 - JSON valide uniquement, aucun autre texte`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
