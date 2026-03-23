@@ -50,6 +50,15 @@ export interface FutureEvent {
   age: string;
 }
 
+import posterPerduRetrouve from "@/assets/poster-perdu-retrouve.jpg";
+import posterLoups from "@/assets/poster-loups.jpg";
+import posterPirouette from "@/assets/poster-pirouette.jpg";
+import posterArbreSansFin from "@/assets/poster-arbre-sans-fin.jpg";
+import posterChaperonRouge from "@/assets/poster-chaperon-rouge.jpg";
+import posterDigitalAbysse from "@/assets/poster-digital-abysse.jpg";
+import posterRenaissance from "@/assets/poster-renaissance.jpg";
+import posterPhilharmonie from "@/assets/poster-philharmonie.jpg";
+
 export const mockActivities: Activity[] = [
   {
     id: 1,
@@ -67,7 +76,7 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     badge: "dessin animé · 45 min",
-    poster_url: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=300&h=420&fit=crop",
+    poster_url: posterPerduRetrouve,
     cinemas: [
       { name: "MK2 Odéon", url: "https://www.mk2.com/salle/mk2-odeon", arrondissement: "6ème", travel_walk: "12 min", showtimes: "Sam 10h15 / Dim 10h30" },
       { name: "Les Ursulines", url: "https://www.studiodesursulines.com", arrondissement: "5ème", travel_walk: "15 min", showtimes: "Dim 11h" }
@@ -89,7 +98,7 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     badge: "dessin animé · 50 min",
-    poster_url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300&h=420&fit=crop",
+    poster_url: posterLoups,
     cinemas: [
       { name: "Escurial", url: "https://www.cinema-escurial.fr", arrondissement: "13ème", travel_walk: "25 min", showtimes: "Dim 11h" },
       { name: "MK2 Beaubourg", url: "https://www.mk2.com/salle/mk2-beaubourg", arrondissement: "3ème", travel_walk: "22 min", showtimes: "Sam 10h" }
@@ -110,7 +119,7 @@ export const mockActivities: Activity[] = [
     travel_car: "10 min",
     is_exceptional: false,
     is_future: false,
-    poster_url: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=300&h=420&fit=crop",
+    poster_url: posterPirouette,
   },
   {
     id: 4,
@@ -127,7 +136,7 @@ export const mockActivities: Activity[] = [
     travel_car: "3 min",
     is_exceptional: true,
     is_future: false,
-    poster_url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=420&fit=crop",
+    poster_url: posterArbreSansFin,
   },
   {
     id: 5,
@@ -144,7 +153,7 @@ export const mockActivities: Activity[] = [
     travel_car: "13 min",
     is_exceptional: false,
     is_future: false,
-    poster_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=420&fit=crop",
+    poster_url: posterChaperonRouge,
   },
   {
     id: 6,
@@ -155,13 +164,13 @@ export const mockActivities: Activity[] = [
     location: "Musée en Herbe",
     arrondissement: "1er",
     duration: "~1h30",
-    booking_url: "https://www.musee-en-herbe.com/agenda",
+    booking_url: "https://www.musee-en-herbe.com/digital-abysses",
     travel_walk: "22 min",
     travel_bike: "9 min",
     travel_car: "12 min",
     is_exceptional: false,
     is_future: false,
-    poster_url: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=300&h=420&fit=crop",
+    poster_url: posterDigitalAbysse,
   },
   {
     id: 7,
@@ -178,7 +187,7 @@ export const mockActivities: Activity[] = [
     travel_car: "18 min",
     is_exceptional: true,
     is_future: false,
-    poster_url: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=300&h=420&fit=crop",
+    poster_url: posterRenaissance,
   },
   {
     id: 8,
@@ -195,7 +204,7 @@ export const mockActivities: Activity[] = [
     travel_car: "22 min",
     is_exceptional: false,
     is_future: false,
-    poster_url: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=300&h=420&fit=crop",
+    poster_url: posterPhilharmonie,
   },
   {
     id: 9,
