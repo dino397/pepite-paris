@@ -58,14 +58,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         {/* Brand — Cormorant Garamond, intemporel */}
         <div className="text-center mb-6">
           <h1
-            className="text-[58px] leading-none mb-2 tracking-wide text-foreground"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, letterSpacing: "0.08em" }}
+            className="text-[62px] leading-none mb-2 text-foreground"
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: "italic", letterSpacing: "-0.01em" }}
           >
             Pépite
           </h1>
           <p
-            className="text-xs text-muted-foreground/70 tracking-widest uppercase max-w-[240px] mx-auto"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: "0.18em" }}
+            className="text-[11px] text-muted-foreground/60 tracking-widest uppercase max-w-[240px] mx-auto"
+            style={{ fontFamily: "'Nunito', sans-serif", letterSpacing: "0.22em" }}
           >
             activités du week-end en famille
           </p>
