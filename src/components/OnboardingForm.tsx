@@ -94,7 +94,14 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   const [weekendPicks, setWeekendPicks] = useState<string[]>([]);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
+  const [familyMembers, setFamilyMembers] = useState<{ name: string; email: string }[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const addFamilyMember = () => setFamilyMembers((prev) => [...prev, { name: "", email: "" }]);
+  const removeFamilyMember = (i: number) => setFamilyMembers((prev) => prev.filter((_, idx) => idx !== i));
+  const updateFamilyMember = (i: number, field: "name" | "email", value: string) => {
+    setFamilyMembers((prev) => prev.map((m, idx) => idx === i ? { ...m, [field]: value } : m));
+  };
 
   useEffect(() => {
     if (addressQuery.length < 3) { setAddressSuggestions([]); return; }
