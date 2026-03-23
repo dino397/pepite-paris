@@ -242,7 +242,16 @@ Assure-toi que:
       content: parsedContent,
     }, { onConflict: "user_id,week_key" });
 
-    return new Response(JSON.stringify({ content: parsedContent, fromCache: false }), {
+    // Log subscribers who will receive the newsletter
+    if (subscribers.length > 0) {
+      console.log(`Newsletter generated for ${subscribers.length} subscriber(s): ${subscribers.map((s) => `${s.name || "?"} <${s.email}>`).join(", ")}`);
+    }
+
+    return new Response(JSON.stringify({
+      content: parsedContent,
+      fromCache: false,
+      subscribers: subscribers.map((s) => ({ name: s.name, email: s.email })),
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
