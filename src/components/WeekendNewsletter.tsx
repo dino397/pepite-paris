@@ -90,6 +90,7 @@ interface DbActivity {
   date_start: string | null;
   date_end: string | null;
   poster_url: string | null;
+  source_url: string | null;
 }
 
 function dbRowToActivity(row: DbActivity, index: number): Activity {
@@ -360,121 +361,161 @@ function WeekendPlanSection({
 
 // ─── ACTIVITY CARD (Ghibli style) ─────────────────────────────────────────────
 
-const SHOW_POSTER_CATEGORIES = new Set(["cinema", "theatre", "expo"]);
+const SHOW_POSTER_CATEGORIES = new Set(["cinema", "theatre", "expo", "activite"]);
+
+function googleMapsUrl(location: string, arrondissement: string): string {
+  const query = encodeURIComponent(`${location} Paris ${arrondissement}`);
+  return `https://maps.google.com/?q=${query}`;
+}
 
 function GhibliActivityCard({ activity, reco = false }: { activity: Activity; reco?: boolean }) {
   const cat = CAT_CONFIG[activity.category] ?? CAT_CONFIG.activite;
   const showPoster = SHOW_POSTER_CATEGORIES.has(activity.category) && activity.poster_url;
+  const mapsUrl = activity.google_maps_url || (activity.location ? googleMapsUrl(activity.location, activity.arrondissement) : null);
 
   return (
     <div
-      className={`ghibli-card group relative ${
+      className={`ghibli-card group relative overflow-hidden flex flex-row h-[160px] ${
         reco ? "border-ghibli-gold/40 ring-1 ring-ghibli-gold/20" : ""
-      } ${showPoster ? "p-0 overflow-hidden" : ""}`}
+      }`}
     >
       {reco && (
         <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
       )}
 
-      <div className="flex flex-row items-stretch">
-        {/* Poster — side column, natural proportions, no crop */}
-        {showPoster && (
-          <div className="flex-shrink-0 w-28 self-stretch bg-muted">
-            <img
-              src={activity.poster_url}
-              alt={`Affiche ${activity.title}`}
-              className="w-full h-full object-cover object-center"
-              loading="lazy"
-              onError={(e) => {
-                const el = e.currentTarget as HTMLImageElement;
-                el.parentElement!.style.display = "none";
-              }}
-            />
+      {/* Poster — fixed side column */}
+      {showPoster && (
+        <div className="flex-shrink-0 w-28 bg-muted overflow-hidden">
+          <img
+            src={activity.poster_url}
+            alt={`Affiche ${activity.title}`}
+            className="w-full h-full object-cover object-center"
+            loading="lazy"
+            onError={(e) => {
+              const el = e.currentTarget as HTMLImageElement;
+              el.parentElement!.style.display = "none";
+            }}
+          />
+        </div>
+      )}
+
+      {/* No poster: emoji icon */}
+      {!showPoster && (
+        <div className={`flex-shrink-0 w-14 flex items-center justify-center ${cat.bgClass}`}>
+          <span className="text-3xl">{cat.emoji}</span>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 p-3 flex flex-col justify-between overflow-hidden">
+        {/* Top: title + tags */}
+        <div>
+          <div className="flex items-start gap-1.5 flex-wrap mb-1">
+            <h3 className="font-display font-bold text-foreground text-sm leading-snug">
+              {activity.title}
+              {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
+            </h3>
           </div>
-        )}
-
-        <div className={`flex-1 min-w-0 p-4 space-y-3 ${showPoster ? "" : ""}`}>
-          <div className="flex items-start gap-3">
-            {!showPoster && (
-              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 ${cat.bgClass}`}>
-                {cat.emoji}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start gap-2 flex-wrap">
-                <h3 className="font-display font-bold text-foreground leading-snug flex-1">
-                  {activity.title}
-                  {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
-                </h3>
-              </div>
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                <span className={`ghibli-tag border text-[11px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
-                  {showPoster && <span className="mr-0.5">{cat.emoji}</span>}{cat.label}
-                </span>
-                {activity.badge && (
-                  <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[11px]">
-                    {activity.badge}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{activity.description}</p>
-
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            {activity.arrondissement && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> {activity.arrondissement}
-                {activity.travel_walk && ` · 🚶 ${activity.travel_walk}`}
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            <span className={`ghibli-tag border text-[10px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
+              {cat.label}
+            </span>
+            {activity.badge && (
+              <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[10px]">
+                {activity.badge}
               </span>
             )}
-            {activity.duration && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> {activity.duration}
-              </span>
-            )}
-            {activity.booking_url && activity.booking_url !== "#" && (
-              <a
-                href={activity.booking_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-auto flex items-center gap-1 text-primary font-semibold hover:underline"
-              >
-                <Ticket className="h-3 w-3" /> Réserver <ExternalLink className="h-2.5 w-2.5" />
-              </a>
-            )}
           </div>
+          {/* Description — exactly 2 lines */}
+          <p
+            className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              minHeight: "calc(2 * 1.45em)",
+            }}
+          >
+            {activity.description}
+          </p>
+        </div>
 
-          {/* Cinema sub-cards */}
-          {activity.cinemas && activity.cinemas.length > 0 && (
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              {activity.cinemas.map((c) => (
-                <div key={c.name} className="rounded-xl bg-ghibli-sky/8 border border-ghibli-sky/20 p-2.5 text-xs space-y-1">
-                  <a
-                    href={c.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold text-primary hover:underline block leading-tight"
-                  >
-                    {c.name}
-                  </a>
-                  <div className="text-muted-foreground">📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
-                  <div className="text-muted-foreground">🗓️ {c.showtimes}</div>
-                  <a
-                    href={c.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-primary hover:underline"
-                  >
-                    🔗 Billets
-                  </a>
-                </div>
-              ))}
-            </div>
+        {/* Bottom: meta row */}
+        <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap mt-1">
+          {activity.location && (
+            <a
+              href={mapsUrl ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-0.5 hover:text-primary hover:underline transition-colors font-medium"
+              title="Ouvrir dans Google Maps"
+            >
+              <MapPin className="h-3 w-3 flex-shrink-0" />
+              <span>{activity.location}{activity.arrondissement ? ` · ${activity.arrondissement}` : ""}</span>
+              <ExternalLink className="h-2.5 w-2.5 ml-0.5 opacity-60" />
+            </a>
+          )}
+          {activity.travel_walk && (
+            <span className="flex items-center gap-0.5">🚶 {activity.travel_walk}</span>
+          )}
+          {activity.duration && (
+            <span className="flex items-center gap-0.5 ml-auto">
+              <Clock className="h-3 w-3" /> {activity.duration}
+            </span>
+          )}
+          {activity.booking_url && activity.booking_url !== "#" && (
+            <a
+              href={activity.booking_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-0.5 text-primary font-semibold hover:underline"
+            >
+              <Ticket className="h-3 w-3" /> Réserver
+            </a>
           )}
         </div>
+
+        {/* Cinema sub-cards */}
+        {activity.cinemas && activity.cinemas.length > 0 && (
+          <div className="hidden">
+            {/* cinemas shown separately below card */}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+function GhibliActivityCardWithCinemas({ activity, reco = false }: { activity: Activity; reco?: boolean }) {
+  return (
+    <div className="space-y-2">
+      <GhibliActivityCard activity={activity} reco={reco} />
+      {activity.cinemas && activity.cinemas.length > 0 && (
+        <div className="grid grid-cols-2 gap-2 pl-1">
+          {activity.cinemas.map((c) => (
+            <div key={c.name} className="rounded-xl bg-ghibli-sky/8 border border-ghibli-sky/20 p-2.5 text-xs space-y-1">
+              <a
+                href={c.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-primary hover:underline block leading-tight"
+              >
+                {c.name}
+              </a>
+              <div className="text-muted-foreground">📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
+              <div className="text-muted-foreground">🗓️ {c.showtimes}</div>
+              <a
+                href={c.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-primary hover:underline"
+              >
+                🔗 Billets
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -485,7 +526,7 @@ function RecoCard({ activity }: { activity: Activity }) {
   return (
     <div className="space-y-3">
       <SectionTitle emoji="✨">Coup de cœur de la semaine</SectionTitle>
-      <GhibliActivityCard activity={activity} reco />
+      <GhibliActivityCardWithCinemas activity={activity} reco />
     </div>
   );
 }
@@ -495,20 +536,29 @@ function RecoCard({ activity }: { activity: Activity }) {
 function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
   return (
     <div className="rounded-3xl bg-ghibli-gold/8 border border-ghibli-gold/20 p-5 space-y-5">
+
+      {/* Next weekend — same card format */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-3">
           Week-end du {mockFutureWeekend.label}
         </p>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {mockFutureWeekend.events.map((e, i) => (
-            <div key={i} className="flex items-center gap-2 text-sm">
-              <span className="text-ghibli-earth font-semibold">{e.title}</span>
-              <span className="text-muted-foreground text-xs">· 📍 {e.location} · 🗓️ {e.day} {e.time}</span>
+            <div
+              key={i}
+              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 flex items-start gap-3 hover:shadow-sm transition-shadow"
+            >
+              <span className="text-xl flex-shrink-0 mt-0.5">{e.emoji}</span>
+              <div className="min-w-0">
+                <p className="font-display font-bold text-foreground text-sm leading-snug mb-1">{e.title}</p>
+                <p className="text-xs text-muted-foreground">📍 {e.location} · 🗓️ {e.day} {e.time}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Pre-booking — same card format */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-3">
           À pré-réserver dès maintenant
@@ -517,10 +567,25 @@ function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
           {futureEvents.map((evt) => (
             <div
               key={evt.id}
-              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 space-y-2 hover:shadow-card transition-shadow"
+              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 flex flex-col justify-between gap-2 hover:shadow-sm transition-shadow min-h-[130px]"
             >
-              <p className="font-display font-bold text-foreground text-sm leading-snug">{evt.title}</p>
-              <p className="text-xs text-muted-foreground line-clamp-2">{evt.description}</p>
+              <div className="flex items-start gap-3">
+                <span className="text-xl flex-shrink-0 mt-0.5">{evt.emoji}</span>
+                <div className="min-w-0">
+                  <p className="font-display font-bold text-foreground text-sm leading-snug mb-1">{evt.title}</p>
+                  <p
+                    className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      minHeight: "calc(2 * 1.45em)",
+                    }}
+                  >
+                    {evt.description}
+                  </p>
+                </div>
+              </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                 <span>📍 {evt.arrondissement}</span>
                 <span>🗓️ {evt.date}</span>
@@ -798,7 +863,7 @@ export default function WeekendNewsletter() {
               <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
             ) : (
               <div className="space-y-3">
-                {cinemaActivities.slice(0, 2).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
+                {cinemaActivities.slice(0, 2).map((a) => <GhibliActivityCardWithCinemas key={a.id} activity={a} />)}
               </div>
             )}
           </section>

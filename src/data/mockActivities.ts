@@ -37,10 +37,12 @@ export interface Activity {
   badge?: string;
   cinemas?: Cinema[];
   poster_url?: string;
+  google_maps_url?: string;
 }
 
 export interface FutureEvent {
   id: number;
+  emoji: string;
   title: string;
   description: string;
   date: string;
@@ -50,6 +52,7 @@ export interface FutureEvent {
   age: string;
 }
 
+
 import posterPerduRetrouve from "@/assets/poster-perdu-retrouve.jpg";
 import posterLoups from "@/assets/poster-loups.jpg";
 import posterPirouette from "@/assets/poster-pirouette.jpg";
@@ -58,13 +61,16 @@ import posterChaperonRouge from "@/assets/poster-chaperon-rouge.jpg";
 import posterDigitalAbysse from "@/assets/poster-digital-abysse.jpg";
 import posterRenaissance from "@/assets/poster-renaissance.jpg";
 import posterPhilharmonie from "@/assets/poster-philharmonie.jpg";
+import posterSmileWorld from "@/assets/poster-smile-world.jpg";
+import posterPeintureFluo from "@/assets/poster-peinture-fluo.jpg";
+import posterCiteEnfants from "@/assets/poster-cite-enfants.jpg";
 
 export const mockActivities: Activity[] = [
   {
     id: 1,
     category: "cinema",
     title: "Perdu ? Retrouvé !",
-    description: "Un garçon trouve un pingouin perdu. Traversée de l'océan ensemble.",
+    description: "Ariel va adorer : un garçon retrouve son pingouin perdu au bout du monde. Doux, drôle, parfait pour les petits.",
     date: "2025-03-29",
     location: "MK2 Odéon",
     arrondissement: "6ème",
@@ -77,6 +83,7 @@ export const mockActivities: Activity[] = [
     is_future: false,
     badge: "dessin animé · 45 min",
     poster_url: posterPerduRetrouve,
+    google_maps_url: "https://maps.google.com/?q=MK2+Od%C3%A9on+Paris",
     cinemas: [
       { name: "MK2 Odéon", url: "https://www.mk2.com/salle/mk2-odeon", arrondissement: "6ème", travel_walk: "12 min", showtimes: "Sam 10h15 / Dim 10h30" },
       { name: "Les Ursulines", url: "https://www.studiodesursulines.com", arrondissement: "5ème", travel_walk: "15 min", showtimes: "Dim 11h" }
@@ -86,7 +93,7 @@ export const mockActivities: Activity[] = [
     id: 2,
     category: "cinema",
     title: "Loups tendres et loufoques",
-    description: "Courts-métrages animés sur les loups. Drôle et tendre pour les tout-petits.",
+    description: "Courts-métrages animés rigolos sur des loups attachants. Gala va se marrer, Ariel va craquer.",
     date: "2025-03-29",
     location: "Escurial",
     arrondissement: "13ème",
@@ -99,6 +106,7 @@ export const mockActivities: Activity[] = [
     is_future: false,
     badge: "dessin animé · 50 min",
     poster_url: posterLoups,
+    google_maps_url: "https://maps.google.com/?q=Cin%C3%A9ma+Escurial+Paris+13",
     cinemas: [
       { name: "Escurial", url: "https://www.cinema-escurial.fr", arrondissement: "13ème", travel_walk: "25 min", showtimes: "Dim 11h" },
       { name: "MK2 Beaubourg", url: "https://www.mk2.com/salle/mk2-beaubourg", arrondissement: "3ème", travel_walk: "22 min", showtimes: "Sam 10h" }
@@ -108,7 +116,7 @@ export const mockActivities: Activity[] = [
     id: 3,
     category: "theatre",
     title: "Pirouette",
-    description: "Danse et marionnettes. Tourbillon de couleurs pour les petits.",
+    description: "Marionnettes et danse mêlées dans un tourbillon coloré. Idéal pour éveiller Ariel aux arts vivants.",
     date: "2025-03-29",
     location: "Théâtre Essaïon",
     arrondissement: "4ème",
@@ -120,12 +128,13 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     poster_url: posterPirouette,
+    google_maps_url: "https://maps.google.com/?q=Th%C3%A9%C3%A2tre+Essa%C3%AFon+Paris+4",
   },
   {
     id: 4,
     category: "theatre",
     title: "L'Arbre sans fin",
-    description: "Conte de Claude Ponti adapté au théâtre. Voyage poétique et drôle.",
+    description: "Claude Ponti sur scène pour Gala : un voyage poétique et drôle dans un monde imaginaire infini.",
     date: "2025-03-29",
     location: "Théâtre du Lucernaire",
     arrondissement: "6ème",
@@ -137,12 +146,13 @@ export const mockActivities: Activity[] = [
     is_exceptional: true,
     is_future: false,
     poster_url: posterArbreSansFin,
+    google_maps_url: "https://maps.google.com/?q=Lucernaire+Paris+6",
   },
   {
     id: 5,
     category: "theatre",
     title: "Le Petit Chaperon Rouge",
-    description: "Théâtre de marionnettes poétique. Mise en scène lumineuse et moderne.",
+    description: "Version marionnettes lumineuse et moderne. Gala connaît l'histoire, mais pas comme ça !",
     date: "2025-03-29",
     location: "Théâtre Dunois",
     arrondissement: "13ème",
@@ -154,12 +164,13 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     poster_url: posterChaperonRouge,
+    google_maps_url: "https://maps.google.com/?q=Th%C3%A9%C3%A2tre+Dunois+Paris+13",
   },
   {
     id: 6,
     category: "expo",
     title: "Digital Abysse",
-    description: "Plongée interactive dans les fonds marins. Toucher, explorer, créer.",
+    description: "Plonger dans l'océan sans se mouiller ! Ariel peut toucher, explorer et créer des créatures marines.",
     date: "2025-03-29",
     location: "Musée en Herbe",
     arrondissement: "1er",
@@ -171,12 +182,13 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     poster_url: posterDigitalAbysse,
+    google_maps_url: "https://maps.google.com/?q=Mus%C3%A9e+en+Herbe+Paris+1",
   },
   {
     id: 7,
     category: "expo",
     title: "Renaissance",
-    description: "Projections immersives de chefs-d'œuvre. Lumières et couleurs géantes.",
+    description: "Des tableaux de maîtres projetés en géant sur les murs. Gala sera éblouie par les couleurs immenses.",
     date: "2025-03-29",
     location: "Atelier des Lumières",
     arrondissement: "11ème",
@@ -188,12 +200,13 @@ export const mockActivities: Activity[] = [
     is_exceptional: true,
     is_future: false,
     poster_url: posterRenaissance,
+    google_maps_url: "https://maps.google.com/?q=Atelier+des+Lumi%C3%A8res+Paris+11",
   },
   {
     id: 8,
     category: "expo",
     title: "Philharmonie des Enfants",
-    description: "Parcours musical interactif. Sons, instruments et découvertes.",
+    description: "Toucher des instruments, composer des sons, plonger dans la musique. Ariel et Gala adorent.",
     date: "2025-03-29",
     location: "Philharmonie de Paris",
     arrondissement: "19ème",
@@ -205,12 +218,13 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     poster_url: posterPhilharmonie,
+    google_maps_url: "https://maps.google.com/?q=Philharmonie+de+Paris",
   },
   {
     id: 9,
     category: "activite",
     title: "Smile World",
-    description: "Trampolines, karting électrique et parcours motricité.",
+    description: "Trampolines géants, karting électrique, parcours motricité. Gala va s'éclater pendant des heures.",
     date: "2025-03-29",
     location: "Smile World",
     arrondissement: "15ème",
@@ -220,13 +234,15 @@ export const mockActivities: Activity[] = [
     travel_bike: "6 min",
     travel_car: "8 min",
     is_exceptional: false,
-    is_future: false
+    is_future: false,
+    poster_url: posterSmileWorld,
+    google_maps_url: "https://maps.google.com/?q=Smile+World+Paris+15",
   },
   {
     id: 10,
     category: "activite",
     title: "Atelier peinture fluo",
-    description: "Art fluo et slime UV. Les enfants repartent avec leur création.",
+    description: "Peinture UV et slime fluo à créer soi-même. Ariel et Gala repartent avec leurs œuvres.",
     date: "2025-03-29",
     location: "Paint Invaders",
     arrondissement: "2ème",
@@ -236,13 +252,15 @@ export const mockActivities: Activity[] = [
     travel_bike: "10 min",
     travel_car: "12 min",
     is_exceptional: false,
-    is_future: false
+    is_future: false,
+    poster_url: posterPeintureFluo,
+    google_maps_url: "https://maps.google.com/?q=Paint+Invaders+Paris+2",
   },
   {
     id: 11,
     category: "activite",
     title: "Cité des Enfants",
-    description: "Expériences scientifiques interactives. Eau, lumière, matière.",
+    description: "Eau, lumière, corps : des expériences scientifiques conçues exprès pour leur âge. Fascinant pour les deux.",
     date: "2025-03-29",
     location: "Cité des Sciences",
     arrondissement: "19ème",
@@ -252,24 +270,27 @@ export const mockActivities: Activity[] = [
     travel_bike: "20 min",
     travel_car: "23 min",
     is_exceptional: false,
-    is_future: false
+    is_future: false,
+    poster_url: posterCiteEnfants,
+    google_maps_url: "https://maps.google.com/?q=Cit%C3%A9+des+Sciences+Paris",
   }
 ];
 
 export const mockFutureWeekend = {
   label: "5 & 6 avril 2025",
   events: [
-    { title: "Maison des Histoires — Atelier conte", location: "6ème", day: "Sam", time: "10h30" },
-    { title: "Jardin d'Acclimatation ouvert", location: "16ème", day: "Sam & Dim", time: "10h00" },
-    { title: "Musée en Herbe — Expo printemps", location: "1er", day: "Dim", time: "11h00" }
+    { emoji: "📖", title: "Maison des Histoires — Atelier conte", location: "6ème", day: "Sam", time: "10h30" },
+    { emoji: "🎡", title: "Jardin d'Acclimatation ouvert", location: "16ème", day: "Sam & Dim", time: "10h00" },
+    { emoji: "🖼️", title: "Musée en Herbe — Expo printemps", location: "1er", day: "Dim", time: "11h00" }
   ]
 };
 
 export const mockFutureEvents: FutureEvent[] = [
   {
     id: 100,
+    emoji: "🥚",
     title: "Eggxtraordinaire — Expo Pâques",
-    description: "94 artistes revisitent l'œuf de Pâques. Gratuit sur réservation.",
+    description: "94 artistes revisitent l'œuf de Pâques. Gratuit, parfait pour Ariel et Gala.",
     date: "3 avr – 3 mai 2025",
     location: "Galerie Joseph",
     arrondissement: "3ème",
@@ -278,8 +299,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 101,
+    emoji: "🗾",
     title: "Passion Japon",
-    description: "Expo immersive Japon. Tarif early bird jusqu'au 5 avril.",
+    description: "Expo immersive sur le Japon. Réserve vite : tarif early bird jusqu'au 5 avril.",
     date: "5 avr – 1 juin 2025",
     location: "Parc des Expos",
     arrondissement: "15ème",
@@ -288,8 +310,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 102,
+    emoji: "🎪",
     title: "Festival Rêves d'enfants",
-    description: "Spectacles, ateliers et contes. Gratuit, places limitées.",
+    description: "Spectacles, ateliers et contes. Gratuit mais places limitées — à réserver vite.",
     date: "12–13 avr 2025",
     location: "Centre Culturel Coréen",
     arrondissement: "6ème",
@@ -298,8 +321,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 103,
+    emoji: "🎻",
     title: "Philharmonie Explore",
-    description: "Parcours musical immersif pour les enfants. Dernières places.",
+    description: "Parcours musical immersif pour les enfants. Plus que quelques places disponibles.",
     date: "19–20 avr 2025",
     location: "Philharmonie",
     arrondissement: "19ème",
@@ -308,8 +332,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 104,
+    emoji: "🎷",
     title: "Alice Swing",
-    description: "Conte musical jazz au pays des merveilles. Dernières places.",
+    description: "Conte musical jazz au pays des merveilles. Dernières places — ne pas attendre.",
     date: "26–27 avr 2025",
     location: "Théâtre Dunois",
     arrondissement: "13ème",
