@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { RefreshCw, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   mockWeather,
   mockCalendarEvents,
@@ -13,9 +14,18 @@ import {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function getWeekKey(): string {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const week = Math.ceil(
+    ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
+  );
+  return `${now.getFullYear()}-${String(week).padStart(2, "0")}`;
+}
+
 function getNextWeekendDates(): { saturday: Date; sunday: Date } {
   const now = new Date();
-  const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+  const dayOfWeek = now.getDay();
   const daysUntilSaturday = dayOfWeek === 0 ? 6 : 6 - dayOfWeek;
   const saturday = new Date(now);
   saturday.setDate(now.getDate() + (daysUntilSaturday === 0 && dayOfWeek === 6 ? 7 : daysUntilSaturday));
@@ -55,6 +65,59 @@ function getWeatherInfo(code: number) {
   return WEATHER_CODE_MAP[key] ?? { icon: "⛅", desc: "Variable" };
 }
 
+// DB row → Activity
+interface DbActivity {
+  id: string;
+  category: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  arrondissement: string | null;
+  duration: string | null;
+  booking_url: string | null;
+  travel_walk: string | null;
+  travel_bike: string | null;
+  travel_car: string | null;
+  is_exceptional: boolean | null;
+  badge: string | null;
+  showtimes: string | null;
+  cinema_name: string | null;
+  cinema_url: string | null;
+  date_start: string | null;
+  date_end: string | null;
+}
+
+function dbRowToActivity(row: DbActivity, index: number): Activity {
+  return {
+    id: index + 1,
+    category: (row.category as Activity["category"]) || "activite",
+    title: row.title,
+    description: row.description ?? "",
+    date: row.date_start ?? "",
+    location: row.location ?? "",
+    arrondissement: row.arrondissement ?? "",
+    duration: row.duration ?? "",
+    booking_url: row.booking_url ?? "",
+    travel_walk: row.travel_walk ?? "",
+    travel_bike: row.travel_bike ?? "",
+    travel_car: row.travel_car ?? "",
+    is_exceptional: row.is_exceptional ?? false,
+    is_future: false,
+    badge: row.badge ?? undefined,
+    cinemas: row.cinema_name
+      ? [
+          {
+            name: row.cinema_name,
+            url: row.cinema_url ?? "",
+            arrondissement: row.arrondissement ?? "",
+            travel_walk: row.travel_walk ?? "",
+            showtimes: row.showtimes ?? "",
+          },
+        ]
+      : undefined,
+  };
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 interface WeatherDay {
@@ -84,26 +147,13 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 
 function Separator() {
   return (
-    <hr
-      style={{
-        border: "none",
-        borderTop: "1px solid #e8e8e8",
-        margin: "40px 0",
-      }}
-    />
+    <hr style={{ border: "none", borderTop: "1px solid #e8e8e8", margin: "40px 0" }} />
   );
 }
 
 function SkeletonCard() {
   return (
-    <div
-      style={{
-        background: "#fafafa",
-        borderRadius: 8,
-        padding: "14px 16px",
-        marginBottom: 12,
-      }}
-    >
+    <div style={{ background: "#fafafa", borderRadius: 8, padding: "14px 16px", marginBottom: 12 }}>
       <div className="animate-pulse space-y-2">
         <div style={{ height: 14, background: "#e8e8e8", borderRadius: 4, width: "60%" }} />
         <div style={{ height: 12, background: "#e8e8e8", borderRadius: 4, width: "90%" }} />
@@ -114,7 +164,6 @@ function SkeletonCard() {
 }
 
 function MetaGrid({
-  location,
   arrondissement,
   travelWalk,
   date,
@@ -122,7 +171,6 @@ function MetaGrid({
   bookingUrl,
   showtimes,
 }: {
-  location?: string;
   arrondissement?: string;
   travelWalk?: string;
   date?: string;
@@ -159,17 +207,11 @@ function MetaGrid({
               href={bookingUrl}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "#2563eb",
-                textDecoration: "none",
-              }}
+              style={{ fontSize: 12, fontWeight: 600, color: "#2563eb", textDecoration: "none" }}
               onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
               onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
             >
-              🔗 Réserver{" "}
-              <ExternalLink style={{ display: "inline", width: 10, height: 10 }} />
+              🔗 Réserver <ExternalLink style={{ display: "inline", width: 10, height: 10 }} />
             </a>
           </div>
         )}
@@ -182,13 +224,7 @@ function MetaGrid({
 
 function WeatherCard({ data, loading }: { data: WeatherDay[]; loading: boolean }) {
   return (
-    <div
-      style={{
-        background: "#eef4ff",
-        borderRadius: 8,
-        padding: "14px 16px",
-      }}
-    >
+    <div style={{ background: "#eef4ff", borderRadius: 8, padding: "14px 16px" }}>
       <h3
         style={{
           color: "#1a3a6e",
@@ -223,13 +259,7 @@ function WeatherCard({ data, loading }: { data: WeatherDay[]; loading: boolean }
 
 function AgendaCard() {
   return (
-    <div
-      style={{
-        background: "#eef4ff",
-        borderRadius: 8,
-        padding: "14px 16px",
-      }}
-    >
+    <div style={{ background: "#eef4ff", borderRadius: 8, padding: "14px 16px" }}>
       <h3
         style={{
           color: "#1a3a6e",
@@ -279,7 +309,6 @@ function BookingsSection() {
               padding: "14px 16px",
               marginBottom: 12,
               transition: "box-shadow 0.2s",
-              cursor: "default",
             }}
             onMouseEnter={(e) =>
               ((e.currentTarget as HTMLElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)")
@@ -371,6 +400,7 @@ function RecoSection({ activity }: { activity: Activity }) {
 
 function CinemaSection({ activities }: { activities: Activity[] }) {
   const films = activities.filter((a) => a.category === "cinema").slice(0, 2);
+  if (films.length === 0) return null;
   return (
     <div>
       <SectionTitle>cinéma</SectionTitle>
@@ -379,7 +409,9 @@ function CinemaSection({ activities }: { activities: Activity[] }) {
       </p>
       {films.map((film) => (
         <div key={film.id} style={{ marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 6 }}
+          >
             <span style={{ fontWeight: 700, fontSize: 16, color: "#1a1a1a" }}>{film.title}</span>
             {film.badge && (
               <span
@@ -410,13 +442,9 @@ function CinemaSection({ activities }: { activities: Activity[] }) {
           >
             {film.description}
           </p>
-          {film.cinemas && (
+          {film.cinemas && film.cinemas.length > 0 && (
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 8,
-              }}
+              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}
               className="cinema-sub-grid"
             >
               {film.cinemas.map((c) => (
@@ -496,6 +524,7 @@ function ActivityList({
   max: number;
 }) {
   const items = activities.slice(0, max);
+  if (items.length === 0) return null;
   return (
     <div>
       <SectionTitle>{title}</SectionTitle>
@@ -549,11 +578,7 @@ function ActivityList({
 
 // ─── Section: À venir ────────────────────────────────────────────────────────
 
-function FutureSection({
-  futureEvents,
-}: {
-  futureEvents: FutureEvent[];
-}) {
+function FutureSection({ futureEvents }: { futureEvents: FutureEvent[] }) {
   return (
     <div
       style={{
@@ -564,16 +589,8 @@ function FutureSection({
       }}
       className="future-section-responsive"
     >
-      {/* Next weekend */}
       <div style={{ marginBottom: 32 }}>
-        <div
-          style={{
-            fontWeight: 700,
-            fontSize: 15,
-            color: "#a05a00",
-            marginBottom: 12,
-          }}
-        >
+        <div style={{ fontWeight: 700, fontSize: 15, color: "#a05a00", marginBottom: 12 }}>
           week-end du {mockFutureWeekend.label}
         </div>
         <div>
@@ -595,35 +612,19 @@ function FutureSection({
                 <span>🗓️ {e.day} {e.time}</span>
               </div>
               {i < mockFutureWeekend.events.length - 1 && (
-                <div
-                  style={{
-                    borderBottom: "1px dashed #e0d0b0",
-                  }}
-                />
+                <div style={{ borderBottom: "1px dashed #e0d0b0" }} />
               )}
             </div>
           ))}
         </div>
       </div>
 
-      {/* Pre-booking */}
       <div>
-        <div
-          style={{
-            fontWeight: 700,
-            fontSize: 15,
-            color: "#a05a00",
-            marginBottom: 12,
-          }}
-        >
+        <div style={{ fontWeight: 700, fontSize: 15, color: "#a05a00", marginBottom: 12 }}>
           à pré-booker
         </div>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 12,
-          }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
           className="prebook-grid-responsive"
         >
           {futureEvents.map((evt) => (
@@ -659,14 +660,7 @@ function FutureSection({
               >
                 {evt.description}
               </p>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "#666",
-                  lineHeight: 1.5,
-                  marginTop: 8,
-                }}
-              >
+              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.5, marginTop: 8 }}>
                 <span>📍 {evt.arrondissement}</span>
                 {" · "}
                 <span>🗓️ {evt.date}</span>
@@ -678,12 +672,7 @@ function FutureSection({
                     href={evt.booking_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "#2563eb",
-                      textDecoration: "none",
-                    }}
+                    style={{ fontSize: 12, fontWeight: 600, color: "#2563eb", textDecoration: "none" }}
                     onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
                     onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
                   >
@@ -699,6 +688,89 @@ function FutureSection({
   );
 }
 
+// ─── Scrape status banner ─────────────────────────────────────────────────────
+
+function ScrapeBanner({
+  status,
+  activitiesFound,
+  onTrigger,
+  triggering,
+}: {
+  status: "idle" | "done" | "running" | "error" | "no_data";
+  activitiesFound: number;
+  onTrigger: () => void;
+  triggering: boolean;
+}) {
+  if (status === "done" && activitiesFound > 0) return null;
+
+  const msgs: Record<string, { bg: string; text: string; border: string; label: string }> = {
+    idle: {
+      bg: "#fffbf0",
+      border: "#f0a500",
+      text: "#a05a00",
+      label: "Données de la semaine non encore générées.",
+    },
+    no_data: {
+      bg: "#fffbf0",
+      border: "#f0a500",
+      text: "#a05a00",
+      label: "Aucune activité scrapée pour ce week-end.",
+    },
+    running: {
+      bg: "#eef4ff",
+      border: "#2563eb",
+      text: "#1a3a6e",
+      label: "Scraping en cours… (peut prendre ~2 min)",
+    },
+    error: {
+      bg: "#fff0f0",
+      border: "#dc2626",
+      text: "#7f1d1d",
+      label: "Erreur lors du scraping.",
+    },
+  };
+
+  const cfg = msgs[status] ?? msgs.idle;
+
+  return (
+    <div
+      style={{
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+        borderRadius: 8,
+        padding: "12px 16px",
+        marginBottom: 20,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        flexWrap: "wrap",
+      }}
+    >
+      <span style={{ fontSize: 13, color: cfg.text }}>{cfg.label}</span>
+      {status !== "running" && (
+        <button
+          onClick={onTrigger}
+          disabled={triggering}
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#2563eb",
+            background: "none",
+            border: "1px solid #2563eb",
+            borderRadius: 6,
+            padding: "4px 12px",
+            cursor: "pointer",
+            opacity: triggering ? 0.6 : 1,
+          }}
+        >
+          {triggering ? "Lancement…" : "Scraper maintenant"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function WeekendNewsletter() {
@@ -709,6 +781,93 @@ export default function WeekendNewsletter() {
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [spinning, setSpinning] = useState(false);
 
+  // Live activities from DB
+  const [liveActivities, setLiveActivities] = useState<Activity[] | null>(null);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+  const [scrapeStatus, setScrapeStatus] = useState<"idle" | "done" | "running" | "error" | "no_data">("idle");
+  const [scrapeCount, setScrapeCount] = useState(0);
+  const [triggering, setTriggering] = useState(false);
+
+  const weekKey = getWeekKey();
+
+  // ── Load activities from DB ──
+  const loadActivities = useCallback(async () => {
+    setActivitiesLoading(true);
+    try {
+      // Check last scrape run
+      const { data: run } = await supabase
+        .from("scrape_runs")
+        .select("status, activities_found")
+        .eq("week_key", weekKey)
+        .order("started_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (run?.status === "running") {
+        setScrapeStatus("running");
+        setActivitiesLoading(false);
+        return;
+      }
+      if (run?.status === "error") {
+        setScrapeStatus("error");
+      }
+
+      // Load activities
+      const { data: rows } = await supabase
+        .from("scraped_activities")
+        .select("*")
+        .eq("week_key", weekKey)
+        .order("created_at");
+
+      if (rows && rows.length > 0) {
+        setLiveActivities(rows.map((r, i) => dbRowToActivity(r as DbActivity, i)));
+        setScrapeStatus("done");
+        setScrapeCount(rows.length);
+      } else {
+        setScrapeStatus(run?.status === "done" ? "no_data" : "idle");
+        setLiveActivities(null);
+      }
+    } catch (err) {
+      console.error("loadActivities error:", err);
+      setLiveActivities(null);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  }, [weekKey]);
+
+  // ── Trigger scrape manually ──
+  const triggerScrape = async (force = false) => {
+    setTriggering(true);
+    setScrapeStatus("running");
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scrape-activities`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ force }),
+        }
+      );
+      const data = await res.json();
+      if (data.success) {
+        await loadActivities();
+      } else if (data.fromCache) {
+        await loadActivities();
+      } else {
+        setScrapeStatus("error");
+      }
+    } catch (err) {
+      console.error("triggerScrape error:", err);
+      setScrapeStatus("error");
+    } finally {
+      setTriggering(false);
+    }
+  };
+
+  // ── Weather ──
   const fetchWeather = useCallback(async () => {
     setWeatherLoading(true);
     try {
@@ -719,18 +878,19 @@ export default function WeekendNewsletter() {
       const data = await res.json();
       if (data.daily) {
         const days = ["Samedi", "Dimanche"];
-        const built: WeatherDay[] = data.daily.time.map((t: string, i: number) => {
-          const code = data.daily.weathercode[i];
-          const info = getWeatherInfo(code);
-          return {
-            day: days[i] ?? t,
-            icon: info.icon,
-            desc: info.desc,
-            min: Math.round(data.daily.temperature_2m_min[i]),
-            max: Math.round(data.daily.temperature_2m_max[i]),
-          };
-        });
-        setWeatherData(built);
+        setWeatherData(
+          data.daily.time.map((t: string, i: number) => {
+            const code = data.daily.weathercode[i];
+            const info = getWeatherInfo(code);
+            return {
+              day: days[i] ?? t,
+              icon: info.icon,
+              desc: info.desc,
+              min: Math.round(data.daily.temperature_2m_min[i]),
+              max: Math.round(data.daily.temperature_2m_max[i]),
+            };
+          })
+        );
       } else {
         setWeatherData(mockWeather);
       }
@@ -743,22 +903,36 @@ export default function WeekendNewsletter() {
 
   useEffect(() => {
     fetchWeather();
-  }, [fetchWeather]);
+    loadActivities();
+  }, [fetchWeather, loadActivities]);
+
+  // Poll if scraping is running
+  useEffect(() => {
+    if (scrapeStatus !== "running") return;
+    const timer = setInterval(() => {
+      loadActivities();
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [scrapeStatus, loadActivities]);
 
   const handleRefresh = async () => {
     setSpinning(true);
-    await fetchWeather();
+    await Promise.all([fetchWeather(), loadActivities()]);
     setTimeout(() => setSpinning(false), 800);
   };
 
-  const theatreActivities = mockActivities.filter((a) => a.category === "theatre");
-  const expoActivities = mockActivities.filter((a) => a.category === "expo");
-  const otherActivities = mockActivities.filter((a) => a.category === "activite");
-  const recoActivity = theatreActivities[1] ?? mockActivities[3];
+  // Use live data if available, fall back to mock
+  const activities = liveActivities ?? mockActivities;
+
+  const theatreActivities = activities.filter((a) => a.category === "theatre");
+  const expoActivities = activities.filter((a) => a.category === "expo");
+  const otherActivities = activities.filter((a) => a.category === "activite");
+  const recoActivity = theatreActivities[1] ?? activities[3] ?? activities[0];
+
+  const isLive = liveActivities !== null && liveActivities.length > 0;
 
   return (
     <>
-      {/* Responsive styles */}
       <style>{`
         body {
           background: #ffffff;
@@ -773,18 +947,10 @@ export default function WeekendNewsletter() {
           background: #ffffff;
         }
         @media (max-width: 639px) {
-          .newsletter-container {
-            padding: 16px;
-          }
-          .weather-agenda-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .cinema-sub-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .prebook-grid-responsive {
-            grid-template-columns: 1fr !important;
-          }
+          .newsletter-container { padding: 16px; }
+          .weather-agenda-grid { grid-template-columns: 1fr !important; }
+          .cinema-sub-grid { grid-template-columns: 1fr !important; }
+          .prebook-grid-responsive { grid-template-columns: 1fr !important; }
           .future-section-responsive {
             padding-left: 16px !important;
             padding-right: 16px !important;
@@ -807,6 +973,23 @@ export default function WeekendNewsletter() {
               👋 Week-end avec Ariel & Gala
             </h1>
             <p style={{ fontSize: 14, color: "#888", margin: "4px 0 0" }}>{weekendLabel}</p>
+            {isLive && (
+              <span
+                style={{
+                  display: "inline-block",
+                  marginTop: 4,
+                  fontSize: 11,
+                  color: "#22c55e",
+                  background: "#f0fdf4",
+                  border: "1px solid #bbf7d0",
+                  borderRadius: 10,
+                  padding: "1px 8px",
+                  fontWeight: 500,
+                }}
+              >
+                ✦ {scrapeCount} activités scrapées live
+              </span>
+            )}
           </div>
           <button
             onClick={handleRefresh}
@@ -831,25 +1014,25 @@ export default function WeekendNewsletter() {
           </button>
         </div>
 
+        {/* ── Scrape banner ── */}
+        <ScrapeBanner
+          status={activitiesLoading ? "running" : scrapeStatus}
+          activitiesFound={scrapeCount}
+          onTrigger={() => triggerScrape(true)}
+          triggering={triggering}
+        />
+
         {/* ── Météo + Agenda ── */}
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 12,
-            marginBottom: 40,
-          }}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 40 }}
           className="weather-agenda-grid"
         >
-          <WeatherCard
-            data={weatherData.length ? weatherData : mockWeather}
-            loading={weatherLoading}
-          />
+          <WeatherCard data={weatherData.length ? weatherData : mockWeather} loading={weatherLoading} />
           <AgendaCard />
         </div>
 
         {/* ── Réservations ── */}
-        {weatherLoading ? (
+        {activitiesLoading ? (
           <>
             <SectionTitle>tes réservations</SectionTitle>
             <SkeletonCard />
@@ -861,27 +1044,55 @@ export default function WeekendNewsletter() {
         <Separator />
 
         {/* ── Ma reco ── */}
-        <RecoSection activity={recoActivity} />
+        {recoActivity && <RecoSection activity={recoActivity} />}
 
         <Separator />
 
         {/* ── Cinéma ── */}
-        <CinemaSection activities={mockActivities} />
+        {activitiesLoading ? (
+          <>
+            <SectionTitle>cinéma</SectionTitle>
+            <SkeletonCard /><SkeletonCard />
+          </>
+        ) : (
+          <CinemaSection activities={activities} />
+        )}
 
         <Separator />
 
         {/* ── Théâtre ── */}
-        <ActivityList title="théâtre & spectacles" activities={theatreActivities} max={3} />
+        {activitiesLoading ? (
+          <>
+            <SectionTitle>théâtre & spectacles</SectionTitle>
+            <SkeletonCard /><SkeletonCard />
+          </>
+        ) : (
+          <ActivityList title="théâtre & spectacles" activities={theatreActivities} max={3} />
+        )}
 
         <Separator />
 
         {/* ── Expos ── */}
-        <ActivityList title="expositions & musées" activities={expoActivities} max={3} />
+        {activitiesLoading ? (
+          <>
+            <SectionTitle>expositions & musées</SectionTitle>
+            <SkeletonCard /><SkeletonCard />
+          </>
+        ) : (
+          <ActivityList title="expositions & musées" activities={expoActivities} max={3} />
+        )}
 
         <Separator />
 
         {/* ── Activités ── */}
-        <ActivityList title="activités" activities={otherActivities} max={3} />
+        {activitiesLoading ? (
+          <>
+            <SectionTitle>activités</SectionTitle>
+            <SkeletonCard /><SkeletonCard />
+          </>
+        ) : (
+          <ActivityList title="activités" activities={otherActivities} max={3} />
+        )}
 
         <Separator />
       </div>
