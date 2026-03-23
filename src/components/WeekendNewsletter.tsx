@@ -360,12 +360,15 @@ function WeekendPlanSection({
 
 // ─── ACTIVITY CARD (Ghibli style) ─────────────────────────────────────────────
 
+const SHOW_POSTER_CATEGORIES = new Set(["cinema", "theatre", "expo"]);
+
 function GhibliActivityCard({ activity, reco = false }: { activity: Activity; reco?: boolean }) {
   const cat = CAT_CONFIG[activity.category] ?? CAT_CONFIG.activite;
+  const showPoster = SHOW_POSTER_CATEGORIES.has(activity.category) && activity.poster_url;
 
   return (
     <div
-      className={`ghibli-card p-4 space-y-3 group relative overflow-hidden ${
+      className={`ghibli-card overflow-hidden group relative ${
         reco ? "border-ghibli-gold/40 ring-1 ring-ghibli-gold/20" : ""
       }`}
     >
@@ -373,83 +376,103 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
         <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset" />
       )}
 
-      <div className="flex items-start gap-3">
-        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 ${cat.bgClass}`}>
-          {cat.emoji}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2 flex-wrap">
-            <h3 className="font-display font-bold text-foreground leading-snug flex-1">
-              {activity.title}
-              {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
-            </h3>
+      <div className="flex gap-0">
+        {/* Poster — portrait thumbnail */}
+        {showPoster && (
+          <div className="w-20 flex-shrink-0 relative overflow-hidden">
+            <img
+              src={activity.poster_url}
+              alt={`Affiche ${activity.title}`}
+              className="w-full h-full object-cover"
+              style={{ minHeight: "100%", aspectRatio: "2/3" }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card/20" />
           </div>
-          <div className="flex flex-wrap gap-1.5 mt-1">
-            <span className={`ghibli-tag border text-[11px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
-              {cat.label}
-            </span>
-            {activity.badge && (
-              <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[11px]">
-                {activity.badge}
+        )}
+
+        <div className={`flex-1 min-w-0 p-4 space-y-3 ${showPoster ? "border-l border-border/40" : ""}`}>
+          <div className="flex items-start gap-3">
+            {!showPoster && (
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 ${cat.bgClass}`}>
+                {cat.emoji}
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start gap-2 flex-wrap">
+                <h3 className="font-display font-bold text-foreground leading-snug flex-1">
+                  {activity.title}
+                  {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
+                </h3>
+              </div>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                <span className={`ghibli-tag border text-[11px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
+                  {showPoster && <span className="mr-0.5">{cat.emoji}</span>}{cat.label}
+                </span>
+                {activity.badge && (
+                  <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[11px]">
+                    {activity.badge}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{activity.description}</p>
+
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            {activity.arrondissement && (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" /> {activity.arrondissement}
+                {activity.travel_walk && ` · 🚶 ${activity.travel_walk}`}
               </span>
             )}
+            {activity.duration && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {activity.duration}
+              </span>
+            )}
+            {activity.booking_url && activity.booking_url !== "#" && (
+              <a
+                href={activity.booking_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto flex items-center gap-1 text-primary font-semibold hover:underline"
+              >
+                <Ticket className="h-3 w-3" /> Réserver <ExternalLink className="h-2.5 w-2.5" />
+              </a>
+            )}
           </div>
-        </div>
-      </div>
 
-      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">{activity.description}</p>
-
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-        {activity.arrondissement && (
-          <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" /> {activity.arrondissement}
-            {activity.travel_walk && ` · 🚶 ${activity.travel_walk}`}
-          </span>
-        )}
-        {activity.duration && (
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" /> {activity.duration}
-          </span>
-        )}
-        {activity.booking_url && activity.booking_url !== "#" && (
-          <a
-            href={activity.booking_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-auto flex items-center gap-1 text-primary font-semibold hover:underline"
-          >
-            <Ticket className="h-3 w-3" /> Réserver <ExternalLink className="h-2.5 w-2.5" />
-          </a>
-        )}
-      </div>
-
-      {/* Cinema sub-cards */}
-      {activity.cinemas && activity.cinemas.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          {activity.cinemas.map((c) => (
-            <div key={c.name} className="rounded-xl bg-ghibli-sky/8 border border-ghibli-sky/20 p-2.5 text-xs space-y-1">
-              <a
-                href={c.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold text-primary hover:underline block leading-tight"
-              >
-                {c.name}
-              </a>
-              <div className="text-muted-foreground">📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
-              <div className="text-muted-foreground">🗓️ {c.showtimes}</div>
-              <a
-                href={c.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-primary hover:underline"
-              >
-                🔗 Billets
-              </a>
+          {/* Cinema sub-cards */}
+          {activity.cinemas && activity.cinemas.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              {activity.cinemas.map((c) => (
+                <div key={c.name} className="rounded-xl bg-ghibli-sky/8 border border-ghibli-sky/20 p-2.5 text-xs space-y-1">
+                  <a
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-primary hover:underline block leading-tight"
+                  >
+                    {c.name}
+                  </a>
+                  <div className="text-muted-foreground">📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
+                  <div className="text-muted-foreground">🗓️ {c.showtimes}</div>
+                  <a
+                    href={c.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    🔗 Billets
+                  </a>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
