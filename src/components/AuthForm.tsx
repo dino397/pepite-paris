@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Mail, Lock, Sparkles } from "lucide-react";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -38,100 +35,97 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <span className="text-4xl">🗓️</span>
+    <div className="min-h-screen bg-background flex flex-col">
+
+      {/* Top accent strip */}
+      <div className="h-1 w-full gradient-meadow" />
+
+      {/* Hero section */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+
+        {/* Brand */}
+        <div className="text-center mb-16 space-y-4">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <span className="text-3xl animate-sway inline-block">🌿</span>
+            <span className="text-3xl animate-float inline-block" style={{ animationDelay: "0.5s" }}>✨</span>
+            <span className="text-3xl animate-sway inline-block" style={{ animationDelay: "1s" }}>🌸</span>
           </div>
-          <h1 className="font-display text-4xl font-bold text-foreground mb-2">
-            Weekend Famille
+          <h1 className="font-display text-6xl font-bold tracking-tight text-foreground leading-none">
+            Pépite
           </h1>
-          <p className="text-muted-foreground">
-            Votre newsletter personnalisée pour des week-ends inoubliables
+          <p className="text-muted-foreground text-base font-light tracking-wide max-w-xs mx-auto leading-relaxed">
+            Vos week-ends en famille,<br />sublimés à Paris
           </p>
         </div>
 
-        {/* Card */}
-        <div className="bg-card rounded-2xl border border-border shadow-card p-8 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-          <div className="flex gap-2 mb-6 bg-muted rounded-xl p-1">
+        {/* Form card */}
+        <div className="w-full max-w-sm">
+
+          {/* Mode toggle — minimal pills */}
+          <div className="flex items-center justify-center gap-6 mb-8">
             <button
               onClick={() => setMode("signin")}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                mode === "signin" ? "bg-card shadow-card text-foreground" : "text-muted-foreground"
+              className={`text-sm font-semibold pb-1 border-b-2 transition-all ${
+                mode === "signin"
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               Connexion
             </button>
+            <span className="text-border">·</span>
             <button
               onClick={() => setMode("signup")}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                mode === "signup" ? "bg-card shadow-card text-foreground" : "text-muted-foreground"
+              className={`text-sm font-semibold pb-1 border-b-2 transition-all ${
+                mode === "signup"
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               Créer un compte
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="vous@exemple.fr"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Votre email"
+              required
+              className="h-12 bg-card border-border/60 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-primary/30 focus-visible:border-primary/50"
+            />
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mot de passe"
+              required
+              minLength={6}
+              className="h-12 bg-card border-border/60 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-primary/30 focus-visible:border-primary/50"
+            />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm font-medium">Mot de passe</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="pl-10"
-                  required
-                  minLength={6}
-                />
-              </div>
-            </div>
-
-            <Button
+            <button
               type="submit"
               disabled={loading}
-              className="w-full gradient-hero text-primary-foreground font-semibold py-2.5 rounded-xl hover:opacity-90 transition-opacity"
+              className="w-full h-12 mt-2 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2 shadow-hover"
             >
               {loading ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Chargement…
-                </span>
+                <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
               ) : (
-                <span className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  {mode === "signup" ? "Créer mon compte" : "Se connecter"}
-                </span>
+                mode === "signup" ? "Créer mon compte →" : "Se connecter →"
               )}
-            </Button>
+            </button>
           </form>
+
         </div>
 
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          Vos données sont privées et sécurisées ✨
+        {/* Footer note */}
+        <p className="mt-12 text-xs text-muted-foreground/60 text-center">
+          Idées activités · Météo · Agenda famille
         </p>
       </div>
+
     </div>
   );
 }
