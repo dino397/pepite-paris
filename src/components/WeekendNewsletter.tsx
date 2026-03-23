@@ -280,12 +280,12 @@ function WeekendPlanSection({
   };
 
   return (
-    <div className="rounded-2xl bg-ghibli-meadow/8 border border-ghibli-meadow/20 p-4 space-y-3">
+    <div className="rounded-2xl bg-ghibli-sky/10 border border-ghibli-sky/20 p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-meadow">Programme du week-end</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-sky">Programme du week-end</p>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1 text-xs font-medium text-ghibli-meadow hover:text-primary transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-ghibli-sky hover:text-primary transition-colors"
         >
           {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
           {showForm ? "Fermer" : "Ajouter"}
@@ -306,11 +306,6 @@ function WeekendPlanSection({
             <p className="text-sm font-semibold text-foreground leading-tight">{item.title}</p>
             <p className="text-xs text-muted-foreground">{item.subtitle}</p>
           </div>
-          {item.isBooking && (
-            <span className="flex-shrink-0 text-[10px] font-bold uppercase tracking-wider text-ghibli-gold bg-ghibli-gold/10 rounded-full px-2 py-0.5">
-              Réservé
-            </span>
-          )}
           {!item.isBooking && (
             <button
               onClick={() => handleDelete(item.id)}
