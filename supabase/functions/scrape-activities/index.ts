@@ -101,7 +101,12 @@ function getNextWeekendDates(): { saturday: string; sunday: string } {
 
 // ─── Firecrawl ────────────────────────────────────────────────────────────────
 
-async function scrapeUrl(url: string, firecrawlKey: string): Promise<string> {
+interface FirecrawlResult {
+  markdown: string;
+  ogImage: string | null;
+}
+
+async function scrapeUrl(url: string, firecrawlKey: string): Promise<FirecrawlResult> {
   const res = await fetch("https://api.firecrawl.dev/v1/scrape", {
     method: "POST",
     headers: {
@@ -119,7 +124,13 @@ async function scrapeUrl(url: string, firecrawlKey: string): Promise<string> {
     throw new Error(`Firecrawl ${res.status}: ${err.slice(0, 200)}`);
   }
   const data = await res.json();
-  return data.data?.markdown ?? data.markdown ?? "";
+  const markdown = data.data?.markdown ?? data.markdown ?? "";
+  // Extract og:image from Firecrawl metadata
+  const ogImage = data.data?.metadata?.ogImage
+    ?? data.data?.metadata?.["og:image"]
+    ?? data.metadata?.ogImage
+    ?? null;
+  return { markdown, ogImage };
 }
 
 // ─── Gemini extraction ────────────────────────────────────────────────────────
