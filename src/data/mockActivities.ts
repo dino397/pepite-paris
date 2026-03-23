@@ -36,6 +36,7 @@ export interface Activity {
   is_future: boolean;
   badge?: string;
   cinemas?: Cinema[];
+  poster_url?: string;
 }
 
 export interface FutureEvent {
