@@ -118,12 +118,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-primary/25 focus-visible:border-primary/40"
             />
 
-            {/* CTA — gradient reprenant le ciel teal → vert sage de l'illustration */}
+            {/* CTA — vert pêche doré → teal, en harmonie avec les tons chauds de l'illustration */}
             <button
               type="submit"
               disabled={loading}
               className="w-full h-11 mt-1 rounded-2xl text-white font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, hsl(195 45% 52%), hsl(168 42% 38%))" }}
+              style={{ background: "linear-gradient(135deg, hsl(152 36% 46%), hsl(168 42% 32%))" }}
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
