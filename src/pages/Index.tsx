@@ -1,9 +1,4 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import AuthForm from "@/components/AuthForm";
-import OnboardingForm from "@/components/OnboardingForm";
-import AppPage from "@/components/AppPage";
-import type { User } from "@supabase/supabase-js";
+import WeekendNewsletter from "@/components/WeekendNewsletter";
 
 interface FamilyProfile {
   id: string;
