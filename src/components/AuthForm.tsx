@@ -61,7 +61,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             className="text-sm text-muted-foreground tracking-wide leading-relaxed"
             style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
           >
-            vos week-ends sublimés
+            les meilleures activités du week-end pour toute la famille
           </p>
         </div>
 
