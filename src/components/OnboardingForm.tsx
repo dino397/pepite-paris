@@ -62,9 +62,9 @@ const WEEKEND_ACTIVITIES = [
 ];
 
 const STEPS = ["Bienvenue", "Vos enfants", "Mobilité", "Ce week-end", "Vos envies"];
-const STEP_EMOJIS = ["👋", "👶", "🚀", "🗓️", "❤️"];
+const STEP_EMOJIS = ["🗼", "👶", "🚀", "🗓️", "❤️"];
 const STEP_SUBTITLES = [
-  "Quelques infos pour personnaliser votre newsletter",
+  "Pour personnaliser Pépite à votre famille",
   "Pour adapter les activités à leur âge",
   "Pour vous proposer des activités accessibles",
   "Choisissez 4 activités que vous adoreriez faire",
