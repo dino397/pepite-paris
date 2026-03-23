@@ -163,6 +163,117 @@ export type Database = {
         }
         Relationships: []
       }
+      scrape_runs: {
+        Row: {
+          activities_found: number | null
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          sources_scraped: string[] | null
+          started_at: string
+          status: string
+          week_key: string
+        }
+        Insert: {
+          activities_found?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          sources_scraped?: string[] | null
+          started_at?: string
+          status?: string
+          week_key: string
+        }
+        Update: {
+          activities_found?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          sources_scraped?: string[] | null
+          started_at?: string
+          status?: string
+          week_key?: string
+        }
+        Relationships: []
+      }
+      scraped_activities: {
+        Row: {
+          arrondissement: string | null
+          badge: string | null
+          booking_url: string | null
+          category: string
+          cinema_name: string | null
+          cinema_url: string | null
+          created_at: string
+          date_end: string | null
+          date_start: string | null
+          description: string | null
+          duration: string | null
+          id: string
+          is_exceptional: boolean | null
+          location: string | null
+          raw_data: Json | null
+          scraped_at: string
+          showtimes: string | null
+          source_url: string | null
+          title: string
+          travel_bike: string | null
+          travel_car: string | null
+          travel_walk: string | null
+          week_key: string
+        }
+        Insert: {
+          arrondissement?: string | null
+          badge?: string | null
+          booking_url?: string | null
+          category: string
+          cinema_name?: string | null
+          cinema_url?: string | null
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          description?: string | null
+          duration?: string | null
+          id?: string
+          is_exceptional?: boolean | null
+          location?: string | null
+          raw_data?: Json | null
+          scraped_at?: string
+          showtimes?: string | null
+          source_url?: string | null
+          title: string
+          travel_bike?: string | null
+          travel_car?: string | null
+          travel_walk?: string | null
+          week_key: string
+        }
+        Update: {
+          arrondissement?: string | null
+          badge?: string | null
+          booking_url?: string | null
+          category?: string
+          cinema_name?: string | null
+          cinema_url?: string | null
+          created_at?: string
+          date_end?: string | null
+          date_start?: string | null
+          description?: string | null
+          duration?: string | null
+          id?: string
+          is_exceptional?: boolean | null
+          location?: string | null
+          raw_data?: Json | null
+          scraped_at?: string
+          showtimes?: string | null
+          source_url?: string | null
+          title?: string
+          travel_bike?: string | null
+          travel_car?: string | null
+          travel_walk?: string | null
+          week_key?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
