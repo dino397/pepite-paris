@@ -154,6 +154,7 @@ interface ScrapedActivity {
   cinema_name: string;
   cinema_url: string;
   source_url: string;
+  poster_url?: string;
 }
 
 async function extractActivities(
