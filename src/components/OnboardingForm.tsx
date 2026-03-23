@@ -82,6 +82,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   const [step, setStep] = useState(0);
   const [parentName, setParentName] = useState("");
   const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
   const [children, setChildren] = useState<Child[]>([{ name: "", age_years: "", gender: "" }]);
   const [preferences, setPreferences] = useState<string[]>([]);
   const [transportModes, setTransportModes] = useState<string[]>([]);
