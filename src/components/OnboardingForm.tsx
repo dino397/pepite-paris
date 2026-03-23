@@ -4,6 +4,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Plus, Trash2, ChevronRight, Heart } from "lucide-react";
 import pepiteIllustration from "@/assets/pepite-illustration.png";
+import onboardingTheatre from "@/assets/onboarding-theatre.png";
+import onboardingAquarium from "@/assets/onboarding-aquarium.png";
+import onboardingExpo from "@/assets/onboarding-expo.png";
+import onboardingCinema from "@/assets/onboarding-cinema.png";
 
 interface Child {
   name: string;
