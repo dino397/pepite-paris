@@ -58,14 +58,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         {/* Brand — Cormorant Garamond, intemporel */}
         <div className="text-center mb-6">
           <h1
-            className="text-[58px] leading-none mb-2 tracking-wide text-foreground"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, letterSpacing: "0.08em" }}
+            className="text-[62px] leading-none mb-2 text-foreground"
+            style={{ fontFamily: "'DM Serif Display', Georgia, serif", fontStyle: "italic", letterSpacing: "-0.01em" }}
           >
             Pépite
           </h1>
           <p
-            className="text-xs text-muted-foreground/70 tracking-widest uppercase max-w-[240px] mx-auto"
-            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: "0.18em" }}
+            className="text-[11px] text-muted-foreground/60 tracking-widest uppercase max-w-[240px] mx-auto"
+            style={{ fontFamily: "'Nunito', sans-serif", letterSpacing: "0.22em" }}
           >
             activités du week-end en famille
           </p>
@@ -118,12 +118,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-primary/25 focus-visible:border-primary/40"
             />
 
-            {/* CTA — gradient reprenant le ciel teal → vert sage de l'illustration */}
+            {/* CTA — vert pêche doré → teal, en harmonie avec les tons chauds de l'illustration */}
             <button
               type="submit"
               disabled={loading}
               className="w-full h-11 mt-1 rounded-2xl text-white font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, hsl(195 45% 52%), hsl(168 42% 38%))" }}
+              style={{ background: "linear-gradient(135deg, hsl(152 36% 46%), hsl(168 42% 32%))" }}
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
