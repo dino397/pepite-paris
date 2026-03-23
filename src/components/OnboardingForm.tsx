@@ -198,6 +198,28 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
       {/* Card content */}
       <div className="flex-1 flex flex-col px-5 pb-8">
         <div className="w-full max-w-lg mx-auto bg-card/90 rounded-3xl border border-border/60 shadow-card p-7 animate-fade-in">
+
+          {/* Step emoji + title */}
+          <div className="flex items-center gap-3 mb-5">
+            <span className="text-3xl">{stepEmojis[step]}</span>
+            <div>
+              <h2 className="font-display text-xl font-bold text-foreground leading-tight" style={{ fontFamily: "'Lora', Georgia, serif" }}>
+                {step === 0 && "Bienvenue !"}
+                {step === 1 && "Vos enfants"}
+                {step === 2 && "Votre mobilité"}
+                {step === 3 && "Ce week-end…"}
+                {step === 4 && "Vos envies"}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {step === 0 && "Quelques infos pour personnaliser votre newsletter"}
+                {step === 1 && "Pour adapter les activités à leur âge"}
+                {step === 2 && "Pour vous proposer des activités accessibles"}
+                {step === 3 && "Choisissez 4 activités que vous adoreriez faire"}
+                {step === 4 && "Quelles activités vous plaisent le plus ?"}
+              </p>
+            </div>
+          </div>
+
           {/* Step 0: Profil parent */}
           {step === 0 && (
             <div className="space-y-6">
