@@ -553,71 +553,84 @@ function RecoCard({ activity }: { activity: Activity }) {
 
 function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
   return (
-    <div className="rounded-3xl bg-ghibli-gold/8 border border-ghibli-gold/20 p-5 space-y-5">
+    <div className="space-y-6">
 
-      {/* Next weekend — same card format */}
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-3">
+      {/* ── Next weekend — compact agenda list ── */}
+      <div className="rounded-2xl bg-ghibli-meadow/8 border border-ghibli-meadow/20 p-4">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-meadow mb-3">
           Week-end du {mockFutureWeekend.label}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-0 divide-y divide-border/40">
           {mockFutureWeekend.events.map((e, i) => (
-            <div
-              key={i}
-              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 flex items-start gap-3 hover:shadow-sm transition-shadow"
-            >
-              <span className="text-xl flex-shrink-0 mt-0.5">{e.emoji}</span>
-              <div className="min-w-0">
-                <p className="font-display font-bold text-foreground text-sm leading-snug mb-1">{e.title}</p>
-                <p className="text-xs text-muted-foreground">📍 {e.location} · 🗓️ {e.day} {e.time}</p>
+            <div key={i} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+              <span className="text-lg flex-shrink-0">{e.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground leading-snug truncate">{e.title}</p>
+              </div>
+              <div className="flex-shrink-0 text-right text-xs text-muted-foreground leading-tight">
+                <p>📍 {e.location}</p>
+                <p>🗓️ {e.day} {e.time}</p>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Pre-booking — same card format */}
+      {/* ── Pre-booking — activity-style cards ── */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-3">
-          À pré-réserver dès maintenant
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+            À pré-réserver
+          </h2>
+          <div className="flex-1 h-px bg-border/60" />
+        </div>
+        <div className="space-y-3">
           {futureEvents.map((evt) => (
             <div
               key={evt.id}
-              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 flex flex-col justify-between gap-2 hover:shadow-sm transition-shadow min-h-[130px]"
+              className="ghibli-card flex flex-row h-[120px] overflow-hidden group hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start gap-3">
-                <span className="text-xl flex-shrink-0 mt-0.5">{evt.emoji}</span>
-                <div className="min-w-0">
-                  <p className="font-display font-bold text-foreground text-sm leading-snug mb-1">{evt.title}</p>
+              {/* Emoji block — mimics poster column */}
+              <div className="flex-shrink-0 w-16 flex items-center justify-center bg-ghibli-gold/10 text-3xl">
+                {evt.emoji}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0 p-3 flex flex-col justify-between overflow-hidden">
+                <div>
+                  <h3 className="font-display font-bold text-foreground text-sm leading-snug mb-1">
+                    {evt.title}
+                  </h3>
                   <p
                     className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
                     style={{
                       display: "-webkit-box",
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: "vertical",
-                      minHeight: "calc(2 * 1.45em)",
                     }}
                   >
                     {evt.description}
                   </p>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                <span>📍 {evt.arrondissement}</span>
-                <span>🗓️ {evt.date}</span>
-                <span>⌛ dès {evt.age}</span>
-                {evt.booking_url && evt.booking_url !== "#" && (
-                  <a
-                    href={evt.booking_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-auto font-semibold text-primary flex items-center gap-1 hover:underline"
-                  >
-                    🔗 Réserver <ExternalLink className="h-2.5 w-2.5" />
-                  </a>
-                )}
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
+                  <span className="flex items-center gap-0.5">
+                    <MapPin className="h-3 w-3" /> {evt.location} · {evt.arrondissement}
+                  </span>
+                  <span>🗓️ {evt.date}</span>
+                  <span className="ml-auto flex items-center gap-2">
+                    <span>⌛ {evt.age}</span>
+                    {evt.booking_url && evt.booking_url !== "#" && (
+                      <a
+                        href={evt.booking_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-primary flex items-center gap-0.5 hover:underline"
+                      >
+                        <Ticket className="h-3 w-3" /> Réserver
+                      </a>
+                    )}
+                  </span>
+                </div>
               </div>
             </div>
           ))}
