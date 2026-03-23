@@ -38,8 +38,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden">
 
-      {/* Top illustration — takes ~55% of screen height */}
-      <div className="relative flex-shrink-0" style={{ height: "55vh" }}>
+      {/* Illustration — boats visible, minimal fade only at very bottom edge */}
+      <div className="relative flex-shrink-0" style={{ height: "58vh" }}>
         <img
           src={pepiteIllustration}
           alt=""
@@ -48,30 +48,30 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           width={1024}
           height={1280}
         />
-        {/* Soft fade at bottom so card blends in */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
+        {/* Very subtle fade — just enough to blend */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />
       </div>
 
-      {/* Bottom section — brand + form, sits below illustration */}
-      <div className="flex-1 flex flex-col items-center px-6 pb-8 -mt-6 relative z-10">
+      {/* Brand + form */}
+      <div className="flex-1 flex flex-col items-center px-6 pb-8 pt-4 relative z-10">
 
-        {/* Brand */}
+        {/* Brand — Cormorant Garamond, intemporel */}
         <div className="text-center mb-6">
           <h1
-            className="text-[52px] font-bold tracking-tight text-foreground leading-none mb-2"
-            style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
+            className="text-[58px] leading-none mb-2 tracking-wide text-foreground"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, letterSpacing: "0.08em" }}
           >
             Pépite
           </h1>
           <p
-            className="text-sm text-muted-foreground/80 tracking-wide leading-relaxed max-w-[240px] mx-auto"
-            style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
+            className="text-xs text-muted-foreground/70 tracking-widest uppercase max-w-[240px] mx-auto"
+            style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: "0.18em" }}
           >
-            les meilleures activités du week-end pour toute la famille
+            activités du week-end en famille
           </p>
         </div>
 
-        {/* Glass card */}
+        {/* Card */}
         <div className="w-full max-w-xs bg-card/90 backdrop-blur-sm rounded-3xl border border-border/50 shadow-card p-7">
 
           {/* Mode toggle */}
@@ -118,21 +118,24 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-primary/25 focus-visible:border-primary/40"
             />
 
+            {/* CTA — gradient reprenant le ciel teal → vert sage de l'illustration */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 mt-1 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full h-11 mt-1 rounded-2xl text-white font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, hsl(195 45% 52%), hsl(168 42% 38%))" }}
             >
               {loading ? (
-                <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                mode === "signup" ? "Créer mon compte →" : "Se connecter →"
+                mode === "signup" ? "Créer mon compte" : "Se connecter"
               )}
             </button>
           </form>
         </div>
 
-        <p className="mt-5 text-[11px] text-muted-foreground/40 text-center tracking-wide">
+        <p className="mt-5 text-[11px] text-muted-foreground/40 text-center tracking-widest uppercase"
+           style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", letterSpacing: "0.14em" }}>
           Idées activités · Météo · Agenda famille
         </p>
       </div>
