@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthForm from "@/components/AuthForm";
 import OnboardingForm from "@/components/OnboardingForm";
-import NewsletterPage from "@/components/NewsletterPage";
+import AppPage from "@/components/AppPage";
 import type { User } from "@supabase/supabase-js";
 
 interface FamilyProfile {
@@ -148,7 +148,7 @@ export default function Index() {
 
   if (appState === "newsletter" && user && profile) {
     return (
-      <NewsletterPage
+      <AppPage
         userId={user.id}
         profile={profile}
         children={children}
