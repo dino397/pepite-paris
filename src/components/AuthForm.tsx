@@ -36,29 +36,35 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden px-6">
+    <div className="min-h-screen bg-background flex flex-col overflow-hidden">
 
-      {/* Full-bleed illustration as background */}
-      <img
-        src={pepiteIllustration}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover opacity-80 pointer-events-none select-none"
-      />
+      {/* Top illustration — takes ~55% of screen height */}
+      <div className="relative flex-shrink-0" style={{ height: "55vh" }}>
+        <img
+          src={pepiteIllustration}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover object-top"
+          width={1024}
+          height={1280}
+        />
+        {/* Soft fade at bottom so card blends in */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent" />
+      </div>
 
-      {/* Content — centered, above illustration */}
-      <div className="relative z-10 w-full max-w-xs flex flex-col items-center">
+      {/* Bottom section — brand + form, sits below illustration */}
+      <div className="flex-1 flex flex-col items-center px-6 pb-8 -mt-6 relative z-10">
 
         {/* Brand */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-6">
           <h1
-            className="text-[52px] font-bold tracking-tight text-foreground leading-none mb-3"
+            className="text-[52px] font-bold tracking-tight text-foreground leading-none mb-2"
             style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
           >
             Pépite
           </h1>
           <p
-            className="text-sm text-muted-foreground tracking-wide leading-relaxed"
+            className="text-sm text-muted-foreground/80 tracking-wide leading-relaxed max-w-[240px] mx-auto"
             style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
           >
             les meilleures activités du week-end pour toute la famille
@@ -66,7 +72,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
         </div>
 
         {/* Glass card */}
-        <div className="w-full bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 shadow-card p-7">
+        <div className="w-full max-w-xs bg-card/90 backdrop-blur-sm rounded-3xl border border-border/50 shadow-card p-7">
 
           {/* Mode toggle */}
           <div className="flex items-center justify-center gap-6 mb-6">
@@ -126,7 +132,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           </form>
         </div>
 
-        <p className="mt-6 text-[11px] text-muted-foreground/50 text-center tracking-wide">
+        <p className="mt-5 text-[11px] text-muted-foreground/40 text-center tracking-wide">
           Idées activités · Météo · Agenda famille
         </p>
       </div>
