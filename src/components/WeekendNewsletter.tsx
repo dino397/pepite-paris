@@ -90,6 +90,7 @@ interface DbActivity {
   date_start: string | null;
   date_end: string | null;
   poster_url: string | null;
+  source_url: string | null;
 }
 
 function dbRowToActivity(row: DbActivity, index: number): Activity {
