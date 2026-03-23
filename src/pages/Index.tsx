@@ -148,7 +148,7 @@ export default function Index() {
 
   if (appState === "newsletter" && user && profile) {
     return (
-      <NewsletterPage
+      <AppPage
         userId={user.id}
         profile={profile}
         children={children}
