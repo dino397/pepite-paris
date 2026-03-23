@@ -277,11 +277,11 @@ export const mockActivities: Activity[] = [
 ];
 
 export const mockFutureWeekend = {
-  label: "5 & 6 avril 2025",
+  label: "5 & 6 avril",
   events: [
-    { emoji: "📖", title: "Maison des Histoires — Atelier conte", location: "6ème", day: "Sam", time: "10h30" },
-    { emoji: "🎡", title: "Jardin d'Acclimatation ouvert", location: "16ème", day: "Sam & Dim", time: "10h00" },
-    { emoji: "🖼️", title: "Musée en Herbe — Expo printemps", location: "1er", day: "Dim", time: "11h00" }
+    { emoji: "📖", title: "Maison des Histoires — Atelier conte", location: "6ème", day: "Sam", time: "10h30", url: "https://www.104.fr/evenements/maison-des-petits" },
+    { emoji: "🎡", title: "Jardin d'Acclimatation ouvert", location: "16ème", day: "Sam & Dim", time: "10h00", url: "https://www.jardindacclimatation.fr" },
+    { emoji: "🖼️", title: "Musée en Herbe — Expo printemps", location: "1er", day: "Dim", time: "11h00", url: "https://www.musee-en-herbe.com/agenda" }
   ]
 };
 
