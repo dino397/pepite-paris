@@ -41,9 +41,8 @@ const URGENCY_CONFIG = {
 interface ActivityCardProps {
   activity: Activity;
   variant?: "weekend" | "prebooking";
-  onRefreshCategory?: () => void;
-  isRefreshing?: boolean;
-  isLastInCategory?: boolean;
+  onDismiss?: () => void;
+  isExtra?: boolean;
 }
 
 export default function ActivityCard({
