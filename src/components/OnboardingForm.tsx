@@ -149,30 +149,55 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
     }
   };
 
+  const stepEmojis = ["👋", "👶", "🚀", "🗓️", "❤️"];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-      <div className="w-full max-w-lg">
-        {/* Progress */}
-        <div className="flex items-center gap-1.5 mb-8 justify-center flex-wrap">
+    <div className="min-h-screen bg-background flex flex-col overflow-hidden">
+
+      {/* Top strip — brand + step indicator */}
+      <div className="pt-10 pb-6 px-6 flex flex-col items-center gap-5">
+        {/* Brand */}
+        <div className="text-center">
+          <h1
+            className="text-4xl font-bold tracking-tight text-foreground leading-none mb-1"
+            style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
+          >
+            Pépite
+          </h1>
+          <p
+            className="text-xs text-muted-foreground/70 tracking-wide"
+            style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
+          >
+            les meilleures activités du week-end pour toute la famille
+          </p>
+        </div>
+
+        {/* Step pills */}
+        <div className="flex items-center gap-1.5">
           {STEPS.map((s, i) => (
             <div key={i} className="flex items-center gap-1.5">
               <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all ${
-                  i <= step
-                    ? "gradient-hero text-primary-foreground"
+                className={`flex items-center justify-center w-7 h-7 rounded-full text-[11px] font-bold transition-all ${
+                  i < step
+                    ? "gradient-meadow text-primary-foreground"
+                    : i === step
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "bg-muted text-muted-foreground"
                 }`}
               >
                 {i < step ? "✓" : i + 1}
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`h-0.5 w-8 transition-all ${i < step ? "bg-primary" : "bg-border"}`} />
+                <div className={`h-0.5 w-6 rounded-full transition-all ${i < step ? "bg-primary" : "bg-border"}`} />
               )}
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="bg-card rounded-2xl border border-border shadow-card p-8 animate-fade-in">
+      {/* Card content */}
+      <div className="flex-1 flex flex-col px-5 pb-8">
+        <div className="w-full max-w-lg mx-auto bg-card/90 rounded-3xl border border-border/60 shadow-card p-7 animate-fade-in">
           {/* Step 0: Profil parent */}
           {step === 0 && (
             <div className="space-y-6">
