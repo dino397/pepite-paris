@@ -95,12 +95,47 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   const [parentName, setParentName] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
+  const [addressQuery, setAddressQuery] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<NominatimResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const [children, setChildren] = useState<Child[]>([{ name: "", age_years: "", gender: "" }]);
   const [preferences, setPreferences] = useState<string[]>([]);
   const [transportModes, setTransportModes] = useState<string[]>([]);
   const [maxTravelMinutes, setMaxTravelMinutes] = useState<number>(30);
   const [weekendPicks, setWeekendPicks] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (addressQuery.length < 3) { setAddressSuggestions([]); return; }
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setAddressLoading(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addressQuery)}&format=json&limit=5&countrycodes=fr&addressdetails=1`,
+          { headers: { "Accept-Language": "fr" } }
+        );
+        const data: NominatimResult[] = await res.json();
+        setAddressSuggestions(data);
+        setShowSuggestions(true);
+      } catch { /* silent */ } finally {
+        setAddressLoading(false);
+      }
+    }, 350);
+  }, [addressQuery]);
+
+  const selectAddress = (result: NominatimResult) => {
+    const { road, house_number, city: c, town, village, postcode } = result.address;
+    const street = [house_number, road].filter(Boolean).join(" ");
+    const detectedCity = c || town || village || "";
+    setAddress(street || result.display_name.split(",")[0]);
+    setCity(detectedCity);
+    setAddressQuery(street || result.display_name.split(",")[0]);
+    setShowSuggestions(false);
+  };
 
   const addChild = () => setChildren([...children, { name: "", age_years: "", gender: "" }]);
   const removeChild = (i: number) => setChildren(children.filter((_, idx) => idx !== i));
