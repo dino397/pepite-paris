@@ -121,6 +121,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
           user_id: userId,
           parent_name: parentName,
           city,
+          postal_code: address,
           preferences,
           transport_modes: transportModes,
           max_travel_minutes: maxTravelMinutes,
