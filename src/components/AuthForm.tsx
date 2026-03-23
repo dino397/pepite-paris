@@ -38,8 +38,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden">
 
-      {/* Illustration — bassin qui continue en-dessous */}
-      <div className="relative flex-shrink-0" style={{ height: "62vh" }}>
+      {/* Illustration — bassin immense qui continue sous la card */}
+      <div className="relative flex-shrink-0" style={{ height: "66vh" }}>
         <img
           src={pepiteIllustration}
           alt=""
@@ -48,8 +48,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           width={1024}
           height={1280}
         />
-        {/* Fondu très progressif sur les 30% bas pour que le bassin se prolonge */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/60 to-transparent" />
+        {/* Fondu très progressif — le bassin reste perceptible en dessous */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/70 to-transparent" />
       </div>
 
       {/* Brand + form */}
