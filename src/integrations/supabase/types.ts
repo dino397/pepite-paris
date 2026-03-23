@@ -56,6 +56,7 @@ export type Database = {
           birth_date: string | null
           created_at: string
           family_id: string
+          gender: string | null
           id: string
           name: string
         }
@@ -64,6 +65,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           family_id: string
+          gender?: string | null
           id?: string
           name?: string
         }
@@ -72,6 +74,7 @@ export type Database = {
           birth_date?: string | null
           created_at?: string
           family_id?: string
+          gender?: string | null
           id?: string
           name?: string
         }
@@ -92,12 +95,15 @@ export type Database = {
           id: string
           latitude: number | null
           longitude: number | null
+          max_travel_minutes: number | null
           newsletter_generated_at: string | null
           parent_name: string
           postal_code: string | null
           preferences: string[] | null
+          transport_modes: string[] | null
           updated_at: string
           user_id: string
+          weekend_picks: string[] | null
         }
         Insert: {
           city?: string
@@ -105,12 +111,15 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          max_travel_minutes?: number | null
           newsletter_generated_at?: string | null
           parent_name?: string
           postal_code?: string | null
           preferences?: string[] | null
+          transport_modes?: string[] | null
           updated_at?: string
           user_id: string
+          weekend_picks?: string[] | null
         }
         Update: {
           city?: string
@@ -118,12 +127,15 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          max_travel_minutes?: number | null
           newsletter_generated_at?: string | null
           parent_name?: string
           postal_code?: string | null
           preferences?: string[] | null
+          transport_modes?: string[] | null
           updated_at?: string
           user_id?: string
+          weekend_picks?: string[] | null
         }
         Relationships: []
       }
