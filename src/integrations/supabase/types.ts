@@ -212,6 +212,7 @@ export type Database = {
           id: string
           is_exceptional: boolean | null
           location: string | null
+          poster_url: string | null
           raw_data: Json | null
           scraped_at: string
           showtimes: string | null
@@ -237,6 +238,7 @@ export type Database = {
           id?: string
           is_exceptional?: boolean | null
           location?: string | null
+          poster_url?: string | null
           raw_data?: Json | null
           scraped_at?: string
           showtimes?: string | null
@@ -262,6 +264,7 @@ export type Database = {
           id?: string
           is_exceptional?: boolean | null
           location?: string | null
+          poster_url?: string | null
           raw_data?: Json | null
           scraped_at?: string
           showtimes?: string | null
