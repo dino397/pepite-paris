@@ -36,6 +36,7 @@ export interface Activity {
   is_future: boolean;
   badge?: string;
   cinemas?: Cinema[];
+  poster_url?: string;
 }
 
 export interface FutureEvent {
@@ -66,21 +67,10 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     badge: "dessin animé · 45 min",
+    poster_url: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=300&h=420&fit=crop",
     cinemas: [
-      {
-        name: "MK2 Odéon",
-        url: "https://www.mk2.com/salle/mk2-odeon",
-        arrondissement: "6ème",
-        travel_walk: "12 min",
-        showtimes: "Sam 10h15 / Dim 10h30"
-      },
-      {
-        name: "Les Ursulines",
-        url: "https://www.studiodesursulines.com",
-        arrondissement: "5ème",
-        travel_walk: "15 min",
-        showtimes: "Dim 11h"
-      }
+      { name: "MK2 Odéon", url: "https://www.mk2.com/salle/mk2-odeon", arrondissement: "6ème", travel_walk: "12 min", showtimes: "Sam 10h15 / Dim 10h30" },
+      { name: "Les Ursulines", url: "https://www.studiodesursulines.com", arrondissement: "5ème", travel_walk: "15 min", showtimes: "Dim 11h" }
     ]
   },
   {
@@ -99,21 +89,10 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     badge: "dessin animé · 50 min",
+    poster_url: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=300&h=420&fit=crop",
     cinemas: [
-      {
-        name: "Escurial",
-        url: "https://www.cinema-escurial.fr",
-        arrondissement: "13ème",
-        travel_walk: "25 min",
-        showtimes: "Dim 11h"
-      },
-      {
-        name: "MK2 Beaubourg",
-        url: "https://www.mk2.com/salle/mk2-beaubourg",
-        arrondissement: "3ème",
-        travel_walk: "22 min",
-        showtimes: "Sam 10h"
-      }
+      { name: "Escurial", url: "https://www.cinema-escurial.fr", arrondissement: "13ème", travel_walk: "25 min", showtimes: "Dim 11h" },
+      { name: "MK2 Beaubourg", url: "https://www.mk2.com/salle/mk2-beaubourg", arrondissement: "3ème", travel_walk: "22 min", showtimes: "Sam 10h" }
     ]
   },
   {
@@ -130,7 +109,8 @@ export const mockActivities: Activity[] = [
     travel_bike: "8 min",
     travel_car: "10 min",
     is_exceptional: false,
-    is_future: false
+    is_future: false,
+    poster_url: "https://images.unsplash.com/photo-1503095396549-807759245b35?w=300&h=420&fit=crop",
   },
   {
     id: 4,
@@ -146,7 +126,8 @@ export const mockActivities: Activity[] = [
     travel_bike: "2 min",
     travel_car: "3 min",
     is_exceptional: true,
-    is_future: false
+    is_future: false,
+    poster_url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300&h=420&fit=crop",
   },
   {
     id: 5,
@@ -162,7 +143,8 @@ export const mockActivities: Activity[] = [
     travel_bike: "11 min",
     travel_car: "13 min",
     is_exceptional: false,
-    is_future: false
+    is_future: false,
+    poster_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=420&fit=crop",
   },
   {
     id: 6,
@@ -178,7 +160,8 @@ export const mockActivities: Activity[] = [
     travel_bike: "9 min",
     travel_car: "12 min",
     is_exceptional: false,
-    is_future: false
+    is_future: false,
+    poster_url: "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=300&h=420&fit=crop",
   },
   {
     id: 7,
@@ -194,7 +177,8 @@ export const mockActivities: Activity[] = [
     travel_bike: "15 min",
     travel_car: "18 min",
     is_exceptional: true,
-    is_future: false
+    is_future: false,
+    poster_url: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=300&h=420&fit=crop",
   },
   {
     id: 8,
@@ -210,7 +194,8 @@ export const mockActivities: Activity[] = [
     travel_bike: "20 min",
     travel_car: "22 min",
     is_exceptional: false,
-    is_future: false
+    is_future: false,
+    poster_url: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=300&h=420&fit=crop",
   },
   {
     id: 9,

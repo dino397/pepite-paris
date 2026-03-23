@@ -101,7 +101,12 @@ function getNextWeekendDates(): { saturday: string; sunday: string } {
 
 // ─── Firecrawl ────────────────────────────────────────────────────────────────
 
-async function scrapeUrl(url: string, firecrawlKey: string): Promise<string> {
+interface FirecrawlResult {
+  markdown: string;
+  ogImage: string | null;
+}
+
+async function scrapeUrl(url: string, firecrawlKey: string): Promise<FirecrawlResult> {
   const res = await fetch("https://api.firecrawl.dev/v1/scrape", {
     method: "POST",
     headers: {
@@ -119,7 +124,13 @@ async function scrapeUrl(url: string, firecrawlKey: string): Promise<string> {
     throw new Error(`Firecrawl ${res.status}: ${err.slice(0, 200)}`);
   }
   const data = await res.json();
-  return data.data?.markdown ?? data.markdown ?? "";
+  const markdown = data.data?.markdown ?? data.markdown ?? "";
+  // Extract og:image from Firecrawl metadata
+  const ogImage = data.data?.metadata?.ogImage
+    ?? data.data?.metadata?.["og:image"]
+    ?? data.metadata?.ogImage
+    ?? null;
+  return { markdown, ogImage };
 }
 
 // ─── Gemini extraction ────────────────────────────────────────────────────────
@@ -143,6 +154,7 @@ interface ScrapedActivity {
   cinema_name: string;
   cinema_url: string;
   source_url: string;
+  poster_url?: string;
 }
 
 async function extractActivities(
@@ -301,7 +313,7 @@ Deno.serve(async (req) => {
     for (const source of sourcesToRun) {
       try {
         console.log(`→ Scraping ${source.name}: ${source.url}`);
-        const markdown = await scrapeUrl(source.url, firecrawlKey);
+        const { markdown, ogImage } = await scrapeUrl(source.url, firecrawlKey);
 
         if (markdown.length < 150) {
           console.log(`  ${source.name}: contenu trop court (${markdown.length} chars), skip`);
@@ -309,6 +321,8 @@ Deno.serve(async (req) => {
         }
 
         const activities = await extractActivities(markdown, source.url, weekendDates, lovableApiKey);
+        // Attach source-level og:image as fallback poster for all activities from this page
+        activities.forEach((a) => { if (!a.poster_url && ogImage) a.poster_url = ogImage; });
         console.log(`  ${source.name}: ${activities.length} activités extraites`);
 
         allActivities.push(...activities);
@@ -356,6 +370,7 @@ Deno.serve(async (req) => {
         cinema_name: a.cinema_name,
         cinema_url: a.cinema_url,
         source_url: a.source_url,
+        poster_url: a.poster_url ?? null,
         raw_data: a as unknown as Record<string, unknown>,
       }));
 

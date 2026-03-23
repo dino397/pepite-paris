@@ -1,0 +1,1 @@
+ALTER TABLE public.scraped_activities ADD COLUMN IF NOT EXISTS poster_url text;
