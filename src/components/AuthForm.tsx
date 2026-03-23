@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import pepiteIllustration from "@/assets/pepite-illustration.png";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -35,51 +36,57 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden px-6">
 
-      {/* Top accent strip */}
-      <div className="h-1 w-full gradient-meadow" />
+      {/* Full-bleed illustration as background */}
+      <img
+        src={pepiteIllustration}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover opacity-80 pointer-events-none select-none"
+      />
 
-      {/* Hero section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+      {/* Content — centered, above illustration */}
+      <div className="relative z-10 w-full max-w-xs flex flex-col items-center">
 
         {/* Brand */}
-        <div className="text-center mb-16 space-y-4">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <span className="text-3xl animate-sway inline-block">🌿</span>
-            <span className="text-3xl animate-float inline-block" style={{ animationDelay: "0.5s" }}>✨</span>
-            <span className="text-3xl animate-sway inline-block" style={{ animationDelay: "1s" }}>🌸</span>
-          </div>
-          <h1 className="font-display text-6xl font-bold tracking-tight text-foreground leading-none">
+        <div className="text-center mb-10">
+          <h1
+            className="text-[52px] font-bold tracking-tight text-foreground leading-none mb-3"
+            style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
+          >
             Pépite
           </h1>
-          <p className="text-muted-foreground text-base font-light tracking-wide max-w-xs mx-auto leading-relaxed">
-            Vos week-ends en famille,<br />sublimés à Paris
+          <p
+            className="text-sm text-muted-foreground tracking-wide leading-relaxed"
+            style={{ fontFamily: "'Lora', Georgia, serif", fontStyle: "italic" }}
+          >
+            vos week-ends sublimés
           </p>
         </div>
 
-        {/* Form card */}
-        <div className="w-full max-w-sm">
+        {/* Glass card */}
+        <div className="w-full bg-card/80 backdrop-blur-sm rounded-3xl border border-border/50 shadow-card p-7">
 
-          {/* Mode toggle — minimal pills */}
-          <div className="flex items-center justify-center gap-6 mb-8">
+          {/* Mode toggle */}
+          <div className="flex items-center justify-center gap-6 mb-6">
             <button
               onClick={() => setMode("signin")}
-              className={`text-sm font-semibold pb-1 border-b-2 transition-all ${
+              className={`text-sm font-semibold pb-0.5 border-b-2 transition-all ${
                 mode === "signin"
                   ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  : "border-transparent text-muted-foreground/70 hover:text-foreground"
               }`}
             >
               Connexion
             </button>
-            <span className="text-border">·</span>
+            <span className="text-border/60 text-xs">·</span>
             <button
               onClick={() => setMode("signup")}
-              className={`text-sm font-semibold pb-1 border-b-2 transition-all ${
+              className={`text-sm font-semibold pb-0.5 border-b-2 transition-all ${
                 mode === "signup"
                   ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  : "border-transparent text-muted-foreground/70 hover:text-foreground"
               }`}
             >
               Créer un compte
@@ -93,7 +100,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Votre email"
               required
-              className="h-12 bg-card border-border/60 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-primary/30 focus-visible:border-primary/50"
+              className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-primary/25 focus-visible:border-primary/40"
             />
             <Input
               type="password"
@@ -102,13 +109,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               placeholder="Mot de passe"
               required
               minLength={6}
-              className="h-12 bg-card border-border/60 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/60 focus-visible:ring-primary/30 focus-visible:border-primary/50"
+              className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50 focus-visible:ring-primary/25 focus-visible:border-primary/40"
             />
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 mt-2 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2 shadow-hover"
+              className="w-full h-11 mt-1 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -117,11 +124,9 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
               )}
             </button>
           </form>
-
         </div>
 
-        {/* Footer note */}
-        <p className="mt-12 text-xs text-muted-foreground/60 text-center">
+        <p className="mt-6 text-[11px] text-muted-foreground/50 text-center tracking-wide">
           Idées activités · Météo · Agenda famille
         </p>
       </div>
