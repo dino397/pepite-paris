@@ -368,22 +368,23 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
 
   return (
     <div
-      className={`ghibli-card overflow-hidden group relative ${
+      className={`ghibli-card group relative ${
         reco ? "border-ghibli-gold/40 ring-1 ring-ghibli-gold/20" : ""
-      }`}
+      } ${showPoster ? "p-0 overflow-hidden" : ""}`}
     >
       {reco && (
-        <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
       )}
 
-      <div className="flex flex-row items-start">
+      <div className="flex flex-row items-stretch">
         {/* Poster — side column, natural proportions, no crop */}
         {showPoster && (
-          <div className="flex-shrink-0 w-28 rounded-l-2xl overflow-hidden bg-muted">
+          <div className="flex-shrink-0 w-28 bg-muted">
             <img
               src={activity.poster_url}
               alt={`Affiche ${activity.title}`}
-              className="w-full h-auto block"
+              className="w-full h-full object-cover"
+              style={{ minHeight: "160px", maxHeight: "260px", objectPosition: "center top" }}
               loading="lazy"
               onError={(e) => {
                 const el = e.currentTarget as HTMLImageElement;
