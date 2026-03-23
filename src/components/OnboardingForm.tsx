@@ -159,7 +159,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
 
       {/* Top illustration — changes per step */}
       <div className="relative flex-shrink-0 overflow-hidden" style={{ height: "32vh", minHeight: "180px" }}>
-        {[pepiteIllustration, onboardingTheatre, onboardingCinema, onboardingAquarium, onboardingExpo].map((src, i) => (
+        {[onboardingExpo, onboardingTheatre, onboardingCinema, onboardingAquarium, onboardingParis].map((src, i) => (
           <img
             key={i}
             src={src}
