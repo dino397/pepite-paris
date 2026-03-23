@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import WeatherWidget from "./WeatherWidget";
 import AgendaSection from "./AgendaSection";
 import ActivityCard, { Activity } from "./ActivityCard";
-import { RefreshCw, LogOut, Sparkles, CalendarDays, Ticket, Sun, User } from "lucide-react";
+import { RefreshCw, LogOut, Sparkles, CalendarDays, Ticket, Sun } from "lucide-react";
 
 interface FamilyProfile {
   id: string;
@@ -66,11 +66,36 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "prebooking", label: "À réserver", icon: <Ticket className="h-4 w-4" /> },
 ];
 
+const CATEGORY_LABELS: Record<string, string> = {
+  cinema: "🎬 Cinéma",
+  theatre: "🎭 Théâtre",
+  expo: "🖼️ Expositions",
+  activite: "🌿 Activités",
+  sortie: "🌳 Sorties",
+  maison: "🏠 À la maison",
+  culture: "🏛️ Culture",
+  sport: "⚽ Sport",
+  créatif: "🎨 Créatif",
+  spectacle: "🎪 Spectacles",
+};
+
+function groupByCategory(activities: Activity[]): { category: string; items: Activity[] }[] {
+  const map = new Map<string, Activity[]>();
+  for (const act of activities) {
+    const cat = act.category || "activite";
+    if (!map.has(cat)) map.set(cat, []);
+    map.get(cat)!.push(act);
+  }
+  return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+}
+
 export default function AppPage({ userId, profile, children, agendaEvents, onAgendaChange }: AppPageProps) {
   const [activeTab, setActiveTab] = useState<Tab>("weekend");
   const [content, setContent] = useState<ActivitiesContent | null>(null);
   const [loading, setLoading] = useState(false);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  // Track which categories are currently refreshing
+  const [refreshingCategories, setRefreshingCategories] = useState<Set<string>>(new Set());
 
   const now = new Date();
   const startOfWeek = new Date(now);
@@ -81,8 +106,56 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
   sunday.setDate(startOfWeek.getDate() + 6);
   const weekendLabel = `${saturday.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} & ${sunday.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`;
 
-  const generateActivities = async (forceRegenerate = false) => {
+  const callGenerateActivities = useCallback(async (opts: {
+    forceRegenerate?: boolean;
+    categoryToRefresh?: string;
+  } = {}): Promise<ActivitiesContent | null> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Non connecté");
+
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-activities`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          weatherData,
+          forceRegenerate: opts.forceRegenerate ?? false,
+          categoryToRefresh: opts.categoryToRefresh,
+        }),
+      }
+    );
+
+    if (res.status === 429) { toast.error("Trop de requêtes. Réessayez dans quelques instants."); return null; }
+    if (res.status === 402) { toast.error("Crédits insuffisants."); return null; }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Erreur de génération");
+    return data.content;
+  }, [weatherData]);
+
+  const generateActivities = useCallback(async (forceRegenerate = false) => {
     setLoading(true);
+    try {
+      const result = await callGenerateActivities({ forceRegenerate });
+      if (result) {
+        setContent(result);
+        if (forceRegenerate) toast.success("Activités régénérées ! 🎉");
+        else toast.success("Activités générées ! 🎉");
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Erreur de génération");
+    } finally {
+      setLoading(false);
+    }
+  }, [callGenerateActivities]);
+
+  const refreshCategory = useCallback(async (category: string) => {
+    if (!content) return;
+    setRefreshingCategories((prev) => new Set(prev).add(category));
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Non connecté");
@@ -95,30 +168,48 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: JSON.stringify({ weatherData, forceRegenerate }),
+          body: JSON.stringify({
+            weatherData,
+            forceRegenerate: true,
+            categoryToRefresh: category,
+          }),
         }
       );
 
-      if (res.status === 429) {
-        toast.error("Trop de requêtes. Réessayez dans quelques instants.");
-        return;
-      }
-      if (res.status === 402) {
-        toast.error("Crédits insuffisants.");
-        return;
-      }
+      if (res.status === 429) { toast.error("Trop de requêtes."); return; }
+      if (res.status === 402) { toast.error("Crédits insuffisants."); return; }
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur de génération");
+      if (!res.ok) throw new Error(data.error || "Erreur");
 
-      setContent(data.content);
-      if (!data.fromCache) toast.success("Activités générées ! 🎉");
+      const newContent: ActivitiesContent = data.content;
+
+      // Merge: replace activities of the refreshed category, keep others
+      setContent((prev) => {
+        if (!prev) return newContent;
+        const kept = prev.weekend.activities.filter((a) => (a.category || "activite") !== category);
+        const newCatActivities = (newContent.weekend?.activities ?? []).filter(
+          (a) => (a.category || "activite") === category
+        );
+        return {
+          ...prev,
+          weekend: {
+            ...prev.weekend,
+            activities: [...kept, ...newCatActivities],
+          },
+        };
+      });
+      toast.success(`Nouvelles idées ${CATEGORY_LABELS[category] ?? category} 🎉`);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erreur de génération");
+      toast.error(err instanceof Error ? err.message : "Erreur");
     } finally {
-      setLoading(false);
+      setRefreshingCategories((prev) => {
+        const next = new Set(prev);
+        next.delete(category);
+        return next;
+      });
     }
-  };
+  }, [content, weatherData]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -129,6 +220,7 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
     : null;
 
   const prebookingCount = content?.prebooking?.activities?.length ?? 0;
+  const categoryGroups = content?.weekend?.activities ? groupByCategory(content.weekend.activities) : [];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -247,11 +339,31 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
               </div>
             )}
 
-            {/* Activity cards */}
-            {content?.weekend?.activities && content.weekend.activities.length > 0 && (
-              <div className="space-y-4">
-                {content.weekend.activities.map((act) => (
-                  <ActivityCard key={act.id} activity={act} variant="weekend" />
+            {/* Activity cards grouped by category */}
+            {categoryGroups.length > 0 && (
+              <div className="space-y-6">
+                {categoryGroups.map(({ category, items }) => (
+                  <div key={category} className="space-y-3">
+                    {/* Category header */}
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+                        {CATEGORY_LABELS[category] ?? category}
+                      </h3>
+                      <div className="flex-1 h-px bg-border/60" />
+                    </div>
+
+                    {/* Cards */}
+                    {items.map((act, idx) => (
+                      <ActivityCard
+                        key={act.id}
+                        activity={act}
+                        variant="weekend"
+                        isLastInCategory={idx === items.length - 1}
+                        onRefreshCategory={() => refreshCategory(category)}
+                        isRefreshing={refreshingCategories.has(category)}
+                      />
+                    ))}
+                  </div>
                 ))}
               </div>
             )}
