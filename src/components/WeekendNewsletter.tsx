@@ -560,17 +560,22 @@ function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
         <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-meadow mb-3">
           Week-end du {mockFutureWeekend.label}
         </p>
-        <div className="space-y-0 divide-y divide-border/40">
+      <div className="space-y-0 divide-y divide-border/40">
           {mockFutureWeekend.events.map((e, i) => (
             <div key={i} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
               <span className="text-lg flex-shrink-0">{e.emoji}</span>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground leading-snug truncate">{e.title}</p>
+                <p className="text-xs text-muted-foreground">📍 {e.location} · 🗓️ {e.day} {e.time}</p>
               </div>
-              <div className="flex-shrink-0 text-right text-xs text-muted-foreground leading-tight">
-                <p>📍 {e.location}</p>
-                <p>🗓️ {e.day} {e.time}</p>
-              </div>
+              <a
+                href={e.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 flex items-center gap-1 text-[11px] font-semibold text-primary border border-primary/30 rounded-xl px-2.5 py-1 hover:bg-primary/8 transition-colors"
+              >
+                <ExternalLink className="h-3 w-3" /> Voir
+              </a>
             </div>
           ))}
         </div>
