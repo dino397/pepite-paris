@@ -1,5 +1,4 @@
-import { Sparkles, Clock, MapPin, Ticket, ExternalLink } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Sparkles, Clock, MapPin, Ticket, ExternalLink, RefreshCw } from "lucide-react";
 
 export interface Activity {
   id: string;
@@ -42,9 +41,18 @@ const URGENCY_CONFIG = {
 interface ActivityCardProps {
   activity: Activity;
   variant?: "weekend" | "prebooking";
+  onRefreshCategory?: () => void;
+  isRefreshing?: boolean;
+  isLastInCategory?: boolean;
 }
 
-export default function ActivityCard({ activity, variant = "weekend" }: ActivityCardProps) {
+export default function ActivityCard({
+  activity,
+  variant = "weekend",
+  onRefreshCategory,
+  isRefreshing,
+  isLastInCategory,
+}: ActivityCardProps) {
   const categoryColor = CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.sortie;
 
   return (
@@ -58,7 +66,7 @@ export default function ActivityCard({ activity, variant = "weekend" }: Activity
       {activity.highlighted && (
         <div className="gradient-hero px-4 py-1.5 flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
-          <span className="text-xs font-semibold text-primary-foreground tracking-wide">Coup de cœur</span>
+          <span className="text-xs font-semibold text-primary-foreground tracking-wide">Pépite de la semaine ✨</span>
         </div>
       )}
 
@@ -156,10 +164,24 @@ export default function ActivityCard({ activity, variant = "weekend" }: Activity
         )}
         {variant === "prebooking" && !activity.booking_url && (
           <div className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-border text-muted-foreground text-xs">
-            🔍 Recherchez "{activity.title} {(activity as Activity & { city?: string }).city || ""}" pour réserver
+            🔍 Recherchez "{activity.title}" pour réserver
           </div>
         )}
       </div>
+
+      {/* "Autres idées" CTA — shown only on the last card of a category group */}
+      {variant === "weekend" && isLastInCategory && onRefreshCategory && (
+        <div className="border-t border-border/50 px-4 py-2.5">
+          <button
+            onClick={onRefreshCategory}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors w-full disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3 w-3 flex-shrink-0 ${isRefreshing ? "animate-spin" : ""}`} />
+            Ces suggestions ne conviennent pas ? Voir d'autres idées
+          </button>
+        </div>
+      )}
     </div>
   );
 }
