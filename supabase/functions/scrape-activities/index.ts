@@ -370,6 +370,7 @@ Deno.serve(async (req) => {
         cinema_name: a.cinema_name,
         cinema_url: a.cinema_url,
         source_url: a.source_url,
+        poster_url: a.poster_url ?? null,
         raw_data: a as unknown as Record<string, unknown>,
       }));
 
