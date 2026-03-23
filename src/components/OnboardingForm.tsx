@@ -535,7 +535,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                     {newsletterOptIn && <span className="text-primary-foreground text-[10px] font-bold">✓</span>}
                   </button>
                   <span className="text-xs text-muted-foreground leading-snug">
-                    Je veux recevoir la newsletter Pépite chaque vendredi 🌿
+                    Je veux recevoir la newsletter Pépite chaque mercredi 🌿
                   </span>
                 </label>
               </div>
