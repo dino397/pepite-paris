@@ -241,6 +241,13 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50"
               />
               <Input
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Votre adresse exacte (ex : 12 rue de Rivoli, Paris)"
+                required
+                className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50"
+              />
+              <Input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 placeholder="Votre ville (ex : Paris, Lyon…)"
@@ -249,7 +256,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
               />
               <button
                 onClick={() => setStep(1)}
-                disabled={!city}
+                disabled={!city || !address}
                 className="w-full h-11 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 mt-1"
               >
                 Continuer <ChevronRight className="h-4 w-4" />
