@@ -376,22 +376,23 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
         <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset" />
       )}
 
-      <div className="flex flex-col">
-        {/* Poster — full width on top, natural ratio */}
+      <div className="flex flex-row">
+        {/* Poster — side column, natural proportions */}
         {showPoster && (
-          <div className="relative overflow-hidden rounded-t-2xl bg-muted">
+          <div className="flex-shrink-0 w-24 rounded-l-2xl overflow-hidden bg-muted self-stretch">
             <img
               src={activity.poster_url}
               alt={`Affiche ${activity.title}`}
-              className="w-full object-contain max-h-72"
-              style={{ display: "block" }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).parentElement!.style.display = "none"; }}
+              className="w-full h-full object-cover object-center"
+              onError={(e) => {
+                const el = e.currentTarget as HTMLImageElement;
+                el.parentElement!.style.display = "none";
+              }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-card/30 via-transparent to-transparent pointer-events-none" />
           </div>
         )}
 
-        <div className="flex-1 min-w-0 p-4 space-y-3">
+        <div className={`flex-1 min-w-0 p-4 space-y-3 ${showPoster ? "" : ""}`}>
           <div className="flex items-start gap-3">
             {!showPoster && (
               <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-xl flex-shrink-0 ${cat.bgClass}`}>
