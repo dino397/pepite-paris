@@ -526,7 +526,7 @@ function RecoCard({ activity }: { activity: Activity }) {
   return (
     <div className="space-y-3">
       <SectionTitle emoji="✨">Coup de cœur de la semaine</SectionTitle>
-      <GhibliActivityCard activity={activity} reco />
+      <GhibliActivityCardWithCinemas activity={activity} reco />
     </div>
   );
 }
@@ -536,20 +536,29 @@ function RecoCard({ activity }: { activity: Activity }) {
 function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
   return (
     <div className="rounded-3xl bg-ghibli-gold/8 border border-ghibli-gold/20 p-5 space-y-5">
+
+      {/* Next weekend — same card format */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-3">
           Week-end du {mockFutureWeekend.label}
         </p>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {mockFutureWeekend.events.map((e, i) => (
-            <div key={i} className="flex items-center gap-2 text-sm">
-              <span className="text-ghibli-earth font-semibold">{e.title}</span>
-              <span className="text-muted-foreground text-xs">· 📍 {e.location} · 🗓️ {e.day} {e.time}</span>
+            <div
+              key={i}
+              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 flex items-start gap-3 hover:shadow-sm transition-shadow"
+            >
+              <span className="text-xl flex-shrink-0 mt-0.5">{e.emoji}</span>
+              <div className="min-w-0">
+                <p className="font-display font-bold text-foreground text-sm leading-snug mb-1">{e.title}</p>
+                <p className="text-xs text-muted-foreground">📍 {e.location} · 🗓️ {e.day} {e.time}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Pre-booking — same card format */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-earth mb-3">
           À pré-réserver dès maintenant
@@ -558,10 +567,25 @@ function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
           {futureEvents.map((evt) => (
             <div
               key={evt.id}
-              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 space-y-2 hover:shadow-card transition-shadow"
+              className="rounded-2xl bg-card border border-ghibli-gold/20 p-3.5 flex flex-col justify-between gap-2 hover:shadow-sm transition-shadow min-h-[130px]"
             >
-              <p className="font-display font-bold text-foreground text-sm leading-snug">{evt.title}</p>
-              <p className="text-xs text-muted-foreground line-clamp-2">{evt.description}</p>
+              <div className="flex items-start gap-3">
+                <span className="text-xl flex-shrink-0 mt-0.5">{evt.emoji}</span>
+                <div className="min-w-0">
+                  <p className="font-display font-bold text-foreground text-sm leading-snug mb-1">{evt.title}</p>
+                  <p
+                    className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
+                    style={{
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      minHeight: "calc(2 * 1.45em)",
+                    }}
+                  >
+                    {evt.description}
+                  </p>
+                </div>
+              </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                 <span>📍 {evt.arrondissement}</span>
                 <span>🗓️ {evt.date}</span>
