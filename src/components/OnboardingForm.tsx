@@ -3,11 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Plus, Trash2, ChevronRight, Heart } from "lucide-react";
-import pepiteIllustration from "@/assets/pepite-illustration.png";
-import onboardingTheatre from "@/assets/onboarding-theatre.png";
-import onboardingAquarium from "@/assets/onboarding-aquarium.png";
 import onboardingExpo from "@/assets/onboarding-expo.png";
+import onboardingTheatre from "@/assets/onboarding-theatre.png";
 import onboardingCinema from "@/assets/onboarding-cinema.png";
+import onboardingAquarium from "@/assets/onboarding-aquarium.png";
+import onboardingParis from "@/assets/onboarding-paris.png";
 
 interface Child {
   name: string;
