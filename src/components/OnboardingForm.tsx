@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronRight, MapPin, User, Baby, Heart } from "lucide-react";
+import { Plus, Trash2, ChevronRight, MapPin, User, Baby, Heart, Car } from "lucide-react";
 
 interface Child {
   name: string;
   age_years: number | string;
+  gender: "garçon" | "fille" | "autre" | "";
 }
 
 interface OnboardingFormProps {
@@ -29,17 +30,53 @@ const PREFERENCES = [
   { label: "🏖️ Plein air", value: "plein air" },
 ];
 
-const STEPS = ["Bonjour !", "Vos enfants", "Vos envies"];
+const TRANSPORT_OPTIONS = [
+  { label: "🚶 À pied", value: "pied" },
+  { label: "🚲 Vélo", value: "vélo" },
+  { label: "🚗 Voiture", value: "voiture" },
+  { label: "🚌 Transports en commun", value: "transports" },
+  { label: "🚆 Train", value: "train" },
+];
+
+const TRAVEL_TIME_OPTIONS = [
+  { label: "15 min", value: 15 },
+  { label: "30 min", value: 30 },
+  { label: "45 min", value: 45 },
+  { label: "1h+", value: 60 },
+];
+
+const WEEKEND_ACTIVITIES = [
+  { label: "🏞️ Sortie au parc ou dans la nature", value: "parc" },
+  { label: "🎨 Atelier créatif (dessin, poterie…)", value: "atelier_créatif" },
+  { label: "🎬 Cinéma en famille", value: "cinéma" },
+  { label: "🏊 Piscine ou baignade", value: "piscine" },
+  { label: "🦁 Zoo ou ferme pédagogique", value: "zoo" },
+  { label: "🏛️ Visite de musée", value: "musée" },
+  { label: "🥾 Randonnée ou balade", value: "randonnée" },
+  { label: "🎲 Jeux de société à la maison", value: "jeux_société" },
+  { label: "🍕 Cuisiner ensemble", value: "cuisine" },
+  { label: "🎭 Spectacle ou théâtre", value: "spectacle" },
+];
+
+const STEPS = ["Bienvenue", "Vos enfants", "Mobilité", "Ce week-end", "Vos envies"];
+const GENDER_OPTIONS = [
+  { label: "👦 Garçon", value: "garçon" },
+  { label: "👧 Fille", value: "fille" },
+  { label: "🧒 Autre", value: "autre" },
+];
 
 export default function OnboardingForm({ userId, onComplete }: OnboardingFormProps) {
   const [step, setStep] = useState(0);
   const [parentName, setParentName] = useState("");
   const [city, setCity] = useState("");
-  const [children, setChildren] = useState<Child[]>([{ name: "", age_years: "" }]);
+  const [children, setChildren] = useState<Child[]>([{ name: "", age_years: "", gender: "" }]);
   const [preferences, setPreferences] = useState<string[]>([]);
+  const [transportModes, setTransportModes] = useState<string[]>([]);
+  const [maxTravelMinutes, setMaxTravelMinutes] = useState<number>(30);
+  const [weekendPicks, setWeekendPicks] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const addChild = () => setChildren([...children, { name: "", age_years: "" }]);
+  const addChild = () => setChildren([...children, { name: "", age_years: "", gender: "" }]);
   const removeChild = (i: number) => setChildren(children.filter((_, idx) => idx !== i));
   const updateChild = (i: number, field: keyof Child, value: string) => {
     const updated = [...children];
@@ -53,10 +90,26 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
     );
   };
 
+  const toggleTransport = (val: string) => {
+    setTransportModes((prev) =>
+      prev.includes(val) ? prev.filter((p) => p !== val) : [...prev, val]
+    );
+  };
+
+  const toggleWeekendPick = (val: string) => {
+    setWeekendPicks((prev) => {
+      if (prev.includes(val)) return prev.filter((p) => p !== val);
+      if (prev.length >= 4) {
+        toast.info("Sélectionnez au maximum 4 activités 🎯");
+        return prev;
+      }
+      return [...prev, val];
+    });
+  };
+
   const handleFinish = async () => {
     setLoading(true);
     try {
-      // Create family profile
       const { data: profile, error: profileError } = await supabase
         .from("family_profiles")
         .insert({
@@ -64,13 +117,15 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
           parent_name: parentName,
           city,
           preferences,
+          transport_modes: transportModes,
+          max_travel_minutes: maxTravelMinutes,
+          weekend_picks: weekendPicks,
         })
         .select()
         .single();
 
       if (profileError) throw profileError;
 
-      // Insert children
       const validChildren = children.filter((c) => c.name || c.age_years);
       if (validChildren.length > 0) {
         const { error: childrenError } = await supabase.from("children").insert(
@@ -78,6 +133,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
             family_id: profile.id,
             name: c.name,
             age_years: c.age_years ? Number(c.age_years) : null,
+            gender: c.gender || null,
           }))
         );
         if (childrenError) throw childrenError;
@@ -97,11 +153,11 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-lg">
         {/* Progress */}
-        <div className="flex items-center gap-2 mb-8 justify-center">
+        <div className="flex items-center gap-1.5 mb-8 justify-center flex-wrap">
           {STEPS.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex items-center gap-1.5">
               <div
-                className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold transition-all ${
+                className={`flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all ${
                   i <= step
                     ? "gradient-hero text-primary-foreground"
                     : "bg-muted text-muted-foreground"
@@ -110,7 +166,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 {i < step ? "✓" : i + 1}
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`h-0.5 w-12 transition-all ${i < step ? "bg-primary" : "bg-border"}`} />
+                <div className={`h-0.5 w-8 transition-all ${i < step ? "bg-primary" : "bg-border"}`} />
               )}
             </div>
           ))}
@@ -171,34 +227,52 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
               <div>
                 <div className="text-4xl mb-3">👶</div>
                 <h2 className="font-display text-2xl font-bold text-foreground">Vos enfants</h2>
-                <p className="text-muted-foreground mt-1">Pour adapter les activités à leur âge</p>
+                <p className="text-muted-foreground mt-1">Pour adapter les activités à leur âge et à leurs envies</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {children.map((child, i) => (
-                  <div key={i} className="flex gap-2 items-center bg-muted/50 rounded-xl p-3">
-                    <Baby className="h-4 w-4 text-primary flex-shrink-0" />
-                    <Input
-                      value={child.name}
-                      onChange={(e) => updateChild(i, "name", e.target.value)}
-                      placeholder="Prénom"
-                      className="flex-1 bg-transparent border-0 shadow-none focus-visible:ring-0 p-0 h-auto"
-                    />
-                    <Input
-                      value={String(child.age_years)}
-                      onChange={(e) => updateChild(i, "age_years", e.target.value)}
-                      placeholder="Âge"
-                      type="number"
-                      min={0}
-                      max={18}
-                      className="w-20 bg-transparent border-0 shadow-none focus-visible:ring-0 p-0 h-auto text-center"
-                    />
-                    <span className="text-muted-foreground text-sm">ans</span>
-                    {children.length > 1 && (
-                      <button onClick={() => removeChild(i)} className="text-muted-foreground hover:text-destructive transition-colors">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
+                  <div key={i} className="bg-muted/50 rounded-xl p-4 space-y-3">
+                    <div className="flex gap-2 items-center">
+                      <Baby className="h-4 w-4 text-primary flex-shrink-0" />
+                      <Input
+                        value={child.name}
+                        onChange={(e) => updateChild(i, "name", e.target.value)}
+                        placeholder="Prénom"
+                        className="flex-1 bg-transparent border-0 shadow-none focus-visible:ring-0 p-0 h-auto"
+                      />
+                      <Input
+                        value={String(child.age_years)}
+                        onChange={(e) => updateChild(i, "age_years", e.target.value)}
+                        placeholder="Âge"
+                        type="number"
+                        min={0}
+                        max={18}
+                        className="w-20 bg-transparent border-0 shadow-none focus-visible:ring-0 p-0 h-auto text-center"
+                      />
+                      <span className="text-muted-foreground text-sm shrink-0">ans</span>
+                      {children.length > 1 && (
+                        <button onClick={() => removeChild(i)} className="text-muted-foreground hover:text-destructive transition-colors ml-1">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    {/* Genre */}
+                    <div className="flex gap-2 flex-wrap">
+                      {GENDER_OPTIONS.map((g) => (
+                        <button
+                          key={g.value}
+                          onClick={() => updateChild(i, "gender", child.gender === g.value ? "" : g.value)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                            child.gender === g.value
+                              ? "gradient-hero text-primary-foreground border-primary"
+                              : "bg-background text-foreground border-border hover:border-primary"
+                          }`}
+                        >
+                          {g.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ))}
 
@@ -217,7 +291,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 </Button>
                 <Button
                   onClick={() => setStep(2)}
-                  className="flex-2 gradient-hero text-primary-foreground font-semibold rounded-xl flex-1"
+                  className="flex-1 gradient-hero text-primary-foreground font-semibold rounded-xl"
                 >
                   Continuer <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
@@ -225,13 +299,135 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
             </div>
           )}
 
-          {/* Step 2: Préférences */}
+          {/* Step 2: Mobilité */}
           {step === 2 && (
+            <div className="space-y-6">
+              <div>
+                <div className="text-4xl mb-3">🚀</div>
+                <h2 className="font-display text-2xl font-bold text-foreground">Votre mobilité</h2>
+                <p className="text-muted-foreground mt-1">Pour vous proposer des activités accessibles</p>
+              </div>
+
+              {/* Moyens de transport */}
+              <div className="space-y-3">
+                <Label className="flex items-center gap-1.5">
+                  <Car className="h-3.5 w-3.5 text-primary" />
+                  Moyens de transport disponibles
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {TRANSPORT_OPTIONS.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => toggleTransport(t.value)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                        transportModes.includes(t.value)
+                          ? "gradient-hero text-primary-foreground border-primary"
+                          : "bg-background text-foreground border-border hover:border-primary"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Temps de trajet max */}
+              <div className="space-y-3">
+                <Label>⏱️ Temps de trajet maximum accepté</Label>
+                <div className="flex gap-2 flex-wrap">
+                  {TRAVEL_TIME_OPTIONS.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => setMaxTravelMinutes(t.value)}
+                      className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+                        maxTravelMinutes === t.value
+                          ? "gradient-hero text-primary-foreground border-primary"
+                          : "bg-background text-foreground border-border hover:border-primary"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                  Retour
+                </Button>
+                <Button
+                  onClick={() => setStep(3)}
+                  disabled={transportModes.length === 0}
+                  className="flex-1 gradient-hero text-primary-foreground font-semibold rounded-xl"
+                >
+                  Continuer <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Activités du week-end */}
+          {step === 3 && (
+            <div className="space-y-6">
+              <div>
+                <div className="text-4xl mb-3">🗓️</div>
+                <h2 className="font-display text-2xl font-bold text-foreground">Ce week-end…</h2>
+                <p className="text-muted-foreground mt-1">
+                  Choisissez <span className="font-semibold text-primary">4 activités</span> que vous adoreriez faire
+                </p>
+                <div className="mt-2 flex gap-1">
+                  {[0,1,2,3].map((i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 flex-1 rounded-full transition-all ${
+                        i < weekendPicks.length ? "bg-primary" : "bg-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {WEEKEND_ACTIVITIES.map((act) => (
+                  <button
+                    key={act.value}
+                    onClick={() => toggleWeekendPick(act.value)}
+                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
+                      weekendPicks.includes(act.value)
+                        ? "gradient-hero text-primary-foreground border-primary shadow-sm"
+                        : "bg-background text-foreground border-border hover:border-primary hover:bg-muted/30"
+                    }`}
+                  >
+                    {act.label}
+                    {weekendPicks.includes(act.value) && (
+                      <span className="float-right">✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">
+                  Retour
+                </Button>
+                <Button
+                  onClick={() => setStep(4)}
+                  disabled={weekendPicks.length < 4}
+                  className="flex-1 gradient-hero text-primary-foreground font-semibold rounded-xl"
+                >
+                  Continuer <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Préférences générales */}
+          {step === 4 && (
             <div className="space-y-6">
               <div>
                 <div className="text-4xl mb-3">❤️</div>
                 <h2 className="font-display text-2xl font-bold text-foreground">Vos envies</h2>
-                <p className="text-muted-foreground mt-1">Quelles activités vous plaisent le plus ?</p>
+                <p className="text-muted-foreground mt-1">Quelles activités vous plaisent le plus en général ?</p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -251,7 +447,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
               </div>
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
                   Retour
                 </Button>
                 <Button
