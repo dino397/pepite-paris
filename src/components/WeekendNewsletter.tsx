@@ -379,12 +379,11 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
       <div className="flex flex-row items-stretch">
         {/* Poster — side column, natural proportions, no crop */}
         {showPoster && (
-          <div className="flex-shrink-0 w-28 bg-muted">
+          <div className="flex-shrink-0 w-28 self-stretch bg-muted">
             <img
               src={activity.poster_url}
               alt={`Affiche ${activity.title}`}
-              className="w-full h-full object-cover"
-              style={{ minHeight: "160px", maxHeight: "260px", objectPosition: "center top" }}
+              className="w-full h-full object-cover object-center"
               loading="lazy"
               onError={(e) => {
                 const el = e.currentTarget as HTMLImageElement;
