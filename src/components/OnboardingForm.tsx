@@ -287,20 +287,55 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 placeholder="Votre prénom (ex : Lucie)"
                 className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50"
               />
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Votre adresse exacte (ex : 12 rue de Rivoli, Paris)"
-                required
-                className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50"
-              />
+
+              {/* Address autofill */}
+              <div className="relative" ref={suggestionsRef}>
+                <div className="relative">
+                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50 pointer-events-none" />
+                  <Input
+                    value={addressQuery}
+                    onChange={(e) => { setAddressQuery(e.target.value); setAddress(e.target.value); setCity(""); }}
+                    onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
+                    placeholder="Votre adresse (ex : 12 rue de Rivoli, Paris)"
+                    required
+                    className="h-11 bg-background/70 border-border/50 rounded-2xl pl-9 pr-4 text-sm placeholder:text-muted-foreground/50"
+                    autoComplete="off"
+                  />
+                  {addressLoading && (
+                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  )}
+                </div>
+
+                {showSuggestions && addressSuggestions.length > 0 && (
+                  <div className="absolute z-50 left-0 right-0 top-full mt-1.5 bg-card border border-border/50 rounded-2xl shadow-lg overflow-hidden">
+                    {addressSuggestions.map((s, i) => {
+                      const parts = s.display_name.split(", ");
+                      const main = parts.slice(0, 2).join(", ");
+                      const sub = parts.slice(2, 4).join(", ");
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onMouseDown={() => selectAddress(s)}
+                          className="w-full text-left px-4 py-2.5 hover:bg-muted/60 transition-colors border-b border-border/30 last:border-0 flex flex-col gap-0.5"
+                        >
+                          <span className="text-sm font-medium text-foreground truncate">{main}</span>
+                          {sub && <span className="text-xs text-muted-foreground truncate">{sub}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* City auto-filled or manual */}
               <Input
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                placeholder="Votre ville (ex : Paris, Lyon…)"
-                required
+                placeholder="Ville (remplie automatiquement)"
                 className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50"
               />
+
               <button
                 onClick={() => setStep(1)}
                 disabled={!city || !address}
