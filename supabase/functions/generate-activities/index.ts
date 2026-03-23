@@ -27,7 +27,7 @@ serve(async (req) => {
     if (userError || !user) throw new Error("Unauthorized");
 
     const body = await req.json();
-    const { weatherData, forceRegenerate } = body;
+    const { weatherData, forceRegenerate, categoryToRefresh } = body;
 
     const { data: profile } = await supabase
       .from("family_profiles")
