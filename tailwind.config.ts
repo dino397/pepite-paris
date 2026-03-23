@@ -57,15 +57,25 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        "warm-gold": "hsl(var(--warm-gold))",
-        "warm-amber": "hsl(var(--warm-amber))",
-        "soft-sage": "hsl(var(--soft-sage))",
-        "sky-blue": "hsl(var(--sky-blue))",
-        blush: "hsl(var(--blush))",
+        // Ghibli palette
+        "ghibli-sky": "hsl(var(--ghibli-sky))",
+        "ghibli-meadow": "hsl(var(--ghibli-meadow))",
+        "ghibli-sunset": "hsl(var(--ghibli-sunset))",
+        "ghibli-mist": "hsl(var(--ghibli-mist))",
+        "ghibli-earth": "hsl(var(--ghibli-earth))",
+        "ghibli-petal": "hsl(var(--ghibli-petal))",
+        "ghibli-gold": "hsl(var(--ghibli-gold))",
+        "ghibli-deep": "hsl(var(--ghibli-deep))",
+        // Keep legacy
+        "warm-gold": "hsl(var(--ghibli-gold))",
+        "warm-amber": "hsl(var(--ghibli-sunset))",
+        "soft-sage": "hsl(var(--ghibli-meadow))",
+        "sky-blue": "hsl(var(--ghibli-sky))",
+        blush: "hsl(var(--ghibli-petal))",
       },
       fontFamily: {
-        display: ["Playfair Display", "Georgia", "serif"],
-        body: ["DM Sans", "system-ui", "sans-serif"],
+        display: ["Lora", "Georgia", "serif"],
+        body: ["Nunito", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -82,12 +92,16 @@ export default {
           to: { height: "0" },
         },
         "fade-in": {
-          from: { opacity: "0", transform: "translateY(12px)" },
+          from: { opacity: "0", transform: "translateY(10px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
-        "slide-in": {
-          from: { opacity: "0", transform: "translateX(-16px)" },
-          to: { opacity: "1", transform: "translateX(0)" },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
+        "sway": {
+          "0%, 100%": { transform: "rotate(-1deg)" },
+          "50%": { transform: "rotate(1deg)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
@@ -98,7 +112,8 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out forwards",
-        "slide-in": "slide-in 0.4s ease-out forwards",
+        "float": "float 3s ease-in-out infinite",
+        "sway": "sway 4s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
       },
     },
