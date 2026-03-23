@@ -313,7 +313,7 @@ Deno.serve(async (req) => {
     for (const source of sourcesToRun) {
       try {
         console.log(`→ Scraping ${source.name}: ${source.url}`);
-        const markdown = await scrapeUrl(source.url, firecrawlKey);
+        const { markdown, ogImage } = await scrapeUrl(source.url, firecrawlKey);
 
         if (markdown.length < 150) {
           console.log(`  ${source.name}: contenu trop court (${markdown.length} chars), skip`);
@@ -321,6 +321,8 @@ Deno.serve(async (req) => {
         }
 
         const activities = await extractActivities(markdown, source.url, weekendDates, lovableApiKey);
+        // Attach source-level og:image as fallback poster for all activities from this page
+        activities.forEach((a) => { if (!a.poster_url && ogImage) a.poster_url = ogImage; });
         console.log(`  ${source.name}: ${activities.length} activités extraites`);
 
         allActivities.push(...activities);
