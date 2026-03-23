@@ -1,4 +1,4 @@
-import { Sparkles, Clock, MapPin, Ticket, ExternalLink, RefreshCw } from "lucide-react";
+import { Sparkles, Clock, MapPin, Ticket, ExternalLink, X } from "lucide-react";
 
 export interface Activity {
   id: string;
@@ -41,28 +41,39 @@ const URGENCY_CONFIG = {
 interface ActivityCardProps {
   activity: Activity;
   variant?: "weekend" | "prebooking";
-  onRefreshCategory?: () => void;
-  isRefreshing?: boolean;
-  isLastInCategory?: boolean;
+  onDismiss?: () => void;
+  isExtra?: boolean;
 }
 
 export default function ActivityCard({
   activity,
   variant = "weekend",
-  onRefreshCategory,
-  isRefreshing,
-  isLastInCategory,
+  onDismiss,
+  isExtra = false,
 }: ActivityCardProps) {
   const categoryColor = CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.sortie;
 
   return (
     <div
-      className={`rounded-2xl border bg-card overflow-hidden transition-all hover:shadow-md group ${
+      className={`relative rounded-2xl border bg-card overflow-hidden transition-all hover:shadow-md group ${
         activity.highlighted
           ? "border-primary/40 shadow-sm ring-1 ring-primary/10"
+          : isExtra
+          ? "border-dashed border-border"
           : "border-border/70"
       }`}
     >
+      {/* Dismiss button */}
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="absolute top-2.5 right-2.5 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-muted/80 hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-colors"
+          aria-label="Supprimer"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      )}
+
       {activity.highlighted && (
         <div className="gradient-hero px-4 py-1.5 flex items-center gap-1.5">
           <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
@@ -74,7 +85,7 @@ export default function ActivityCard({
         {/* Header */}
         <div className="flex items-start gap-3">
           <div className="text-3xl flex-shrink-0 mt-0.5">{activity.emoji}</div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pr-6">
             <h3 className="font-display font-bold text-foreground leading-snug">{activity.title}</h3>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${categoryColor}`}>
@@ -168,20 +179,6 @@ export default function ActivityCard({
           </div>
         )}
       </div>
-
-      {/* "Autres idées" CTA — shown only on the last card of a category group */}
-      {variant === "weekend" && isLastInCategory && onRefreshCategory && (
-        <div className="border-t border-border/50 px-4 py-2.5">
-          <button
-            onClick={onRefreshCategory}
-            disabled={isRefreshing}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors w-full disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3 w-3 flex-shrink-0 ${isRefreshing ? "animate-spin" : ""}`} />
-            Ces suggestions ne conviennent pas ? Voir d'autres idées
-          </button>
-        </div>
-      )}
     </div>
   );
 }
