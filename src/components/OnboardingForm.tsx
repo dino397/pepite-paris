@@ -1,13 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Plus, Trash2, ChevronRight, Heart } from "lucide-react";
+import { Plus, Trash2, ChevronRight, Heart, MapPin } from "lucide-react";
 import onboardingExpo from "@/assets/onboarding-expo.png";
 import onboardingTheatre from "@/assets/onboarding-theatre.png";
 import onboardingCinema from "@/assets/onboarding-cinema.png";
 import onboardingAquarium from "@/assets/onboarding-aquarium.png";
 import onboardingParis from "@/assets/onboarding-paris.png";
+
+interface NominatimResult {
+  display_name: string;
+  address: {
+    road?: string;
+    house_number?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    postcode?: string;
+  };
+}
 
 interface Child {
   name: string;
