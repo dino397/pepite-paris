@@ -14,13 +14,8 @@ import {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function getWeekKey(): string {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const week = Math.ceil(
-    ((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7
-  );
-  return `${now.getFullYear()}-${String(week).padStart(2, "0")}`;
+function getDayKey(): string {
+  return new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 }
 
 function getNextWeekendDates(): { saturday: Date; sunday: Date } {
@@ -788,7 +783,7 @@ export default function WeekendNewsletter() {
   const [scrapeCount, setScrapeCount] = useState(0);
   const [triggering, setTriggering] = useState(false);
 
-  const weekKey = getWeekKey();
+  const weekKey = getDayKey();
 
   // ── Load activities from DB ──
   const loadActivities = useCallback(async () => {
