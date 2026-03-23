@@ -686,7 +686,7 @@ function ScrapeBanner({
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
-export default function WeekendNewsletter() {
+export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => void }) {
   const { saturday, sunday } = getNextWeekendDates();
   const weekendLabel = `${formatDate(saturday)} & ${formatDate(sunday)}`;
 
