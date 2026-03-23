@@ -42,6 +42,7 @@ export interface Activity {
 
 export interface FutureEvent {
   id: number;
+  emoji: string;
   title: string;
   description: string;
   date: string;
@@ -50,6 +51,7 @@ export interface FutureEvent {
   booking_url: string;
   age: string;
 }
+
 
 import posterPerduRetrouve from "@/assets/poster-perdu-retrouve.jpg";
 import posterLoups from "@/assets/poster-loups.jpg";
