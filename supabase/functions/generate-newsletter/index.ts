@@ -30,19 +30,22 @@ serve(async (req) => {
     const body = await req.json();
     const { weatherData, forceRegenerate } = body;
 
-    // Get family profile + children
-    const { data: profile } = await supabase
-      .from("family_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .single();
+    // Get family profile + children + subscribers
+    const [profileRes, subscribersRes] = await Promise.all([
+      supabase.from("family_profiles").select("*").eq("user_id", user.id).single(),
+      supabase.from("newsletter_subscribers").select("*").eq("user_id", user.id).eq("opt_in", true),
+    ]);
 
+    const profile = profileRes.data;
     if (!profile) throw new Error("Profile not found");
 
     const { data: children } = await supabase
       .from("children")
       .select("*")
       .eq("family_id", profile.id);
+
+    // All opted-in subscribers (primary + family members)
+    const subscribers = subscribersRes.data ?? [];
 
     // Build week key (week of year)
     const now = new Date();
@@ -60,7 +63,7 @@ serve(async (req) => {
         .single();
 
       if (cached) {
-        return new Response(JSON.stringify({ content: cached.content, fromCache: true }), {
+        return new Response(JSON.stringify({ content: cached.content, fromCache: true, subscribers: subscribers.map((s) => ({ name: s.name, email: s.email })) }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -239,7 +242,16 @@ Assure-toi que:
       content: parsedContent,
     }, { onConflict: "user_id,week_key" });
 
-    return new Response(JSON.stringify({ content: parsedContent, fromCache: false }), {
+    // Log subscribers who will receive the newsletter
+    if (subscribers.length > 0) {
+      console.log(`Newsletter generated for ${subscribers.length} subscriber(s): ${subscribers.map((s) => `${s.name || "?"} <${s.email}>`).join(", ")}`);
+    }
+
+    return new Response(JSON.stringify({
+      content: parsedContent,
+      fromCache: false,
+      subscribers: subscribers.map((s) => ({ name: s.name, email: s.email })),
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {

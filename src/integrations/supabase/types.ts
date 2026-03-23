@@ -163,6 +163,36 @@ export type Database = {
         }
         Relationships: []
       }
+      newsletter_subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_primary: boolean
+          name: string | null
+          opt_in: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_primary?: boolean
+          name?: string | null
+          opt_in?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_primary?: boolean
+          name?: string | null
+          opt_in?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       scrape_runs: {
         Row: {
           activities_found: number | null

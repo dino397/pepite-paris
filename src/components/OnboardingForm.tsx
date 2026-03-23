@@ -184,6 +184,39 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
         if (childrenError) throw childrenError;
       }
 
+      // Save newsletter subscribers
+      const subscribers: { user_id: string; name: string | null; email: string; is_primary: boolean; opt_in: boolean }[] = [];
+
+      // Primary subscriber (account owner)
+      if (newsletterEmail && newsletterEmail.trim()) {
+        subscribers.push({
+          user_id: userId,
+          name: parentName || null,
+          email: newsletterEmail.trim(),
+          is_primary: true,
+          opt_in: newsletterOptIn,
+        });
+      }
+
+      // Family members
+      const validMembers = familyMembers.filter((m) => m.email && m.email.trim());
+      for (const member of validMembers) {
+        subscribers.push({
+          user_id: userId,
+          name: member.name || null,
+          email: member.email.trim(),
+          is_primary: false,
+          opt_in: true,
+        });
+      }
+
+      if (subscribers.length > 0) {
+        const { error: subsError } = await supabase
+          .from("newsletter_subscribers")
+          .insert(subscribers);
+        if (subsError) throw subsError;
+      }
+
       toast.success("Bienvenue sur Pépite ! 🎉");
       onComplete();
     } catch (err: unknown) {
