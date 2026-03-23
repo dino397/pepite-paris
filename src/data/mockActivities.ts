@@ -288,8 +288,9 @@ export const mockFutureWeekend = {
 export const mockFutureEvents: FutureEvent[] = [
   {
     id: 100,
+    emoji: "🥚",
     title: "Eggxtraordinaire — Expo Pâques",
-    description: "94 artistes revisitent l'œuf de Pâques. Gratuit sur réservation.",
+    description: "94 artistes revisitent l'œuf de Pâques. Gratuit, parfait pour Ariel et Gala.",
     date: "3 avr – 3 mai 2025",
     location: "Galerie Joseph",
     arrondissement: "3ème",
@@ -298,8 +299,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 101,
+    emoji: "🗾",
     title: "Passion Japon",
-    description: "Expo immersive Japon. Tarif early bird jusqu'au 5 avril.",
+    description: "Expo immersive sur le Japon. Réserve vite : tarif early bird jusqu'au 5 avril.",
     date: "5 avr – 1 juin 2025",
     location: "Parc des Expos",
     arrondissement: "15ème",
@@ -308,8 +310,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 102,
+    emoji: "🎪",
     title: "Festival Rêves d'enfants",
-    description: "Spectacles, ateliers et contes. Gratuit, places limitées.",
+    description: "Spectacles, ateliers et contes. Gratuit mais places limitées — à réserver vite.",
     date: "12–13 avr 2025",
     location: "Centre Culturel Coréen",
     arrondissement: "6ème",
@@ -318,8 +321,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 103,
+    emoji: "🎻",
     title: "Philharmonie Explore",
-    description: "Parcours musical immersif pour les enfants. Dernières places.",
+    description: "Parcours musical immersif pour les enfants. Plus que quelques places disponibles.",
     date: "19–20 avr 2025",
     location: "Philharmonie",
     arrondissement: "19ème",
@@ -328,8 +332,9 @@ export const mockFutureEvents: FutureEvent[] = [
   },
   {
     id: 104,
+    emoji: "🎷",
     title: "Alice Swing",
-    description: "Conte musical jazz au pays des merveilles. Dernières places.",
+    description: "Conte musical jazz au pays des merveilles. Dernières places — ne pas attendre.",
     date: "26–27 avr 2025",
     location: "Théâtre Dunois",
     arrondissement: "13ème",
