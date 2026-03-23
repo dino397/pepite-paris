@@ -14,7 +14,143 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agenda_events: {
+        Row: {
+          created_at: string
+          emoji: string | null
+          event_date: string
+          event_type: string | null
+          id: string
+          notes: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string | null
+          event_date: string
+          event_type?: string | null
+          id?: string
+          notes?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string | null
+          event_date?: string
+          event_type?: string | null
+          id?: string
+          notes?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      children: {
+        Row: {
+          age_years: number | null
+          birth_date: string | null
+          created_at: string
+          family_id: string
+          id: string
+          name: string
+        }
+        Insert: {
+          age_years?: number | null
+          birth_date?: string | null
+          created_at?: string
+          family_id: string
+          id?: string
+          name?: string
+        }
+        Update: {
+          age_years?: number | null
+          birth_date?: string | null
+          created_at?: string
+          family_id?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "family_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_profiles: {
+        Row: {
+          city: string
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          newsletter_generated_at: string | null
+          parent_name: string
+          postal_code: string | null
+          preferences: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          newsletter_generated_at?: string | null
+          parent_name?: string
+          postal_code?: string | null
+          preferences?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          newsletter_generated_at?: string | null
+          parent_name?: string
+          postal_code?: string | null
+          preferences?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      newsletter_cache: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          user_id: string
+          week_key: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          user_id: string
+          week_key: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          user_id?: string
+          week_key?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
