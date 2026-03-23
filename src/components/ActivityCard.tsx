@@ -1,4 +1,4 @@
-import { Sparkles, Clock, MapPin, Ticket, ExternalLink, RefreshCw } from "lucide-react";
+import { Sparkles, Clock, MapPin, Ticket, ExternalLink, X } from "lucide-react";
 
 export interface Activity {
   id: string;

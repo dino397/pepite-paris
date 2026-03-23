@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -94,8 +94,16 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
   const [content, setContent] = useState<ActivitiesContent | null>(null);
   const [loading, setLoading] = useState(false);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  // Track which categories are currently refreshing
-  const [refreshingCategories, setRefreshingCategories] = useState<Set<string>>(new Set());
+  // Extra activities preloaded per category (ready to reveal instantly)
+  const [extraActivities, setExtraActivities] = useState<Record<string, Activity[]>>({});
+  // Which categories have "Voir plus" expanded
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  // Which categories are currently preloading in background
+  const [preloadingCategories, setPreloadingCategories] = useState<Set<string>>(new Set());
+  // Dismissed activity IDs
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const weatherDataRef = useRef<WeatherData | null>(null);
 
   const now = new Date();
   const startOfWeek = new Date(now);
@@ -106,12 +114,20 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
   sunday.setDate(startOfWeek.getDate() + 6);
   const weekendLabel = `${saturday.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} & ${sunday.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`;
 
+  const handleWeatherLoaded = useCallback((data: WeatherData) => {
+    setWeatherData(data);
+    weatherDataRef.current = data;
+  }, []);
+
   const callGenerateActivities = useCallback(async (opts: {
     forceRegenerate?: boolean;
     categoryToRefresh?: string;
+    currentWeather?: WeatherData | null;
   } = {}): Promise<ActivitiesContent | null> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Non connecté");
+
+    const weather = opts.currentWeather !== undefined ? opts.currentWeather : weatherDataRef.current;
 
     const res = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-activities`,
@@ -122,7 +138,7 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
           Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          weatherData,
+          weatherData: weather,
           forceRegenerate: opts.forceRegenerate ?? false,
           categoryToRefresh: opts.categoryToRefresh,
         }),
@@ -135,81 +151,74 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Erreur de génération");
     return data.content;
-  }, [weatherData]);
+  }, []);
+
+  /** Preload extra activities for a category silently in background */
+  const preloadCategoryExtras = useCallback(async (category: string, currentWeather?: WeatherData | null) => {
+    setPreloadingCategories((prev) => new Set(prev).add(category));
+    try {
+      const result = await callGenerateActivities({
+        forceRegenerate: true,
+        categoryToRefresh: category,
+        currentWeather,
+      });
+      if (result) {
+        const newExtras = (result.weekend?.activities ?? []).filter(
+          (a) => (a.category || "activite") === category
+        );
+        if (newExtras.length > 0) {
+          setExtraActivities((prev) => ({ ...prev, [category]: newExtras }));
+        }
+      }
+    } catch {
+      // Silent fail — extras just won't be preloaded
+    } finally {
+      setPreloadingCategories((prev) => {
+        const next = new Set(prev);
+        next.delete(category);
+        return next;
+      });
+    }
+  }, [callGenerateActivities]);
 
   const generateActivities = useCallback(async (forceRegenerate = false) => {
     setLoading(true);
     try {
-      const result = await callGenerateActivities({ forceRegenerate });
+      const result = await callGenerateActivities({ forceRegenerate, currentWeather: weatherDataRef.current });
       if (result) {
         setContent(result);
+        setExtraActivities({});
+        setExpandedCategories(new Set());
+        setDismissedIds(new Set());
         if (forceRegenerate) toast.success("Activités régénérées ! 🎉");
         else toast.success("Activités générées ! 🎉");
+
+        // Preload extras for each category in background
+        const categories = [...new Set((result.weekend?.activities ?? []).map((a) => a.category || "activite"))];
+        for (const cat of categories) {
+          setTimeout(() => preloadCategoryExtras(cat, weatherDataRef.current), 200);
+        }
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Erreur de génération");
     } finally {
       setLoading(false);
     }
-  }, [callGenerateActivities]);
+  }, [callGenerateActivities, preloadCategoryExtras]);
 
-  const refreshCategory = useCallback(async (category: string) => {
-    if (!content) return;
-    setRefreshingCategories((prev) => new Set(prev).add(category));
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Non connecté");
+  /** Show preloaded extras; if not ready yet, fetch now */
+  const handleShowMore = useCallback(async (category: string) => {
+    setExpandedCategories((prev) => new Set(prev).add(category));
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-activities`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            weatherData,
-            forceRegenerate: true,
-            categoryToRefresh: category,
-          }),
-        }
-      );
-
-      if (res.status === 429) { toast.error("Trop de requêtes."); return; }
-      if (res.status === 402) { toast.error("Crédits insuffisants."); return; }
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur");
-
-      const newContent: ActivitiesContent = data.content;
-
-      // Merge: replace activities of the refreshed category, keep others
-      setContent((prev) => {
-        if (!prev) return newContent;
-        const kept = prev.weekend.activities.filter((a) => (a.category || "activite") !== category);
-        const newCatActivities = (newContent.weekend?.activities ?? []).filter(
-          (a) => (a.category || "activite") === category
-        );
-        return {
-          ...prev,
-          weekend: {
-            ...prev.weekend,
-            activities: [...kept, ...newCatActivities],
-          },
-        };
-      });
-      toast.success(`Nouvelles idées ${CATEGORY_LABELS[category] ?? category} 🎉`);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erreur");
-    } finally {
-      setRefreshingCategories((prev) => {
-        const next = new Set(prev);
-        next.delete(category);
-        return next;
-      });
+    if (!extraActivities[category] && !preloadingCategories.has(category)) {
+      // Not preloaded yet → fetch now (visible loading)
+      await preloadCategoryExtras(category);
     }
-  }, [content, weatherData]);
+  }, [extraActivities, preloadingCategories, preloadCategoryExtras]);
+
+  const handleDismiss = useCallback((activityId: string) => {
+    setDismissedIds((prev) => new Set(prev).add(activityId));
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -280,7 +289,7 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
               city={profile.city}
               latitude={profile.latitude}
               longitude={profile.longitude}
-              onWeatherLoaded={setWeatherData}
+              onWeatherLoaded={handleWeatherLoaded}
             />
 
             {/* Weekend heading */}
@@ -342,29 +351,89 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
             {/* Activity cards grouped by category */}
             {categoryGroups.length > 0 && (
               <div className="space-y-6">
-                {categoryGroups.map(({ category, items }) => (
-                  <div key={category} className="space-y-3">
-                    {/* Category header */}
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-                        {CATEGORY_LABELS[category] ?? category}
-                      </h3>
-                      <div className="flex-1 h-px bg-border/60" />
-                    </div>
+                {categoryGroups.map(({ category, items }) => {
+                  const visibleMain = items.filter((a) => !dismissedIds.has(a.id));
+                  const extras = extraActivities[category] ?? [];
+                  const visibleExtras = expandedCategories.has(category)
+                    ? extras.filter((a) => !dismissedIds.has(a.id))
+                    : [];
+                  const isPreloading = preloadingCategories.has(category);
+                  const isExpanded = expandedCategories.has(category);
+                  const hasExtras = extras.length > 0;
 
-                    {/* Cards */}
-                    {items.map((act, idx) => (
-                      <ActivityCard
-                        key={act.id}
-                        activity={act}
-                        variant="weekend"
-                        isLastInCategory={idx === items.length - 1}
-                        onRefreshCategory={() => refreshCategory(category)}
-                        isRefreshing={refreshingCategories.has(category)}
-                      />
-                    ))}
-                  </div>
-                ))}
+                  return (
+                    <div key={category} className="space-y-3">
+                      {/* Category header */}
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+                          {CATEGORY_LABELS[category] ?? category}
+                        </h3>
+                        <div className="flex-1 h-px bg-border/60" />
+                      </div>
+
+                      {/* Main cards */}
+                      {visibleMain.map((act) => (
+                        <ActivityCard
+                          key={act.id}
+                          activity={act}
+                          variant="weekend"
+                          onDismiss={() => handleDismiss(act.id)}
+                        />
+                      ))}
+
+                      {/* Extra cards (revealed on "Voir plus") */}
+                      {visibleExtras.map((act) => (
+                        <ActivityCard
+                          key={act.id}
+                          activity={act}
+                          variant="weekend"
+                          onDismiss={() => handleDismiss(act.id)}
+                          isExtra
+                        />
+                      ))}
+
+                      {/* "Voir plus" CTA */}
+                      {!isExpanded && (
+                        <button
+                          onClick={() => handleShowMore(category)}
+                          disabled={isPreloading && !hasExtras}
+                          className="flex items-center gap-2 text-xs text-primary font-medium hover:text-primary/80 transition-colors w-full py-1.5 disabled:opacity-50"
+                        >
+                          {isPreloading && !hasExtras ? (
+                            <>
+                              <span className="w-3 h-3 border border-primary/40 border-t-primary rounded-full animate-spin flex-shrink-0" />
+                              Chargement d'autres idées…
+                            </>
+                          ) : (
+                            <>
+                              <span className="flex items-center justify-center w-4 h-4 rounded-full border border-primary/40 text-primary text-[10px] font-bold flex-shrink-0">+</span>
+                              Voir plus d'idées {CATEGORY_LABELS[category] ?? category}
+                            </>
+                          )}
+                        </button>
+                      )}
+
+                      {/* Collapse back if expanded and extras shown */}
+                      {isExpanded && visibleExtras.length > 0 && (
+                        <button
+                          onClick={() => setExpandedCategories((prev) => { const s = new Set(prev); s.delete(category); return s; })}
+                          className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1.5"
+                        >
+                          <span className="flex items-center justify-center w-4 h-4 rounded-full border border-border text-[10px] font-bold flex-shrink-0">−</span>
+                          Réduire
+                        </button>
+                      )}
+
+                      {/* Expanded but still loading */}
+                      {isExpanded && isPreloading && !hasExtras && (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground py-2 px-3 bg-muted/40 rounded-xl">
+                          <span className="w-3 h-3 border border-muted-foreground/40 border-t-muted-foreground rounded-full animate-spin flex-shrink-0" />
+                          Génération de nouvelles idées…
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -430,9 +499,16 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
 
             {content?.prebooking?.activities && content.prebooking.activities.length > 0 && (
               <div className="space-y-4">
-                {content.prebooking.activities.map((act) => (
-                  <ActivityCard key={act.id} activity={act} variant="prebooking" />
-                ))}
+                {content.prebooking.activities
+                  .filter((act) => !dismissedIds.has(act.id))
+                  .map((act) => (
+                    <ActivityCard
+                      key={act.id}
+                      activity={act}
+                      variant="prebooking"
+                      onDismiss={() => handleDismiss(act.id)}
+                    />
+                  ))}
               </div>
             )}
           </div>
