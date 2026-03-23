@@ -505,7 +505,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                   <span className="text-lg shrink-0">📩</span>
                   <div>
                     <p className="text-sm font-semibold text-foreground">Newsletter du week-end</p>
-                    <p className="text-xs text-muted-foreground leading-snug mt-0.5">Recevez chaque vendredi vos meilleures idées d'activités, adaptées à la météo et à vos enfants.</p>
+                    <p className="text-xs text-muted-foreground leading-snug mt-0.5">Recevez chaque mercredi vos meilleures idées d'activités, adaptées à la météo et à vos enfants.</p>
                   </div>
                 </div>
               </div>
