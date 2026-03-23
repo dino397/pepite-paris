@@ -38,8 +38,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col overflow-hidden">
 
-      {/* Illustration — boats visible, minimal fade only at very bottom edge */}
-      <div className="relative flex-shrink-0" style={{ height: "58vh" }}>
+      {/* Illustration — bassin qui continue en-dessous */}
+      <div className="relative flex-shrink-0" style={{ height: "62vh" }}>
         <img
           src={pepiteIllustration}
           alt=""
@@ -48,8 +48,8 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           width={1024}
           height={1280}
         />
-        {/* Very subtle fade — just enough to blend */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent" />
+        {/* Fondu très progressif sur les 30% bas pour que le bassin se prolonge */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/60 to-transparent" />
       </div>
 
       {/* Brand + form */}
