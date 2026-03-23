@@ -1,36 +1,92 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthForm from "@/components/AuthForm";
 import OnboardingForm from "@/components/OnboardingForm";
-import WeekendNewsletter from "@/components/WeekendNewsletter";
+import AppPage from "@/components/AppPage";
 
 type AppState = "loading" | "auth" | "onboarding" | "app";
+
+interface FamilyProfile {
+  id: string;
+  parent_name: string;
+  city: string;
+  postal_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  preferences: string[];
+}
+
+interface Child {
+  id: string;
+  name: string;
+  age_years: number | null;
+}
+
+interface AgendaEvent {
+  id: string;
+  title: string;
+  event_date: string;
+  emoji: string | null;
+  event_type: string | null;
+  notes: string | null;
+}
 
 export default function Index() {
   const [state, setState] = useState<AppState>("loading");
   const [userId, setUserId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<FamilyProfile | null>(null);
+  const [children, setChildren] = useState<Child[]>([]);
+  const [agendaEvents, setAgendaEvents] = useState<AgendaEvent[]>([]);
 
-  const checkUserState = async (uid: string) => {
-    const { data: profile } = await supabase
+  const loadAppData = useCallback(async (uid: string) => {
+    const { data: profileData } = await supabase
       .from("family_profiles")
-      .select("id")
+      .select("id, parent_name, city, postal_code, latitude, longitude, preferences")
       .eq("user_id", uid)
       .maybeSingle();
 
-    if (profile) {
-      setState("app");
-    } else {
+    if (!profileData) {
       setState("onboarding");
+      return;
     }
-  };
+
+    setProfile({
+      ...profileData,
+      preferences: profileData.preferences ?? [],
+    });
+
+    const { data: childrenData } = await supabase
+      .from("children")
+      .select("id, name, age_years")
+      .eq("family_id", profileData.id);
+
+    setChildren(childrenData ?? []);
+
+    const { data: agendaData } = await supabase
+      .from("agenda_events")
+      .select("*")
+      .eq("user_id", uid)
+      .order("event_date");
+
+    setAgendaEvents(agendaData ?? []);
+    setState("app");
+  }, []);
+
+  const loadAgendaEvents = useCallback(async (uid: string) => {
+    const { data } = await supabase
+      .from("agenda_events")
+      .select("*")
+      .eq("user_id", uid)
+      .order("event_date");
+    if (data) setAgendaEvents(data);
+  }, []);
 
   useEffect(() => {
-    // Listen to auth state changes BEFORE getSession
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
           setUserId(session.user.id);
-          await checkUserState(session.user.id);
+          await loadAppData(session.user.id);
         } else {
           setUserId(null);
           setState("auth");
@@ -38,18 +94,17 @@ export default function Index() {
       }
     );
 
-    // Initial session check
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUserId(session.user.id);
-        checkUserState(session.user.id);
+        loadAppData(session.user.id);
       } else {
         setState("auth");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [loadAppData]);
 
   if (state === "loading") {
     return (
@@ -63,17 +118,36 @@ export default function Index() {
   }
 
   if (state === "auth") {
-    return <AuthForm onSuccess={() => userId && checkUserState(userId)} />;
+    return <AuthForm onSuccess={() => userId && loadAppData(userId)} />;
   }
 
   if (state === "onboarding" && userId) {
     return (
       <OnboardingForm
         userId={userId}
-        onComplete={() => setState("app")}
+        onComplete={() => userId && loadAppData(userId)}
       />
     );
   }
 
-  return <WeekendNewsletter onSignOut={() => setState("auth")} />;
+  if (state === "app" && userId && profile) {
+    return (
+      <AppPage
+        userId={userId}
+        profile={profile}
+        children={children}
+        agendaEvents={agendaEvents}
+        onAgendaChange={() => loadAgendaEvents(userId)}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <span className="text-4xl animate-sway inline-block">🌿</span>
+        <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    </div>
+  );
 }
