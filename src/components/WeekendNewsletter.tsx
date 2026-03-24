@@ -587,11 +587,11 @@ function ActivitySection({
   dismissedIds: Set<number>;
   onDismiss: (id: number) => void;
 }) {
-  const [showMore, setShowMore] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(initialCount);
 
   const visible = activities.filter((a) => !dismissedIds.has(a.id));
-  const displayed = showMore ? visible : visible.slice(0, initialCount);
-  const hasMore = visible.length > initialCount;
+  const displayed = visible.slice(0, visibleCount);
+  const hasMore = visible.length > visibleCount;
 
   if (!loading && visible.length === 0) return null;
 
@@ -621,13 +621,13 @@ function ActivitySection({
               />
             )
           )}
-          {hasMore && !showMore && (
+          {hasMore && (
             <button
-              onClick={() => setShowMore(true)}
+              onClick={() => setVisibleCount((n) => n + 3)}
               className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-dashed border-border/60 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
             >
               <ChevronDown className="h-3.5 w-3.5" />
-              Voir plus d'idées
+              Voir 3 idées de plus
             </button>
           )}
         </div>
