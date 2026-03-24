@@ -124,7 +124,7 @@ Génère exactement ce JSON:
 {
   "weekend": {
     "label": "${formatDate(saturday)} & ${formatDate(sunday)}",
-    "weather_summary": "Résumé météo en 1 phrase avec conseil pratique",
+    "weather_summary": "Résumé météo en 1 phrase max, direct et concret (ex: 'Samedi nuageux → parfait pour une sortie ciné ou musée, dimanche ensoleillé → fillez au parc !')",
     "activities": [
       {
         "id": "unique_id",
