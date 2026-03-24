@@ -136,7 +136,7 @@ Génère exactement ce JSON:
         "duration": "2h",
         "distance_km": 5,
         "transport": ["voiture"],
-        "description": "Description engageante. Pour les activités highlighted=true: 3 phrases détaillées expliquant pourquoi c'est la pépite de la semaine et en quoi elle convient à CHACUN des enfants nommés (${childrenDesc}). Pour les autres: 2 phrases suffisent.",
+        "description": "1 phrase courte et directe. Si highlighted=true: 2 phrases max, directes et concrètes (pas besoin de nommer chaque enfant).",
         "practical_info": "Infos pratiques: adresse indicative, tarifs, horaires types",
         "requires_booking": false,
         "booking_url": null,
