@@ -901,7 +901,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(() => new Set());
   const [dismissedReco, setDismissedReco] = useState(false);
 
-  const weekKey = getDayKey();
+  const weekKey = getDayKey(); // used for refresh deduplication
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
