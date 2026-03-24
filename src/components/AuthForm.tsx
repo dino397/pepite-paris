@@ -119,12 +119,13 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           }
         `}</style>
 
-        {/* Fondu très progressif — le bassin reste perceptible en dessous */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/70 to-transparent" />
+        {/* Fondu bas sur mobile, fondu droite sur desktop */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/70 to-transparent md:hidden" />
+        <div className="hidden md:block absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-background via-background/60 to-transparent" />
       </div>
 
       {/* Brand + form */}
-      <div className="flex-1 flex flex-col items-center px-6 pb-8 pt-4 relative z-10">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8 pt-4 md:pt-8 relative z-10">
 
         {/* Brand — Cormorant Garamond, intemporel */}
         <div className="text-center mb-6">
