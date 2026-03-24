@@ -158,14 +158,16 @@ export default function Index() {
     );
   }
 
-  if (state === "app" && userId && profile) {
+  if (state === "app" && userId) {
     return (
-      <AppPage
-        userId={userId}
-        profile={profile}
-        children={children}
-        agendaEvents={agendaEvents}
-        onAgendaChange={() => loadAgendaEvents(userId)}
+      <WeekendNewsletter
+        onSignOut={() => {
+          setUserId(null);
+          setProfile(null);
+          setChildren([]);
+          setAgendaEvents([]);
+          setState("auth");
+        }}
       />
     );
   }
