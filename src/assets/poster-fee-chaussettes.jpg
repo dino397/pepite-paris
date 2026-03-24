@@ -1,9 +1,538 @@
-<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<html><head>
-<title>404 Not Found</title>
-</head><body>
-<h1>Not Found</h1>
-<p>The requested URL was not found on this server.</p>
-<hr>
-<address>Apache Server at theatredumarais.fr Port 443</address>
-</body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+	
+	
+  <meta charset="utf-8">
+
+
+	<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+<meta name="viewport" content="width=device-width">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+<meta name="theme-color" content="#008bdc" />
+
+    <title>Erreur 404 : la page n'a pas été trouvée - L'Officiel des spectacles</title>
+        <meta name="robots" content="index, follow" />
+
+
+
+<link rel="shortcut icon" href="/res/img/icons/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/res/img/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/res/img/icons/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/res/img/icons/android-chrome-512x512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/res/img/icons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/res/img/icons/favicon-16x16.png">
+<link rel="manifest" href="/res/img/icons/site.webmanifest">
+
+
+    <!--<link href="https://unpkg.com/gijgo@1.9.11/css/gijgo.min.css" rel="stylesheet" type="text/css" />-->
+    <link href="/res/css/tiny-date-picker.min.css" rel="stylesheet" type="text/css" />
+    <link href="/res/css/date-range-picker.css" rel="stylesheet" type="text/css" />
+ 
+        <link rel="stylesheet" href="/templates-mobile/assets/css/theme.css?v25" type="text/css" media="all">
+   <script type="text/javascript">
+		var compteOuvert = 1;
+        var offi = {};
+        offi.gaVersion = 'ga4';
+    </script>
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WCXK8B622W"></script>
+
+<script type="text/javascript">
+    
+    offi.demandeTarteAucitron = true;
+    
+	  
+	  window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    
+    
+    gtag('js', new Date());
+    
+    if (offi.demandeTarteAucitron) {
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+            'analytics_storage': 'denied',
+            wait_for_update: 500
+        });
+    }
+    
+    
+    gtag('config', 'G-WCXK8B622W');
+    offi.gtag = window.gtag;
+    
+
+
+<!-- Matomo -->
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['requireCookieConsent']);
+  _paq.push(['setConversionAttributionFirstReferrer', true]);
+  offi.matoActif = true;
+  
+  
+    
+  
+  if (offi.MatomoSetCustomUrl)
+  {
+    _paq.push(['setCustomUrl', offi.MatomoSetCustomUrl]);
+  }
+        
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//mato.offi.fr/matomo/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '21']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+<!-- End Matomo Code -->
+
+
+</script>
+
+
+
+<!-- Knowledge Graph Google -->
+<script type="application/ld+json">
+{
+	"@context" : "https://schema.org",
+	"@type" : "Organization",
+	"name" : "L'Officiel des spectacles",
+	"description" : "Magazine hebdomadaire sur l'actualité culturelle à Paris et en Île-de-France : cinéma, théâtre, expositions, concerts, spectacles pour enfants, visites guidées, guide touristique parisien.",
+	"foundingDate" : "1946-09-01",
+	"url" : "https://www.offi.fr",
+	"logo": "https://files.offi.fr/medias/img/logo-officiel-bleu.jpg",
+	"sameAs" : [ "https://www.facebook.com/offi.fr",
+	"https://twitter.com/lofficiel",
+	"https://www.instagram.com/lofficieldesspectacles/"] 
+}
+</script>
+
+	
+</head>
+
+<body class=" right-columns" >
+	
+	
+	<main>
+	  
+		<section id="header">
+						
+			
+<header>
+    <!-- menu principal -->
+    <div class="navbar navbar-dark box-shadow main-menu" id="stickytop">
+        <div class="container container-1">
+
+            <div class="menu-burger dropdown">
+                <a class="dropdown-toggle">
+                    <img class="closed-menu" src="/res/img/menu/hamburger.png">
+                    <img class="opened-menu" src="/res/img/menu/close-white.png">
+                </a>
+                <!-- menu latéral -->
+<div class="main-background dropdown-menu" id="navbarHeader" >
+    <div class="left-menu">
+                <!-- Links -->
+        <ul class="left-menu-dropdown">
+            <li class="dropdown-item main-background-darker d-flex">
+                <div class="col p-0">
+                    <a class="nav-link" href="/"><span class="iconoffi-home"></span> Accueil</a>
+                </div>
+                <div class="col p-0 text-right">
+                    <a class="dropdown-toggle nav-link"><i class="iconoffi-fermer"></i> </a>
+                </div>
+            </li>
+            
+            <li class="d-md-none menu-principal main-background-darker">
+                <div class="row m-0 px-2">
+                                <div class="col-6 element">
+                    <a href="/cinema" class="cinema_color">cinéma </a>
+                </div>
+                                <div class="col-6 element">
+                    <a href="/theatre" class="theatre_color">théâtre </a>
+                </div>
+                                <div class="col-6 element">
+                    <a href="/expositions-musees" class="expositions-musees_color">expositions </a>
+                </div>
+                                <div class="col-6 element">
+                    <a href="/concerts" class="concerts_color">concerts </a>
+                </div>
+                                <div class="col-6 element">
+                    <a href="/enfants" class="enfants_color">enfants </a>
+                </div>
+                                <div class="col-6 element">
+                    <a href="/visites-conferences" class="visites-conferences_color">visites guidées </a>
+                </div>
+                                </div>
+            </li>
+            
+                        <li class="dropdown-item d-none visible-connecte">
+                <a class="nav-link" href="/modifier-mon-compte.html" rel="nofollow"><span class="iconoffi-user"></span><span class="user-name-value"></span></a>
+            </li>
+            <li class="dropdown-item d-none visible-connecte">
+                <a class="nav-link" href="/modifier-mon-compte.html" rel="nofollow"><span class="iconoffi-plus"></span>Modifier mon compte</a>
+            </li>
+            <li class="dropdown-item  d-none visible-connecte">
+                <a class="nav-link" href="/compte-commandes.html" rel="nofollow"><span class="iconoffi-cart"></span>Mes commandes</a>
+            </li>
+            <li class="dropdown-item cache-connecte">
+                <a class="nav-link" href="/connexion.html" rel="nofollow"><span class="iconoffi-user"></span>S'identifier</a>
+            </li>
+                        
+            <li class="dropdown-item cache-connecte">
+                <a class="nav-link" href="/abonnement-lofficiel.html" rel="nofollow"><span class="iconoffi-plus"></span>Abonnement</a>
+            </li>
+            
+            <li class="dropdown-item">
+                <a class="nav-link" href="/carte-cadeau.html" rel="nofollow"><span class="fas fa-gift"></span>Carte cadeau</a>
+            </li>
+            
+            <li class="dropdown-item">
+                <a class="nav-link" href="/contact.html" rel="nofollow"><span class="iconoffi-contact"></span>Nous contacter</a>
+            </li>
+            <li class="dropdown-item">
+                <a class="nav-link" href="/conditions-generales-reservation-offi.fr.html" rel="nofollow"><span class="iconoffi-info"></span>CGV</a>
+            </li>
+                        <li class="dropdown-item d-none visible-connecte">
+                <a class="nav-link" href="/mon-abonnement.html" rel="nofollow"><span class="iconoffi-plus"></span>Abonnement</a>
+            </li>
+                        <li class="dropdown-item has-children d-none visible-connecte">
+
+                <a class="nav-link" href="/mes-favoris.html" rel="nofollow"><span class="iconoffi-star"></span>Mes favoris</a>
+
+                <ul class="ml-1 dropdown-menu-items" id="menu-favoris-liste">
+                </ul>
+                
+            </li>
+            <li class="dropdown-item d-none visible-connecte">
+                <a class="nav-link" href="/" id="disconnectBtnDropdown" rel="nofollow"><span class="iconoffi-user"></span>Déconnexion</a>
+            </li>
+            
+        </ul>
+        <!-- Links -->
+
+    </div>
+</div>            </div>
+            
+                
+            <div class="has-margin-left-10 logo-header">
+                <a href="/" class="logo"><img src="/res/img/logo-offi.svg" class="img-fluid"/></a>
+            </div>
+            <div class="criteres">
+
+                <div class="d-block d-md-none  text-center" id="mobile-search-button">                     <a href="#"><i class="fas fa-search"></i></a>
+                </div>
+                
+            <div class="d-md-none logo-text-header1 pt-2">
+                <a href="/carte-cadeau.html" class="mt-0 p-1 px-2 text-white text-decoration-none font-bolder">
+                    <span class="fas fa-gift mr-2"></span><span class="border-bottom">Carte cadeau<span></a>
+                    </a>
+            </div>
+            
+            </div>
+            
+            <div class="d-block  col-md-7 form-container dark-form" id="search-form">
+                <!-- form search -->
+                <form id="schForm" method="GET"action="/recherche-ac.html">
+                    <div class="input-group d-none d-md-flex">
+                        <input type="text" name="acSearch" id="search" placeholder="un spectacle, un lieu, une ville, un acteur..." autocomplete="off" class="form-control ui-autocomplete-input" role="textbox" aria-autocomplete="list" aria-haspopup="true">
+                        <div class="input-group-append">
+                            <span class="input-group-text header-search-btn" id="basic-addon2"><i class="fas fa-search"></i></span>
+                        </div>
+                    </div>
+                </form>
+                <!-- / form search -->
+                
+                <div class="imgsticky">
+                    <div class="p-container"><div class="p-bg" style="--bg-image: url(https://files.offi.fr/display/738/3.gif);"></div><a href="https://www.offi.fr/theatre/a-la-folie-theatre-2180/taxi-story-105030.html"  class="pdisplay"><img src="https://files.offi.fr/display/738/3.gif" data-pv="Display/PACK_BANNIERE/738-taxi-story" class="pdisplayimg" data-pos="2" /></a></div>
+                </div>
+
+                <!-- form search sticky header -->
+                <div class="sticky-form-search  has-margin-left-15 ">
+                    <div class="input-group-append">
+                        <span class="input-group-text header-search-btn has-padding-top-25 has-padding-bottom-25 has-padding-left-10 has-padding-right-10" id="basic-addon2"><i class="fas fa-search"></i></span>
+                    </div>
+                </div>
+                <!-- / form search sticky header -->
+            
+            </div>
+            
+            <div class="logo-text-header pr-3">
+                <img src="/res/img/offi.png">
+            </div>
+
+            <div class="logo-text-header">
+                <a href="/carte-cadeau.html" class="mt-0 p-1 px-2 text-white text-decoration-none font-bolder">
+                    <span class="fas fa-gift mr-2"></span><span class="border-bottom">Carte cadeau<span></a>
+                    </a>
+            </div>
+
+
+            <div id="mobile-search" class="d-none">
+                <a href="#" id="mobile-search-close" class="float-right"> <i class="fas fa-times"></i></a>
+                <form id="schForm_mobile" method="GET"action="/recherche-ac.html">
+                    <input type="text" name="acSearch" id="search_mobile" placeholder="un spectacle, un lieu, une ville, un acteur..." autocomplete="off" class="form-control ui-autocomplete-input d-block" role="textbox" aria-autocomplete="list" aria-haspopup="true">
+                </form>
+            </div>
+
+        </div>
+        <!-- / menu principal -->
+        
+        <div id="sticky-title-container" class="d-none">
+
+            <div class="_color lighter_color important" id="sticky-title">
+            
+                <a href="#header" class="toUpbtn">
+                    <span class="iconoffi-up-arrow"> </span>
+                </a>
+                <span class="content">
+                <!-- criteres recherche-->
+                
+                <!-- fin criteres recherche-->
+                </span>
+            </div>
+        </div>
+        
+    </div>
+    <!-- dropdown recherche-->
+    
+    <div class="dropdown" id="navBarSearchDropdown">
+        <button id="dLabesearch" class="d-none dropdown-toggle collapsed" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Rechercher
+        </button>
+        <div class="main-background dropdown-menu" id="navBarSearch" aria-labelledby="dLabesearch">
+            <div class="recherche-container">
+                <a class="closeRechercheBloc"><img src="/res/img/menu/close-white.png"></a>
+                <div class="col text-center"><img src="/res/img/loader_big_b.gif" id="searchLoader">
+                </div>
+                <div class="col-12 py-4" id="navBarSearchContent">
+                </div>
+            </div>
+            <div class="search-all-results main-background-darker">
+                <a href="#" class="col no-padding btn text-uppercase text-white has-margin-top-15 has-margin-bottom-15">
+                    Voir tous les résultats
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- fin dropdown recherche-->
+    <!-- / menu latéral -->
+</header>
+
+
+			
+						<div class="container">
+								
+				 
+
+<div id="menu_principal" class="d-none d-lg-table">
+			<div class="  menu_pricipal_element   cinema " ><a href="/cinema">cinéma</a> </div>
+			<div class="  menu_pricipal_element   theatre " ><a href="/theatre">théâtre</a> </div>
+			<div class="  menu_pricipal_element   expositions-musees " ><a href="/expositions-musees">expositions</a> </div>
+			<div class="  menu_pricipal_element   concerts " ><a href="/concerts">concerts</a> </div>
+			<div class="  menu_pricipal_element   enfants " ><a href="/enfants">enfants</a> </div>
+			<div class="  menu_pricipal_element   visites-conferences " ><a href="/visites-conferences">visites guidées</a> </div>
+	</div>
+
+
+				
+							</div>
+		</section>
+		
+
+		<section id="wrapper">
+
+			<div class="container">
+				
+				
+	
+				
+				
+								
+				<div class="d-flex row-section-flex">
+					
+
+
+
+					
+	<div id="content-wrapper" class="right-column col-xs-12 col-sm-8 col-md-9 no-padding-left">
+	
+    <h1>La page n'a pas été trouvée !</h1>
+    
+    
+    <div class="row">
+    <div class="col-12 my-3">
+        <div class="card">
+            <div class="card-body">
+            <p><b>Malheureusement, la page que vous recherchez n'est pas disponible à cette adresse. Pour la retrouver, vous pouvez utiliser le moteur de recherche situé en haut de cette page.</b></p>
+            <p>Nous vous prions d'accepter nos excuses pour le désagrément occasionné. Peut-être trouverez-vous votre bonheur dans l'une des rubriques suivantes ?</p>
+            <ul class="normal">
+                <li>Rubrique <b><a href="/cinema">Cinéma</a></b></li>
+                <li>Rubrique <b><a href="/theatre">Théâtre</a></b></li>
+                <li>Rubrique <b><a href="/concerts">Concerts</a></b></li>
+                <li>Rubrique <b><a href="/expositions-musees">Expositions</a></b></li>
+                <li>Rubrique <b><a href="/enfants">Enfants</a></b></li>
+                <li>Rubrique <b><a href="/visites-conferences">Visites guidées</a></b></li>
+            </ul>
+            <p>&gt;&gt; <b><a href="/">Revenir à la page d'accueil de L'Officiel des spectacles</a></b>  &lt;&lt;</p>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+</div>
+
+
+					
+					<div id="right-column" class=" col-3 no-margin no-padding-left no-padding">
+						
+						
+							<div class="has-margin-bottom-25 imgright d-none d-md-block">
+<div class="p-container"><div class="p-bg" style="--bg-image: url(https://files.offi.fr/display/745/1.jpg);"></div><a href="https://claudemonetgiverny.fr/" target="_blank" class="pdisplay"><img src="https://files.offi.fr/display/745/1.jpg" data-pv="Display/COLONNE/745-maison-et-jardins-claude-monet" class="pdisplayimg" data-pos="1" /></a></div>
+</div>
+
+<div class="d-md-none mobile-p has-margin-bottom-25">
+	<div class="p-container"><div class="p-bg" style="--bg-image: url(https://files.offi.fr/display/738/7.gif);"></div><a href="https://www.offi.fr/theatre/a-la-folie-theatre-2180/taxi-story-105030.html"  class="pdisplay"><img src="https://files.offi.fr/display/738/7.gif" data-pv="Display/PACK_BANNIERE/738-taxi-story" class="pdisplayimg" data-pos="3" /></a></div>
+</div>
+
+
+	<div class="card no-border has-margin-bottom-25">
+		<div class="card-header no-border main-background-darker text-white text-center text-uppercase">
+			<b>La newsletter</b>
+		</div>
+		<div class="card-body main-background text-white form-container dark-form has-padding-20" id="newsletter_body">
+			<p class="text-white">Chaque mercredi, le meilleur des sorties culturelles à Paris avec L'Officiel des spectacles !</p>
+			<div class="alert alert-danger" id="newsletter_error" role="alert" style="display: none">
+				
+			</div>
+			<form id="form_newsletter" name="form_newsletter">
+				<div class="">
+					
+					<div class="form-group">
+						<input type="text" class="rounded-corner main-background-lighter form-control border border-primary" name="new_prenom" id="new_prenom" autocomplete="off" placeholder="Votre prénom">
+					</div>
+					
+					<input type="text" name="new_email" id="new_email" placeholder="Votre email" autocomplete="off" class="rounded-corner main-background-lighter form-control main-background-lighter text-white" >
+					<input type="hidden" id="captcha_newsletter" name="45d25685c369cbfa0d1e0fda3db5e61f" value="1" >
+
+					<div class="form-check" style="padding-top: 15px;">
+						<input type="checkbox" class="form-check-input" name="newsletter_creation_promotion" value="1" id="newsletter_creation_promotion">
+						<label class="form-check-label" for="newsletter_creation_promotion">S’inscrire également à la <b>sélection théâtre</b> du samedi</label>
+					</div>
+
+					<div class="pt-3 text-center w-100">
+						<button class="btn rounded-corner px-4 text-white main-background-darker text-uppercase newsletter_post" id="basic-addon2">Je m'inscris</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+
+<a href="https://www.offi.fr/abonnement-lofficiel.html"><img src="https://files.offi.fr/medias/img/abonnement-lofficiel-magazine.jpg" width="100%" /></a>
+
+						
+																																																
+						
+					</div>
+
+					
+
+					 
+				</div>
+					 
+				
+			</div>
+
+		</section>
+		
+<div class="full-width-container">
+	<div class="container">
+		
+
+<div class="mb-5 mt-5 d-none d-md-block">
+	<div class="p-container"><div class="p-bg" style="--bg-image: url(https://files.offi.fr/display/738/2.gif);"></div><a href="https://www.offi.fr/theatre/a-la-folie-theatre-2180/taxi-story-105030.html"  class="pdisplay"><img src="https://files.offi.fr/display/738/2.gif" data-pv="Display/PACK_BANNIERE/738-taxi-story" class="pdisplayimg" data-pos="1" /></a></div>
+</div>
+
+<div class="  before-footer d-block">
+	<div class="useful-link d-block">
+		<p>
+			<a href="/a-propos-d-offi.fr.html">Qui sommes-nous ?</a><a href="/contact.html">Nous contacter</a>
+									<a href="/publicite.html">Régie publicitaire</a><a href="/proposer-un-evenement.html">Proposer un événement</a>
+			<a href="/newsletters.html">Newsletters</a><a href="/conditions-generales-reservation-offi.fr.html">CGV</a>
+			<a href="/conditions-generales-dutilisation-offi.fr.html">CGU</a>
+			<a href="/informations-legales-offi.fr.html">Mentions légales</a>
+			<a href="#" onclick="tarteaucitron.userInterface.openPanel(); return false;">Cookies</a>
+		</p>
+	</div>
+</div>
+
+	</div>
+</div>		 
+<footer id="footer" class="main-background">
+	<div class="container">
+
+					
+				<div class="section-full-width footer-container">
+	<div class='footer-bottom col-12 d-flex m-0 p-0'>
+		<div class="logo-footer-container d-flex">
+			<div class="logo-footer">
+				<a href="#" class="logo">
+					<img src="/res/img/logo-offi.svg" class="img-fluid"/>
+				</a>
+			</div>
+			<div class="logo-footer-baseline text-white">
+				<h2><span class="font-weight-light ">Le guide du spectacle</span> <span class="font-semi-bold">à Paris</span></h2>
+			</div>
+		</div>
+		<div class="col-6 no-padding">
+			<p class="text-white">
+				Créé en 1946, L'Officiel des spectacles est <strong>l'hebdomadaire de référence du spectacle à Paris</strong> et dans sa région. Pièces de théâtre, expositions, sorties cinéma, concerts, spectacles enfants... : vous trouverez sur ce site toute l'actualité des sorties culturelles de la capitale, et bien plus encore ! Pour ceux qui sortent à Paris et ses environs, c'est aussi le guide papier pratique, précis, fiable et complet. 
+				<br />
+				<div class="about-magazine">
+					<strong><img src="/res/img/icon-magazine.png">Chaque mercredi en kiosque. 2,40 €.</strong>
+				</div>
+			</p>
+		</div>
+	</div>
+	
+			
+</div>			
+		
+	</div>
+</footer>
+
+		
+	</main>
+	
+	
+	
+	
+	
+	
+				<script type="text/javascript" src="/templates-mobile/assets/js/theme.js?v38" ></script>
+		<script src="/res/js/tiny-date-picker.min.js" type="text/javascript"></script>
+		<script src="/res/js/date-range-picker.min.js" type="text/javascript"></script>
+		
+		<script type="text/javascript" src="/templates-mobile/assets/js/tarteaucitron/tarteaucitron.min.js" ></script>
+	
+
+	
+	
+<script>
+    gtag('event', 'Affichage404', {});
+</script>
+
+		
+</body>
+</html>
