@@ -150,7 +150,7 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             className="text-[11px] text-muted-foreground/60 tracking-widest uppercase max-w-[280px] mx-auto"
             style={{ fontFamily: "'Nunito', sans-serif", letterSpacing: "0.18em" }}
           >
-            chaque week-end,<br />une activité pépite pour vos enfants
+            chaque week-end,<br />des activités pépites à faire en famille
           </p>
         </div>
 
