@@ -84,32 +84,10 @@ export default function Index() {
   useEffect(() => {
     let mounted = true;
 
-    // Safety timeout — if session resolution takes > 5s, force auth screen
-    const safetyTimer = setTimeout(() => {
-      if (mounted) setState("auth");
-    }, 5000);
-
-    // 1. Resolve initial session immediately — never wait for the listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(safetyTimer);
-      if (!mounted) return;
-      if (session?.user) {
-        setUserId(session.user.id);
-        loadAppData(session.user.id);
-      } else {
-        setState("auth");
-      }
-    }).catch(() => {
-      clearTimeout(safetyTimer);
-      if (mounted) setState("auth");
-    });
-
-    // 2. Listen for subsequent auth changes (login / logout)
+    // Single source of truth: onAuthStateChange handles ALL transitions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
-        // Skip INITIAL_SESSION — already handled above
-        if (event === "INITIAL_SESSION") return;
         if (session?.user) {
           setUserId(session.user.id);
           await loadAppData(session.user.id);
@@ -125,7 +103,6 @@ export default function Index() {
 
     return () => {
       mounted = false;
-      clearTimeout(safetyTimer);
       subscription.unsubscribe();
     };
   }, [loadAppData]);
