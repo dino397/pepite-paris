@@ -42,11 +42,11 @@ serve(async (req) => {
       .select("*")
       .eq("family_id", profile.id);
 
-    // Week key for caching
+    // Week key for caching — MUST include user_id to avoid cross-user cache pollution
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() + 1);
-    const weekKey = `activities-${startOfWeek.toISOString().split("T")[0]}`;
+    const weekKey = `activities-${user.id}-${startOfWeek.toISOString().split("T")[0]}`;
 
     // Check cache
     if (!forceRegenerate) {
