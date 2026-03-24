@@ -142,7 +142,17 @@ export default function Index() {
   }
 
   if (state === "auth") {
-    return <AuthForm onSuccess={() => userId && loadAppData(userId)} />;
+    return (
+      <AuthForm
+        onSuccess={async () => {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            setUserId(session.user.id);
+            loadAppData(session.user.id);
+          }
+        }}
+      />
+    );
   }
 
   if (state === "onboarding" && userId) {

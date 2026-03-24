@@ -19,9 +19,14 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        toast.success("Compte créé ! Vérifiez vos emails pour confirmer.");
+        // Email is auto-confirmed — session is returned immediately
+        if (data.session) {
+          onSuccess();
+        } else {
+          toast.success("Compte créé ! Vérifiez vos emails pour confirmer.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
