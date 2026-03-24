@@ -228,7 +228,7 @@ RÈGLES ABSOLUES:
 
     // Save to cache
     await supabase.from("newsletter_cache").upsert({
-      user_id: user.id,
+      user_id: userId,
       week_key: weekKey,
       content: parsedContent,
     }, { onConflict: "user_id,week_key" });
