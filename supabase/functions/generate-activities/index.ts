@@ -40,7 +40,7 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from("family_profiles")
       .select("*")
-      .eq("user_id", user.id)
+       .eq("user_id", userId)
       .single();
 
     if (!profile) throw new Error("Profile not found");
