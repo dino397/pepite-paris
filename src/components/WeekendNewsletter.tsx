@@ -887,68 +887,69 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
     <div className="min-h-screen bg-background">
 
       {/* ── HERO HEADER with illustration ── */}
-      <div className="relative overflow-hidden" style={{ minHeight: 240 }}>
-        {/* New illustration — Seine quay, Notre-Dame, autumn light */}
+      <div className="relative overflow-hidden" style={{ minHeight: 340 }}>
+        {/* Illustration */}
         <img
           src={appHeaderBg}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-[center_40%]"
+          className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
           width={1920}
           height={640}
         />
 
-        {/* Subtle overlay to boost text legibility without hiding the illustration */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background/10" />
+        {/* Very light top tint so sky is untouched */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/20" />
 
-        {/* Bottom gradient fade into page background */}
-        <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-background via-background/80 to-transparent" />
+        {/* Bottom gradient fade into page background — starts lower */}
+        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-background via-background/70 to-transparent" />
 
         {/* Decorative top strip */}
         <div className="absolute top-0 left-0 right-0 h-1.5 gradient-meadow z-10" />
 
-        {/* Header content */}
-        <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-8 pt-10 pb-6 flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl animate-sway inline-block drop-shadow-sm">🌿</span>
-              <h1
-                className="font-display font-bold text-2xl leading-tight"
-                style={{
-                  color: "hsl(30 25% 18%)",
-                  textShadow: "0 1px 12px hsl(42 35% 97% / 0.9), 0 0px 4px hsl(42 35% 97% / 0.7)",
-                }}
-              >
-                Week-end avec Ariel & Gala
+        {/* Action buttons — top right, minimal */}
+        <div className="absolute top-3 right-4 z-20 flex items-center gap-1">
+          <button
+            onClick={handleRefresh}
+            className="p-2 rounded-xl text-foreground/70 hover:text-primary hover:bg-background/50 transition-all backdrop-blur-sm bg-background/30"
+            title="Actualiser"
+          >
+            <RefreshCw className={`h-4 w-4 transition-transform duration-700 ${spinning ? "rotate-[720deg]" : ""}`} />
+          </button>
+          {onSignOut && (
+            <button
+              onClick={async () => { await supabase.auth.signOut(); onSignOut(); }}
+              className="p-2 rounded-xl text-foreground/70 hover:text-destructive hover:bg-background/50 transition-all backdrop-blur-sm bg-background/30"
+              title="Se déconnecter"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Title card — blurred, anchored to bottom of hero */}
+        <div className="absolute bottom-6 left-0 right-0 z-10 max-w-2xl mx-auto px-4 sm:px-8">
+          <div
+            className="inline-flex flex-col gap-0.5 px-4 py-3 rounded-2xl"
+            style={{
+              background: "hsl(42 38% 97% / 0.55)",
+              backdropFilter: "blur(14px)",
+              WebkitBackdropFilter: "blur(14px)",
+              border: "1px solid hsl(38 22% 84% / 0.5)",
+              boxShadow: "0 4px 24px -4px hsl(168 42% 38% / 0.12), 0 1px 6px hsl(30 25% 20% / 0.06)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xl animate-sway inline-block">🌿</span>
+              <h1 className="font-display font-bold text-xl leading-tight text-foreground">
+                {children.length >= 2
+                  ? `Week-end avec ${children.map((c) => c.name).join(" & ")}`
+                  : children.length === 1
+                  ? `Week-end avec ${children[0].name}`
+                  : "Votre week-end en famille"}
               </h1>
             </div>
-            <p
-              className="text-sm ml-9"
-              style={{
-                color: "hsl(30 20% 38%)",
-                textShadow: "0 1px 6px hsl(42 35% 97% / 0.85)",
-              }}
-            >
-              {weekendLabel}
-            </p>
-          </div>
-          <div className="flex items-center gap-1 mt-1">
-            <button
-              onClick={handleRefresh}
-              className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/8 transition-all backdrop-blur-sm bg-background/40"
-              title="Actualiser"
-            >
-              <RefreshCw className={`h-4 w-4 transition-transform duration-700 ${spinning ? "rotate-[720deg]" : ""}`} />
-            </button>
-            {onSignOut && (
-              <button
-                onClick={async () => { await supabase.auth.signOut(); onSignOut(); }}
-                className="p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-all backdrop-blur-sm bg-background/40"
-                title="Se déconnecter"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            )}
+            <p className="text-sm text-muted-foreground ml-8">{weekendLabel}</p>
           </div>
         </div>
       </div>
