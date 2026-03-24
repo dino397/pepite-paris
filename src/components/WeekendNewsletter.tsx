@@ -739,6 +739,24 @@ function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
 
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
+// ─── Age subtitle helper ──────────────────────────────────────────────────────
+
+interface ChildData {
+  name: string;
+  age_years: number | null;
+}
+
+function buildAgeSubtitle(children: ChildData[]): string {
+  const ages = children.map((c) => c.age_years).filter((a): a is number => a !== null);
+  if (ages.length === 0) return "";
+  const minAge = Math.max(0, Math.min(...ages) - 1);
+  const maxAge = Math.max(...ages) + 2;
+  if (children.length === 1) {
+    return `Adapté à votre enfant · ${minAge}–${maxAge} ans`;
+  }
+  return `Adapté à vos enfants · ${minAge}–${maxAge} ans`;
+}
+
 export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => void }) {
   const { saturday, sunday } = getNextWeekendDates();
   const weekendLabel = `${formatDate(saturday)} & ${formatDate(sunday)}`;
@@ -752,6 +770,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
 
   const [agendaEvents, setAgendaEvents] = useState<AgendaEvent[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [children, setChildren] = useState<ChildData[]>([]);
 
   // Dismissed activity ids
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(() => new Set());
@@ -760,10 +779,26 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
   const weekKey = getDayKey();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setUserId(data.user.id);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      setUserId(data.user.id);
+      // Load family profile → then children
+      const { data: profile } = await supabase
+        .from("family_profiles")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+      if (profile) {
+        const { data: childRows } = await supabase
+          .from("children")
+          .select("name, age_years")
+          .eq("family_id", profile.id);
+        if (childRows) setChildren(childRows);
+      }
     });
   }, []);
+
+  const ageSubtitle = buildAgeSubtitle(children);
 
   const loadAgendaEvents = useCallback(async () => {
     if (!userId) return;
@@ -941,7 +976,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🎬"
           title="Cinéma"
-          subtitle="Adapté aux 3-8 ans"
+          subtitle={ageSubtitle || undefined}
           activities={cinemaActivities}
           loading={activitiesLoading}
           initialCount={2}
@@ -954,6 +989,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🎭"
           title="Théâtre & Spectacles"
+          subtitle={ageSubtitle || undefined}
           activities={theatreActivities}
           loading={activitiesLoading}
           initialCount={2}
@@ -965,6 +1001,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🖼️"
           title="Expositions & Musées"
+          subtitle={ageSubtitle || undefined}
           activities={expoActivities}
           loading={activitiesLoading}
           initialCount={2}
@@ -976,6 +1013,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🌿"
           title="Activités"
+          subtitle={ageSubtitle || undefined}
           activities={otherActivities}
           loading={activitiesLoading}
           initialCount={2}
