@@ -976,7 +976,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🎬"
           title="Cinéma"
-          subtitle="Adapté aux 3-8 ans"
+          subtitle={ageSubtitle || undefined}
           activities={cinemaActivities}
           loading={activitiesLoading}
           initialCount={2}
@@ -989,6 +989,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🎭"
           title="Théâtre & Spectacles"
+          subtitle={ageSubtitle || undefined}
           activities={theatreActivities}
           loading={activitiesLoading}
           initialCount={2}
@@ -1000,6 +1001,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🖼️"
           title="Expositions & Musées"
+          subtitle={ageSubtitle || undefined}
           activities={expoActivities}
           loading={activitiesLoading}
           initialCount={2}
@@ -1011,6 +1013,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🌿"
           title="Activités"
+          subtitle={ageSubtitle || undefined}
           activities={otherActivities}
           loading={activitiesLoading}
           initialCount={2}
