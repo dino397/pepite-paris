@@ -482,6 +482,15 @@ function GhibliActivityCard({
             <span className={`ghibli-tag border text-[10px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
               {cat.label}
             </span>
+            {activity.film_format && (
+              <span className={`ghibli-tag border text-[10px] font-bold ${
+                activity.film_format === "3D"
+                  ? "bg-ghibli-sky/15 text-ghibli-sky border-ghibli-sky/30"
+                  : "bg-ghibli-earth/10 text-ghibli-earth border-ghibli-earth/25"
+              }`}>
+                {activity.film_format}
+              </span>
+            )}
             {activity.badge && (
               <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[10px]">
                 {activity.badge}
