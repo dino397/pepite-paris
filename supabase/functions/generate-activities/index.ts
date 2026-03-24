@@ -136,7 +136,7 @@ Génère exactement ce JSON:
         "duration": "2h",
         "distance_km": 5,
         "transport": ["voiture"],
-        "description": "1 phrase courte et directe. Si highlighted=true: 2 phrases max, directes et concrètes (pas besoin de nommer chaque enfant).",
+        "description": "Exactement 2 phrases : 1/ description concrète de l'activité. 2/ pourquoi c'est top pour votre famille (sans citer un enfant en particulier, parler de 'vos enfants' ou 'la famille'). Remplir les 2 lignes.",
         "practical_info": "Infos pratiques: adresse indicative, tarifs, horaires types",
         "requires_booking": false,
         "booking_url": null,
