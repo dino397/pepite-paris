@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import pepiteIllustration from "@/assets/pepite-illustration.png";
+import appHeaderBg from "@/assets/app-header-bg.jpg";
 import {
   mockWeather,
   mockBookings,
@@ -887,47 +887,50 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
     <div className="min-h-screen bg-background">
 
       {/* ── HERO HEADER with illustration ── */}
-      <div className="relative overflow-hidden" style={{ minHeight: 220 }}>
-        {/* Illustration */}
+      <div className="relative overflow-hidden" style={{ minHeight: 240 }}>
+        {/* New illustration — Seine quay, Notre-Dame, autumn light */}
         <img
-          src={pepiteIllustration}
+          src={appHeaderBg}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-[center_28%]"
+          className="absolute inset-0 w-full h-full object-cover object-[center_40%]"
+          width={1920}
+          height={640}
         />
 
-        {/* Animated clouds */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute rounded-full blur-sm opacity-40"
-            style={{ width: 140, height: 42, background: "radial-gradient(ellipse, #fff8ee 60%, transparent 100%)", top: "8%", left: "6%", animation: "cloudDrift1 22s ease-in-out infinite" }} />
-          <div className="absolute rounded-full blur-sm opacity-35"
-            style={{ width: 90, height: 28, background: "radial-gradient(ellipse, #fdebd0 60%, transparent 100%)", top: "12%", left: "10%", animation: "cloudDrift1 22s ease-in-out infinite" }} />
-          <div className="absolute rounded-full blur-sm opacity-40"
-            style={{ width: 180, height: 48, background: "radial-gradient(ellipse, #fff8ee 60%, transparent 100%)", top: "4%", left: "55%", animation: "cloudDrift2 28s ease-in-out infinite" }} />
-          <div className="absolute rounded-full blur-sm opacity-30"
-            style={{ width: 120, height: 32, background: "radial-gradient(ellipse, #fdebd0 60%, transparent 100%)", top: "10%", left: "62%", animation: "cloudDrift2 28s ease-in-out infinite" }} />
-        </div>
-        <style>{`
-          @keyframes cloudDrift1 { 0%, 100% { transform: translateX(0px); } 50% { transform: translateX(28px); } }
-          @keyframes cloudDrift2 { 0%, 100% { transform: translateX(0px); } 50% { transform: translateX(-22px); } }
-        `}</style>
+        {/* Subtle overlay to boost text legibility without hiding the illustration */}
+        <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background/10" />
 
-        {/* Bottom gradient fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/75 to-transparent" />
+        {/* Bottom gradient fade into page background */}
+        <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-background via-background/80 to-transparent" />
 
         {/* Decorative top strip */}
         <div className="absolute top-0 left-0 right-0 h-1.5 gradient-meadow z-10" />
 
         {/* Header content */}
         <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-8 pt-10 pb-6 flex items-start justify-between">
-          <div className="drop-shadow-sm">
+          <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-2xl animate-sway inline-block">🌿</span>
-              <h1 className="font-display font-bold text-2xl text-foreground leading-tight">
+              <span className="text-2xl animate-sway inline-block drop-shadow-sm">🌿</span>
+              <h1
+                className="font-display font-bold text-2xl leading-tight"
+                style={{
+                  color: "hsl(30 25% 18%)",
+                  textShadow: "0 1px 12px hsl(42 35% 97% / 0.9), 0 0px 4px hsl(42 35% 97% / 0.7)",
+                }}
+              >
                 Week-end avec Ariel & Gala
               </h1>
             </div>
-            <p className="text-sm text-muted-foreground ml-9">{weekendLabel}</p>
+            <p
+              className="text-sm ml-9"
+              style={{
+                color: "hsl(30 20% 38%)",
+                textShadow: "0 1px 6px hsl(42 35% 97% / 0.85)",
+              }}
+            >
+              {weekendLabel}
+            </p>
           </div>
           <div className="flex items-center gap-1 mt-1">
             <button
