@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthForm from "@/components/AuthForm";
 import OnboardingForm from "@/components/OnboardingForm";
-import AppPage from "@/components/AppPage";
+import WeekendNewsletter from "@/components/WeekendNewsletter";
 
 type AppState = "loading" | "auth" | "onboarding" | "app";
 
