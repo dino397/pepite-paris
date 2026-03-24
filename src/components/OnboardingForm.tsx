@@ -63,7 +63,7 @@ const WEEKEND_ACTIVITIES = [
 const STEPS = ["Bienvenue", "Vos enfants", "Mobilité", "Ce week-end", "C'est parti !"];
 const STEP_EMOJIS = ["🗼", "👶", "🚀", "🗓️", "✨"];
 const STEP_SUBTITLES = [
-  "Pour personnaliser Pépite à votre famille",
+  "Personnalisez Pépite",
   "Pour adapter les activités à leur âge",
   "Pour vous proposer des activités accessibles",
   "Choisissez 4 activités que vous adoreriez faire",
