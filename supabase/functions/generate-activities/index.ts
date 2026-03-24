@@ -54,7 +54,7 @@ serve(async (req) => {
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() + 1);
-    const weekKey = `activities-${user.id}-${startOfWeek.toISOString().split("T")[0]}`;
+    const weekKey = `activities-${userId}-${startOfWeek.toISOString().split("T")[0]}`;
 
     // Check cache
     if (!forceRegenerate) {
