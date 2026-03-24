@@ -83,27 +83,54 @@ export default function Index() {
 
   useEffect(() => {
     let mounted = true;
+    let initialized = false;
 
-    // Single source of truth: onAuthStateChange handles ALL transitions
+    const handleSession = async (session: { user: { id: string } } | null) => {
+      if (!mounted || initialized) return;
+      initialized = true;
+      if (session?.user) {
+        setUserId(session.user.id);
+        await loadAppData(session.user.id);
+      } else {
+        setUserId(null);
+        setProfile(null);
+        setChildren([]);
+        setAgendaEvents([]);
+        setState("auth");
+      }
+    };
+
+    // 1. Vérifier immédiatement la session existante
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
+    });
+
+    // 2. Écouter les changements d'auth (login, logout, signup)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
-        if (session?.user) {
-          setUserId(session.user.id);
-          await loadAppData(session.user.id);
-        } else {
-          setUserId(null);
-          setProfile(null);
-          setChildren([]);
-          setAgendaEvents([]);
-          setState("auth");
+        // Pour les events post-init (SIGNED_IN, SIGNED_OUT, etc.)
+        if (initialized && (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED")) {
+          initialized = false; // reset pour autoriser le prochain handle
+          handleSession(session);
+        } else if (!initialized) {
+          handleSession(session);
         }
       }
     );
 
+    // 3. Timeout de sécurité — si rien ne répond en 6s, aller vers auth
+    const timeout = setTimeout(() => {
+      if (mounted && !initialized) {
+        initialized = true;
+        setState("auth");
+      }
+    }, 6000);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(timeout);
     };
   }, [loadAppData]);
 
