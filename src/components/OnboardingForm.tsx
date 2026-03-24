@@ -92,6 +92,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   const [transportModes, setTransportModes] = useState<string[]>([]);
   const [maxTravelMinutes, setMaxTravelMinutes] = useState<number>(30);
   const [weekendPicks, setWeekendPicks] = useState<string[]>([]);
+  const [weekendDislikes, setWeekendDislikes] = useState<string[]>([]);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
   const [familyMembers, setFamilyMembers] = useState<{ name: string; email: string }[]>([]);
