@@ -176,7 +176,7 @@ RÈGLES ABSOLUES:
 - Toutes les activités doivent être RÉALISTES et accessibles depuis ${profile.city}
 - Respecter le transport disponible (${transportDesc}) et le trajet max (${maxTravelDesc})
 - Adapter aux âges: ${childrenDesc}
-- highlighted: true pour exactement 1 activité "Pépite de la semaine" — sa description doit tenir en 2 phrases max, directes et cool
+- Chaque description = exactement 2 phrases : 1/ l'activité en elle-même, 2/ pourquoi c'est top pour votre famille — jamais de prénom d'enfant spécifique
 - JSON valide uniquement, aucun autre texte`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
