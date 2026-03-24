@@ -146,10 +146,10 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
             Pépite
           </h1>
           <p
-            className="text-[11px] text-muted-foreground/60 tracking-widest uppercase max-w-[260px] mx-auto"
+            className="text-[11px] text-muted-foreground/60 tracking-widest uppercase max-w-[280px] mx-auto"
             style={{ fontFamily: "'Nunito', sans-serif", letterSpacing: "0.18em" }}
           >
-            chaque week-end,<br />une pépite pour vos enfants
+            chaque week-end,<br />une activité pépite pour vos enfants
           </p>
         </div>
 
