@@ -111,7 +111,8 @@ FAMILLE:
 - Parent: ${profile.parent_name || "Parent"}, ville: ${profile.city || "France"}
 - Enfants: ${childrenDesc}
 - Préférences générales: ${prefsDesc}
-${weekendPicksDesc ? `- Activités souhaitées ce week-end: ${weekendPicksDesc}` : ""}
+${weekendPicksDesc ? `- Activités favorites souhaitées ce week-end: ${weekendPicksDesc}` : ""}
+${weekendDislikesDesc ? `- Activités à ÉVITER ABSOLUMENT (ne jamais proposer ces types): ${weekendDislikesDesc}` : ""}
 - Transport disponible: ${transportDesc}
 - Trajet max accepté: ${maxTravelDesc}
 
