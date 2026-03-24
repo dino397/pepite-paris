@@ -82,32 +82,29 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    let initialized = false;
-
-    // First, get the current session synchronously
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      initialized = true;
-      if (session?.user) {
-        setUserId(session.user.id);
-        loadAppData(session.user.id);
-      } else {
-        setState("auth");
-      }
-    });
-
-    // Then listen for future auth changes
+    // Set up auth listener FIRST, then check current session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (!initialized) return; // Wait for getSession to resolve first
+      async (event, session) => {
         if (session?.user) {
           setUserId(session.user.id);
           await loadAppData(session.user.id);
         } else {
           setUserId(null);
+          setProfile(null);
+          setChildren([]);
+          setAgendaEvents([]);
           setState("auth");
         }
       }
     );
+
+    // Then get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) {
+        setState("auth");
+      }
+      // If session exists, onAuthStateChange will fire with INITIAL_SESSION event
+    });
 
     return () => subscription.unsubscribe();
   }, [loadAppData]);
