@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import pepiteIllustration from "@/assets/pepite-illustration.png";
+import appHeaderBg from "@/assets/app-header-bg.jpg";
 import {
   mockWeather,
   mockBookings,
