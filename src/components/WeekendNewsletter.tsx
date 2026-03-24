@@ -651,7 +651,7 @@ function ActivitySection({
 function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () => void }) {
   return (
     <div className="space-y-3">
-      <SectionTitle emoji="✨">Coup de cœur de la semaine</SectionTitle>
+      <SectionTitle emoji="✨">La pépite de la semaine</SectionTitle>
       <GhibliActivityCardWithCinemas activity={activity} reco onDismiss={onDismiss} />
     </div>
   );
