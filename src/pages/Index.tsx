@@ -82,9 +82,25 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    // Set up auth listener FIRST, then check current session
+    let mounted = true;
+
+    // 1. Resolve initial session immediately — never wait for the listener
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      if (session?.user) {
+        setUserId(session.user.id);
+        loadAppData(session.user.id);
+      } else {
+        setState("auth");
+      }
+    });
+
+    // 2. Listen for subsequent auth changes (login / logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        // Skip INITIAL_SESSION — already handled above
+        if (event === "INITIAL_SESSION") return;
         if (session?.user) {
           setUserId(session.user.id);
           await loadAppData(session.user.id);
@@ -98,15 +114,10 @@ export default function Index() {
       }
     );
 
-    // Then get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) {
-        setState("auth");
-      }
-      // If session exists, onAuthStateChange will fire with INITIAL_SESSION event
-    });
-
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [loadAppData]);
 
   if (state === "loading") {
