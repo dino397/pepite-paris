@@ -670,7 +670,7 @@ function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () 
   return (
     <div className="space-y-3">
       <SectionTitle emoji="✨">La pépite de la semaine</SectionTitle>
-      <div className="ghibli-card group relative overflow-hidden flex flex-row h-[160px] border-ghibli-gold/40 ring-1 ring-ghibli-gold/20">
+      <div className="ghibli-card group relative overflow-hidden flex flex-row h-[180px] border-ghibli-gold/40 ring-1 ring-ghibli-gold/20">
         {/* Gold top bar */}
         <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
 
@@ -722,9 +722,9 @@ function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () 
               className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
               style={{
                 display: "-webkit-box",
-                WebkitLineClamp: 2,
+                WebkitLineClamp: 3,
                 WebkitBoxOrient: "vertical",
-                minHeight: "calc(2 * 1.45em)",
+                minHeight: "calc(3 * 1.45em)",
               }}
             >
               {activity.description}
