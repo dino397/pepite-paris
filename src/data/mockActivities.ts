@@ -54,8 +54,8 @@ export interface FutureEvent {
 }
 
 
-import posterMufasa from "@/assets/poster-mufasa.jpg";
-import posterPaddington from "@/assets/poster-paddington.jpg";
+import posterPerduRetrouve from "@/assets/poster-perdu-retrouve.jpg";
+import posterLoups from "@/assets/poster-loups.jpg";
 import posterVaiana2 from "@/assets/poster-vaiana2.jpg";
 import posterPirouette from "@/assets/poster-pirouette.jpg";
 import posterArbreSansFin from "@/assets/poster-arbre-sans-fin.jpg";
@@ -71,49 +71,47 @@ export const mockActivities: Activity[] = [
   {
     id: 1,
     category: "cinema",
-    title: "Mufasa : Le Roi Lion",
-    description: "La saga des rois de la savane revient au cinéma. Un récit d'origine bouleversant, des chansons inoubliables — un moment magique en famille.",
+    title: "Perdu ? Retrouvé !",
+    description: "Un garçon et son pingouin séparés par le monde entier. Doux, drôle, touchant — un court-métrage animé qui fait du bien.",
     date: "2025-03-29",
     location: "MK2 Odéon",
     arrondissement: "6ème",
-    duration: "118 min",
-    booking_url: "https://www.mk2.com/film/mufasa-le-roi-lion",
+    duration: "45 min",
+    booking_url: "https://www.mk2.com/salle/mk2-odeon",
     travel_walk: "12 min",
     travel_bike: "5 min",
     travel_car: "4 min",
-    is_exceptional: true,
+    is_exceptional: false,
     is_future: false,
-    badge: "Disney · dès 4 ans",
-    film_format: "3D",
-    poster_url: posterMufasa,
+    badge: "dessin animé · dès 3 ans",
+    poster_url: posterPerduRetrouve,
     google_maps_url: "https://maps.google.com/?q=MK2+Od%C3%A9on+Paris",
     cinemas: [
-      { name: "MK2 Odéon", url: "https://www.mk2.com/film/mufasa-le-roi-lion", arrondissement: "6ème", travel_walk: "12 min", showtimes: "Sam 10h15 / Dim 10h30" },
-      { name: "UGC Danton", url: "https://www.ugc.fr/cinema.html?id=12", arrondissement: "6ème", travel_walk: "14 min", showtimes: "Sam & Dim 11h" }
+      { name: "MK2 Odéon", url: "https://www.mk2.com/salle/mk2-odeon", arrondissement: "6ème", travel_walk: "12 min", showtimes: "Sam 10h15 / Dim 10h30" },
+      { name: "Les Ursulines", url: "https://www.studiodesursulines.com", arrondissement: "5ème", travel_walk: "15 min", showtimes: "Dim 11h" }
     ]
   },
   {
     id: 2,
     category: "cinema",
-    title: "Paddington au Pérou",
-    description: "L'ours le plus attachant du cinéma part à l'aventure en Amazonie. Hilarant, tendre, et une jungle à couper le souffle — parfait pour toute la famille.",
+    title: "Loups tendres et loufoques",
+    description: "Courts-métrages animés sur des loups drôles et attachants. Une séance légère, pleine d'humour et de tendresse.",
     date: "2025-03-29",
-    location: "Les Ursulines",
-    arrondissement: "5ème",
-    duration: "106 min",
-    booking_url: "https://www.studiodesursulines.com",
-    travel_walk: "15 min",
-    travel_bike: "6 min",
-    travel_car: "5 min",
+    location: "Escurial",
+    arrondissement: "13ème",
+    duration: "50 min",
+    booking_url: "https://www.cinema-escurial.fr",
+    travel_walk: "25 min",
+    travel_bike: "10 min",
+    travel_car: "12 min",
     is_exceptional: false,
     is_future: false,
-    badge: "aventure · dès 4 ans",
-    film_format: "2D",
-    poster_url: posterPaddington,
-    google_maps_url: "https://maps.google.com/?q=Studio+des+Ursulines+Paris+5",
+    badge: "animation · dès 3 ans",
+    poster_url: posterLoups,
+    google_maps_url: "https://maps.google.com/?q=Cin%C3%A9ma+Escurial+Paris+13",
     cinemas: [
-      { name: "Les Ursulines", url: "https://www.studiodesursulines.com", arrondissement: "5ème", travel_walk: "15 min", showtimes: "Sam 10h30 / Dim 11h" },
-      { name: "Escurial", url: "https://www.cinema-escurial.fr", arrondissement: "13ème", travel_walk: "25 min", showtimes: "Dim 10h" }
+      { name: "Escurial", url: "https://www.cinema-escurial.fr", arrondissement: "13ème", travel_walk: "25 min", showtimes: "Dim 11h" },
+      { name: "MK2 Beaubourg", url: "https://www.mk2.com/salle/mk2-beaubourg", arrondissement: "3ème", travel_walk: "22 min", showtimes: "Sam 10h" }
     ]
   },
   {
@@ -132,7 +130,6 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     badge: "Disney · dès 4 ans",
-    film_format: "3D",
     poster_url: posterVaiana2,
     google_maps_url: "https://maps.google.com/?q=MK2+Beaubourg+Paris+3",
     cinemas: [
