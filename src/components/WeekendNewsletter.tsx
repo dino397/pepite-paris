@@ -1202,7 +1202,9 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <footer className="text-center pb-8">
           <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
             <span className="text-lg">🌸</span>
-            Bon week-end avec Ariel et Gala !
+            {children.length > 0
+              ? `Bon week-end avec ${children.map((c) => c.name).join(" et ")} !`
+              : "Bon week-end en famille !"}
             <span className="text-lg">🌸</span>
           </div>
         </footer>
