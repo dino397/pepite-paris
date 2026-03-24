@@ -722,9 +722,9 @@ function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () 
               className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
               style={{
                 display: "-webkit-box",
-                WebkitLineClamp: 2,
+                WebkitLineClamp: 3,
                 WebkitBoxOrient: "vertical",
-                minHeight: "calc(2 * 1.45em)",
+                minHeight: "calc(3 * 1.45em)",
               }}
             >
               {activity.description}
