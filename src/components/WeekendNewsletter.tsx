@@ -573,6 +573,7 @@ function ActivitySection({
   activities,
   loading,
   initialCount = 2,
+  loadMoreCount = 3,
   withCinemas = false,
   dismissedIds,
   onDismiss,
@@ -583,17 +584,29 @@ function ActivitySection({
   activities: Activity[];
   loading: boolean;
   initialCount?: number;
+  loadMoreCount?: number;
   withCinemas?: boolean;
   dismissedIds: Set<number>;
   onDismiss: (id: number) => void;
 }) {
   const [visibleCount, setVisibleCount] = useState(initialCount);
 
-  const visible = activities.filter((a) => !dismissedIds.has(a.id));
+  const all = activities;
+  const visible = all.filter((a) => !dismissedIds.has(a.id));
   const displayed = visible.slice(0, visibleCount);
   const hasMore = visible.length > visibleCount;
 
+  // When user dismisses a card, bump visibleCount so next card auto-fills
+  const handleDismissWithReplace = (id: number) => {
+    onDismiss(id);
+    setVisibleCount((n) => n + 1);
+  };
+
   if (!loading && visible.length === 0) return null;
+
+  const moreLabel = withCinemas
+    ? `Voir ${loadMoreCount} film${loadMoreCount > 1 ? "s" : ""} de plus`
+    : `Voir ${loadMoreCount} idée${loadMoreCount > 1 ? "s" : ""} de plus`;
 
   return (
     <section>
@@ -611,23 +624,23 @@ function ActivitySection({
               <GhibliActivityCardWithCinemas
                 key={a.id}
                 activity={a}
-                onDismiss={() => onDismiss(a.id)}
+                onDismiss={() => handleDismissWithReplace(a.id)}
               />
             ) : (
               <GhibliActivityCard
                 key={a.id}
                 activity={a}
-                onDismiss={() => onDismiss(a.id)}
+                onDismiss={() => handleDismissWithReplace(a.id)}
               />
             )
           )}
           {hasMore && (
             <button
-              onClick={() => setVisibleCount((n) => n + 3)}
+              onClick={() => setVisibleCount((n) => n + loadMoreCount)}
               className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-dashed border-border/60 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
             >
               <ChevronDown className="h-3.5 w-3.5" />
-              Voir 3 idées de plus
+              {moreLabel}
             </button>
           )}
         </div>
