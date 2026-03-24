@@ -646,61 +646,6 @@ function ActivitySection({
   );
 }
 
-  const hasMore = rest.length > 0;
-
-  // When dismissed, auto-reveal one more
-  const handleDismissWithReplace = (id: number) => {
-    onDismiss(id);
-    setExtraCount((n) => n + 1);
-  };
-
-  if (!loading && visible.length === 0) return null;
-
-  const moreLabel = withCinemas
-    ? `Voir ${loadMoreCount} film${loadMoreCount > 1 ? "s" : ""} de plus`
-    : `Voir ${loadMoreCount} idée${loadMoreCount > 1 ? "s" : ""} de plus`;
-
-  return (
-    <section>
-      <SectionTitle emoji={emoji}>{title}</SectionTitle>
-      {subtitle && <p className="text-xs text-muted-foreground -mt-2 mb-4">{subtitle}</p>}
-      {loading ? (
-        <div className="space-y-3">
-          <GhibliSkeleton />
-          <GhibliSkeleton />
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {displayed.map((a) =>
-            withCinemas ? (
-              <GhibliActivityCardWithCinemas
-                key={a.id}
-                activity={a}
-                onDismiss={() => handleDismissWithReplace(a.id)}
-              />
-            ) : (
-              <GhibliActivityCard
-                key={a.id}
-                activity={a}
-                onDismiss={() => handleDismissWithReplace(a.id)}
-              />
-            )
-          )}
-          {hasMore && (
-            <button
-              onClick={() => setExtraCount((n) => n + loadMoreCount)}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-dashed border-border/60 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
-            >
-              <ChevronDown className="h-3.5 w-3.5" />
-              {moreLabel}
-            </button>
-          )}
-        </div>
-      )}
-    </section>
-  );
-}
-
 // ─── RECO CARD ────────────────────────────────────────────────────────────────
 
 function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () => void }) {
