@@ -6,7 +6,7 @@ import WeatherWidget from "./WeatherWidget";
 import AgendaSection from "./AgendaSection";
 import ActivityCard, { Activity } from "./ActivityCard";
 import MapPage from "./MapPage";
-import { RefreshCw, LogOut, Sparkles, CalendarDays, Ticket, Sun, Map } from "lucide-react";
+import { RefreshCw, LogOut, Sparkles, CalendarDays, Ticket, Sun, Map as MapIcon } from "lucide-react";
 import parisParkBg from "@/assets/paris-park-bg.jpg";
 
 interface FamilyProfile {
