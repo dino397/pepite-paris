@@ -38,6 +38,7 @@ export interface Activity {
   cinemas?: Cinema[];
   poster_url?: string;
   google_maps_url?: string;
+  film_format?: "2D" | "3D";
 }
 
 export interface FutureEvent {
@@ -83,6 +84,7 @@ export const mockActivities: Activity[] = [
     is_exceptional: true,
     is_future: false,
     badge: "Disney · dès 4 ans",
+    film_format: "3D",
     poster_url: posterMufasa,
     google_maps_url: "https://maps.google.com/?q=MK2+Od%C3%A9on+Paris",
     cinemas: [
@@ -106,6 +108,7 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     badge: "aventure · dès 4 ans",
+    film_format: "2D",
     poster_url: posterPaddington,
     google_maps_url: "https://maps.google.com/?q=Studio+des+Ursulines+Paris+5",
     cinemas: [
@@ -129,6 +132,7 @@ export const mockActivities: Activity[] = [
     is_exceptional: false,
     is_future: false,
     badge: "Disney · dès 4 ans",
+    film_format: "3D",
     poster_url: posterVaiana2,
     google_maps_url: "https://maps.google.com/?q=MK2+Beaubourg+Paris+3",
     cinemas: [
