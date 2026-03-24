@@ -19,23 +19,15 @@ export interface Activity {
   highlighted?: boolean;
   indoor?: boolean;
   urgency?: "high" | "medium" | "low";
+  location?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  sortie: "bg-soft-sage/15 text-soft-sage border-soft-sage/30",
-  maison: "bg-warm-amber/15 text-warm-amber border-warm-amber/30",
-  culture: "bg-purple-100 text-purple-700 border-purple-200",
-  sport: "bg-sky-blue/15 text-sky-blue border-sky-blue/30",
-  créatif: "bg-blush/15 text-blush border-blush/30",
-  spectacle: "bg-warm-gold/15 text-warm-gold border-warm-gold/30",
-  cinema: "bg-sky-blue/15 text-sky-blue border-sky-blue/30",
-  atelier: "bg-blush/15 text-blush border-blush/30",
-};
-
 const URGENCY_CONFIG = {
-  high: { label: "Urgent", color: "bg-destructive/10 text-destructive border-destructive/20" },
-  medium: { label: "Cette semaine", color: "bg-warm-amber/15 text-warm-amber border-warm-amber/30" },
-  low: { label: "Bientôt", color: "bg-muted text-muted-foreground border-border" },
+  high: { label: "Urgent", bg: "hsl(0 65% 52% / 0.10)", color: "hsl(0 65% 44%)", border: "hsl(0 65% 52% / 0.22)" },
+  medium: { label: "Cette semaine", bg: "hsl(35 80% 60% / 0.12)", color: "hsl(35 65% 40%)", border: "hsl(35 80% 60% / 0.28)" },
+  low: { label: "Bientôt", bg: "hsl(42 25% 91%)", color: "hsl(30 15% 55%)", border: "hsl(38 22% 80%)" },
 };
 
 interface ActivityCardProps {
@@ -51,33 +43,57 @@ export default function ActivityCard({
   onDismiss,
   isExtra = false,
 }: ActivityCardProps) {
-  const categoryColor = CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.sortie;
+
+  const cardBorder = activity.highlighted
+    ? "hsl(168 42% 38% / 0.40)"
+    : isExtra
+    ? "hsl(38 22% 84%)"
+    : "hsl(38 22% 84% / 0.80)";
 
   return (
     <div
-      className={`relative rounded-2xl border bg-card overflow-hidden transition-all hover:shadow-md group ${
-        activity.highlighted
-          ? "border-primary/40 shadow-sm ring-1 ring-primary/10"
-          : isExtra
-          ? "border-dashed border-border"
-          : "border-border/70"
-      }`}
+      className="relative rounded-2xl overflow-hidden transition-all hover:shadow-hover group"
+      style={{
+        background: "hsl(40 35% 99%)",
+        border: `1.5px ${isExtra ? "dashed" : "solid"} ${cardBorder}`,
+        boxShadow: activity.highlighted
+          ? "0 2px 16px -4px hsl(168 42% 38% / 0.15), 0 1px 4px hsl(30 25% 20% / 0.05)"
+          : "0 1px 8px -3px hsl(30 25% 20% / 0.08)",
+      }}
     >
       {/* Dismiss button */}
       {onDismiss && (
         <button
           onClick={onDismiss}
-          className="absolute top-2.5 right-2.5 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-muted/80 hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-colors"
+          className="absolute top-2.5 right-2.5 z-10 flex items-center justify-center w-6 h-6 rounded-full transition-colors"
+          style={{ background: "hsl(42 25% 91% / 0.90)", color: "hsl(30 15% 55%)" }}
           aria-label="Supprimer"
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "hsl(0 65% 52% / 0.12)";
+            (e.currentTarget as HTMLElement).style.color = "hsl(0 65% 44%)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "hsl(42 25% 91% / 0.90)";
+            (e.currentTarget as HTMLElement).style.color = "hsl(30 15% 55%)";
+          }}
         >
           <X className="h-3.5 w-3.5" />
         </button>
       )}
 
+      {/* Highlighted banner — Pépite de la semaine */}
       {activity.highlighted && (
-        <div className="gradient-hero px-4 py-1.5 flex items-center gap-1.5">
+        <div
+          className="px-4 py-1.5 flex items-center gap-1.5"
+          style={{ background: "linear-gradient(135deg, hsl(152 36% 46%), hsl(168 42% 32%))" }}
+        >
           <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
-          <span className="text-xs font-semibold text-primary-foreground tracking-wide">Pépite de la semaine ✨</span>
+          <span
+            className="text-xs font-semibold text-primary-foreground tracking-wide"
+            style={{ fontFamily: "'Nunito', sans-serif" }}
+          >
+            Pépite de la semaine ✨
+          </span>
         </div>
       )}
 
@@ -85,24 +101,64 @@ export default function ActivityCard({
         {/* Header */}
         <div className="flex items-start gap-3">
           <div className="text-3xl flex-shrink-0 mt-0.5">{activity.emoji}</div>
-          <div className="flex-1 min-w-0 pr-6">
-            <h3 className="font-display font-bold text-foreground leading-snug">{activity.title}</h3>
+          <div className="flex-1 min-w-0 pr-7">
+            <h3
+              className="text-foreground leading-snug"
+              style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400, fontSize: "1.05rem" }}
+            >
+              {activity.title}
+            </h3>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${categoryColor}`}>
+              {/* category tag */}
+              <span
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                style={{
+                  background: "hsl(168 42% 38% / 0.08)",
+                  color: "hsl(168 42% 30%)",
+                  borderColor: "hsl(168 42% 38% / 0.22)",
+                  fontFamily: "'Nunito', sans-serif",
+                }}
+              >
                 {activity.category}
               </span>
+
               {variant === "prebooking" && activity.urgency && (
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${URGENCY_CONFIG[activity.urgency].color}`}>
+                <span
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                  style={{
+                    background: URGENCY_CONFIG[activity.urgency].bg,
+                    color: URGENCY_CONFIG[activity.urgency].color,
+                    borderColor: URGENCY_CONFIG[activity.urgency].border,
+                    fontFamily: "'Nunito', sans-serif",
+                  }}
+                >
                   ⏰ {URGENCY_CONFIG[activity.urgency].label}
                 </span>
               )}
+
               {activity.indoor === false && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border bg-soft-sage/10 text-soft-sage border-soft-sage/20">
+                <span
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                  style={{
+                    background: "hsl(128 35% 52% / 0.10)",
+                    color: "hsl(128 35% 34%)",
+                    borderColor: "hsl(128 35% 52% / 0.22)",
+                    fontFamily: "'Nunito', sans-serif",
+                  }}
+                >
                   🌤️ Extérieur
                 </span>
               )}
               {activity.indoor === true && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border bg-warm-amber/10 text-warm-amber border-warm-amber/20">
+                <span
+                  className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border"
+                  style={{
+                    background: "hsl(35 80% 60% / 0.10)",
+                    color: "hsl(35 65% 38%)",
+                    borderColor: "hsl(35 80% 60% / 0.22)",
+                    fontFamily: "'Nunito', sans-serif",
+                  }}
+                >
                   🏠 Intérieur
                 </span>
               )}
@@ -111,10 +167,18 @@ export default function ActivityCard({
         </div>
 
         {/* Description */}
-        <p className="text-sm text-foreground/80 leading-relaxed">{activity.description}</p>
+        <p
+          className="text-sm leading-relaxed"
+          style={{ color: "hsl(30 25% 30%)", fontFamily: "'Nunito', sans-serif" }}
+        >
+          {activity.description}
+        </p>
 
         {/* Meta info */}
-        <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+        <div
+          className="flex flex-wrap gap-3 text-xs"
+          style={{ color: "hsl(30 15% 55%)", fontFamily: "'Nunito', sans-serif" }}
+        >
           {activity.duration && (
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
@@ -136,14 +200,24 @@ export default function ActivityCard({
 
         {/* Practical info */}
         {activity.practical_info && (
-          <div className="bg-muted/50 rounded-xl px-3 py-2 text-xs text-muted-foreground leading-relaxed">
+          <div
+            className="rounded-xl px-3 py-2 text-xs leading-relaxed"
+            style={{
+              background: "hsl(42 25% 91% / 0.70)",
+              color: "hsl(30 15% 50%)",
+              fontFamily: "'Nunito', sans-serif",
+            }}
+          >
             {activity.practical_info}
           </div>
         )}
 
         {/* Booking deadline */}
         {activity.booking_deadline && (
-          <div className="flex items-center gap-1.5 text-xs font-medium text-warm-amber">
+          <div
+            className="flex items-center gap-1.5 text-xs font-medium"
+            style={{ color: "hsl(35 65% 42%)", fontFamily: "'Nunito', sans-serif" }}
+          >
             <Ticket className="h-3.5 w-3.5" />
             Réserver avant : {activity.booking_deadline}
           </div>
@@ -153,7 +227,15 @@ export default function ActivityCard({
         {activity.tags && activity.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {activity.tags.map((tag, i) => (
-              <span key={i} className="px-2 py-0.5 bg-secondary text-muted-foreground rounded-full text-xs">
+              <span
+                key={i}
+                className="px-2 py-0.5 rounded-full text-xs"
+                style={{
+                  background: "hsl(42 25% 91%)",
+                  color: "hsl(30 15% 55%)",
+                  fontFamily: "'Nunito', sans-serif",
+                }}
+              >
                 #{tag.replace(/\s/g, "_")}
               </span>
             ))}
@@ -166,7 +248,11 @@ export default function ActivityCard({
             href={activity.booking_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-2 rounded-xl gradient-hero text-primary-foreground text-sm font-semibold transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-2xl text-white text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{
+              background: "linear-gradient(135deg, hsl(152 36% 46%), hsl(168 42% 32%))",
+              fontFamily: "'Nunito', sans-serif",
+            }}
           >
             <Ticket className="h-4 w-4" />
             Réserver
@@ -174,7 +260,14 @@ export default function ActivityCard({
           </a>
         )}
         {variant === "prebooking" && !activity.booking_url && (
-          <div className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-border text-muted-foreground text-xs">
+          <div
+            className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border text-xs"
+            style={{
+              borderColor: "hsl(38 22% 84%)",
+              color: "hsl(30 15% 55%)",
+              fontFamily: "'Nunito', sans-serif",
+            }}
+          >
             🔍 Recherchez "{activity.title}" pour réserver
           </div>
         )}

@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import WeatherWidget from "./WeatherWidget";
 import AgendaSection from "./AgendaSection";
 import ActivityCard, { Activity } from "./ActivityCard";
-import { RefreshCw, LogOut, Sparkles, CalendarDays, Ticket, Sun } from "lucide-react";
+import MapPage from "./MapPage";
+import { RefreshCw, LogOut, Sparkles, CalendarDays, Ticket, Sun, Map as MapIcon } from "lucide-react";
+import parisParkBg from "@/assets/paris-park-bg.jpg";
 
 interface FamilyProfile {
   id: string;
@@ -58,12 +60,13 @@ interface AppPageProps {
   onAgendaChange: () => void;
 }
 
-type Tab = "weekend" | "agenda" | "prebooking";
+type Tab = "weekend" | "agenda" | "prebooking" | "map";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "weekend", label: "Ce week-end", icon: <Sun className="h-4 w-4" /> },
   { id: "agenda", label: "Mon agenda", icon: <CalendarDays className="h-4 w-4" /> },
   { id: "prebooking", label: "À réserver", icon: <Ticket className="h-4 w-4" /> },
+  { id: "map", label: "Carte", icon: <MapIcon className="h-4 w-4" /> },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -94,14 +97,10 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
   const [content, setContent] = useState<ActivitiesContent | null>(null);
   const [loading, setLoading] = useState(false);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  // Extra activities preloaded per category (ready to reveal instantly)
   const [extraActivities, setExtraActivities] = useState<Record<string, Activity[]>>({});
-  // Which categories have "Voir plus" expanded
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  // Which categories are currently preloading in background
-  const [preloadingCategories, setPreloadingCategories] = useState<Set<string>>(new Set());
-  // Dismissed activity IDs
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => new Set<string>());
+  const [preloadingCategories, setPreloadingCategories] = useState<Set<string>>(() => new Set<string>());
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set<string>());
 
   const weatherDataRef = useRef<WeatherData | null>(null);
 
@@ -153,7 +152,6 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
     return data.content;
   }, []);
 
-  /** Preload extra activities for a category silently in background */
   const preloadCategoryExtras = useCallback(async (category: string, currentWeather?: WeatherData | null) => {
     setPreloadingCategories((prev) => new Set(prev).add(category));
     try {
@@ -171,7 +169,7 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
         }
       }
     } catch {
-      // Silent fail — extras just won't be preloaded
+      // Silent fail
     } finally {
       setPreloadingCategories((prev) => {
         const next = new Set(prev);
@@ -193,7 +191,6 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
         if (forceRegenerate) toast.success("Activités régénérées ! 🎉");
         else toast.success("Activités générées ! 🎉");
 
-        // Preload extras for each category in background
         const categories = [...new Set((result.weekend?.activities ?? []).map((a) => a.category || "activite"))];
         for (const cat of categories) {
           setTimeout(() => preloadCategoryExtras(cat, weatherDataRef.current), 200);
@@ -206,12 +203,9 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
     }
   }, [callGenerateActivities, preloadCategoryExtras]);
 
-  /** Show preloaded extras; if not ready yet, fetch now */
   const handleShowMore = useCallback(async (category: string) => {
     setExpandedCategories((prev) => new Set(prev).add(category));
-
     if (!extraActivities[category] && !preloadingCategories.has(category)) {
-      // Not preloaded yet → fetch now (visible loading)
       await preloadCategoryExtras(category);
     }
   }, [extraActivities, preloadingCategories, preloadCategoryExtras]);
@@ -225,50 +219,79 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
   };
 
   const childrenLabel = children.length > 0
-    ? children.map((c) => `${c.name || "Enfant"} ${c.age_years ? `(${c.age_years}ans)` : ""}`).join(", ")
+    ? children.map((c) => `${c.name || "Enfant"}${c.age_years ? ` (${c.age_years}ans)` : ""}`).join(", ")
     : null;
 
   const prebookingCount = content?.prebooking?.activities?.length ?? 0;
   const categoryGroups = content?.weekend?.activities ? groupByCategory(content.weekend.activities) : [];
+  const allActivities = [
+    ...(content?.weekend?.activities ?? []),
+    ...(content?.prebooking?.activities ?? []),
+  ];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+
+      {/* Ghibli park background — subtle, fixed */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <img
+          src={parisParkBg}
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-cover object-bottom opacity-[0.07]"
+          width={1920}
+          height={640}
+        />
+        {/* Warm parchment overlay */}
+        <div className="absolute inset-0 bg-background/80" />
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-card/95 backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-20 backdrop-blur-md border-b border-border/60"
+        style={{ background: "hsl(42 38% 96% / 0.92)" }}>
         <div className="container max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div>
-            <div className="font-display font-bold text-foreground leading-tight flex items-center gap-1.5">
-              🗓️ Weekend Famille
+            <div
+              className="text-xl leading-tight text-foreground"
+              style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 300, letterSpacing: "0.04em" }}
+            >
+              Pépite
             </div>
-            <div className="text-xs text-muted-foreground flex items-center gap-1">
+            <div className="text-xs text-muted-foreground/70 flex items-center gap-1"
+              style={{ fontFamily: "'Nunito', sans-serif" }}>
               <span>{profile.city}</span>
-              {childrenLabel && <span>· {childrenLabel}</span>}
+              {childrenLabel && <><span className="opacity-40">·</span><span>{childrenLabel}</span></>}
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Button size="sm" variant="ghost" onClick={handleSignOut} className="text-muted-foreground rounded-xl">
+            <button
+              onClick={handleSignOut}
+              className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              aria-label="Se déconnecter"
+            >
               <LogOut className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Tab bar */}
         <div className="container max-w-2xl mx-auto px-4 pb-0">
-          <div className="flex border-b border-border -mb-px">
+          <div className="flex border-b border-border/40 -mb-px gap-1">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px relative ${
+                className={`flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-all border-b-2 -mb-px relative ${
                   activeTab === tab.id
                     ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
+                    : "border-transparent text-muted-foreground/70 hover:text-foreground"
                 }`}
+                style={{ fontFamily: "'Nunito', sans-serif" }}
               >
                 {tab.icon}
-                {tab.label}
+                <span className="hidden sm:inline">{tab.label}</span>
                 {tab.id === "prebooking" && prebookingCount > 0 && (
-                  <span className="ml-1 flex items-center justify-center w-4 h-4 rounded-full gradient-hero text-primary-foreground text-[10px] font-bold">
+                  <span className="ml-0.5 flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
                     {prebookingCount}
                   </span>
                 )}
@@ -279,12 +302,11 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
       </header>
 
       {/* Content */}
-      <div className="flex-1 container max-w-2xl mx-auto px-4 py-5 space-y-5">
+      <div className="flex-1 container max-w-2xl mx-auto px-4 py-5 space-y-5 relative z-10">
 
         {/* ── Tab: Ce week-end ── */}
         {activeTab === "weekend" && (
           <div className="space-y-5 animate-fade-in">
-            {/* Weather */}
             <WeatherWidget
               city={profile.city}
               latitude={profile.latitude}
@@ -295,54 +317,88 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
             {/* Weekend heading */}
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-display text-xl font-bold text-foreground">Activités du week-end</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">{weekendLabel}</p>
+                <h2
+                  className="text-xl text-foreground"
+                  style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400 }}
+                >
+                  Activités du week-end
+                </h2>
+                <p className="text-xs text-muted-foreground/70 mt-0.5"
+                  style={{ fontFamily: "'Nunito', sans-serif" }}>{weekendLabel}</p>
               </div>
               {content && (
-                <Button
-                  size="sm"
-                  variant="outline"
+                <button
                   onClick={() => generateActivities(true)}
                   disabled={loading}
-                  className="rounded-xl text-xs gap-1.5"
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors px-3 py-1.5 rounded-xl border border-border/60 hover:border-primary/30 bg-card/70 disabled:opacity-50"
+                  style={{ fontFamily: "'Nunito', sans-serif" }}
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
                   Actualiser
-                </Button>
+                </button>
               )}
             </div>
 
             {/* Generate CTA */}
             {!content && (
-              <div className="flex flex-col items-center py-10 space-y-4">
-                <div className="text-5xl">✨</div>
-                <div className="text-center space-y-1">
-                  <p className="font-display text-lg font-semibold text-foreground">Prêt pour ce week-end ?</p>
-                  <p className="text-sm text-muted-foreground">On vous prépare des idées adaptées à votre famille</p>
+              <div className="flex flex-col items-center py-12 space-y-5">
+                {/* Decorative illustration strip */}
+                <div className="relative w-full max-w-xs h-28 rounded-2xl overflow-hidden shadow-card">
+                  <img src={parisParkBg} alt="" aria-hidden className="w-full h-full object-cover object-[center_30%]" width={400} height={112} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+                  <div className="absolute bottom-3 left-0 right-0 flex justify-center">
+                    <span className="text-3xl">✨</span>
+                  </div>
                 </div>
-                <Button
+
+                <div className="text-center space-y-1.5">
+                  <p
+                    className="text-lg text-foreground"
+                    style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400 }}
+                  >
+                    Prêt pour ce week-end ?
+                  </p>
+                  <p className="text-sm text-muted-foreground/80"
+                    style={{ fontFamily: "'Nunito', sans-serif" }}>
+                    On vous prépare des idées adaptées à votre famille
+                  </p>
+                </div>
+
+                <button
                   onClick={() => generateActivities(false)}
                   disabled={loading}
-                  className="gradient-hero text-primary-foreground font-semibold px-8 py-3 rounded-2xl text-base shadow-hover"
+                  className="flex items-center gap-2 px-8 py-3 rounded-2xl text-primary-foreground font-semibold text-sm shadow-hover transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+                  style={{
+                    background: "linear-gradient(135deg, hsl(152 36% 46%), hsl(168 42% 32%))",
+                    fontFamily: "'Nunito', sans-serif",
+                  }}
                 >
                   {loading ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Génération…
-                    </span>
+                    </>
                   ) : (
-                    <span className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5" />
+                    <>
+                      <Sparkles className="h-4 w-4" />
                       Générer mes activités
-                    </span>
+                    </>
                   )}
-                </Button>
+                </button>
               </div>
             )}
 
             {/* Weather summary */}
             {content?.weekend?.weather_summary && (
-              <div className="flex items-start gap-2 bg-primary/5 border border-primary/15 rounded-xl px-4 py-3 text-sm text-foreground/80">
+              <div
+                className="flex items-start gap-2.5 rounded-2xl px-4 py-3 text-sm border"
+                style={{
+                  background: "hsl(168 42% 38% / 0.06)",
+                  borderColor: "hsl(168 42% 38% / 0.18)",
+                  color: "hsl(168 42% 28%)",
+                  fontFamily: "'Nunito', sans-serif",
+                }}
+              >
                 <span>🌤️</span>
                 <span>{content.weekend.weather_summary}</span>
               </div>
@@ -350,7 +406,7 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
 
             {/* Activity cards grouped by category */}
             {categoryGroups.length > 0 && (
-              <div className="space-y-6">
+              <div className="space-y-7">
                 {categoryGroups.map(({ category, items }) => {
                   const visibleMain = items.filter((a) => !dismissedIds.has(a.id));
                   const extras = extraActivities[category] ?? [];
@@ -364,14 +420,16 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
                   return (
                     <div key={category} className="space-y-3">
                       {/* Category header */}
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+                      <div className="flex items-center gap-3">
+                        <h3
+                          className="text-xs uppercase tracking-[0.15em] text-muted-foreground/70 whitespace-nowrap"
+                          style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 700 }}
+                        >
                           {CATEGORY_LABELS[category] ?? category}
                         </h3>
-                        <div className="flex-1 h-px bg-border/60" />
+                        <div className="flex-1 h-px" style={{ background: "hsl(38 22% 84% / 0.7)" }} />
                       </div>
 
-                      {/* Main cards */}
                       {visibleMain.map((act) => (
                         <ActivityCard
                           key={act.id}
@@ -381,7 +439,6 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
                         />
                       ))}
 
-                      {/* Extra cards (revealed on "Voir plus") */}
                       {visibleExtras.map((act) => (
                         <ActivityCard
                           key={act.id}
@@ -392,12 +449,12 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
                         />
                       ))}
 
-                      {/* "Voir plus" CTA */}
                       {!isExpanded && (
                         <button
                           onClick={() => handleShowMore(category)}
                           disabled={isPreloading && !hasExtras}
-                          className="flex items-center gap-2 text-xs text-primary font-medium hover:text-primary/80 transition-colors w-full py-1.5 disabled:opacity-50"
+                          className="flex items-center gap-2 text-xs font-medium transition-colors w-full py-1.5 disabled:opacity-50"
+                          style={{ color: "hsl(168 42% 38%)", fontFamily: "'Nunito', sans-serif" }}
                         >
                           {isPreloading && !hasExtras ? (
                             <>
@@ -406,25 +463,27 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
                             </>
                           ) : (
                             <>
-                              <span className="flex items-center justify-center w-4 h-4 rounded-full border border-primary/40 text-primary text-[10px] font-bold flex-shrink-0">+</span>
-                              Voir plus d'idées {CATEGORY_LABELS[category] ?? category}
+                              <span
+                                className="flex items-center justify-center w-4 h-4 rounded-full border text-[10px] font-bold flex-shrink-0"
+                                style={{ borderColor: "hsl(168 42% 38% / 0.4)", color: "hsl(168 42% 38%)" }}
+                              >+</span>
+                              Voir plus d'idées
                             </>
                           )}
                         </button>
                       )}
 
-                      {/* Collapse back if expanded and extras shown */}
                       {isExpanded && visibleExtras.length > 0 && (
                         <button
                           onClick={() => setExpandedCategories((prev) => { const s = new Set(prev); s.delete(category); return s; })}
                           className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1.5"
+                          style={{ fontFamily: "'Nunito', sans-serif" }}
                         >
                           <span className="flex items-center justify-center w-4 h-4 rounded-full border border-border text-[10px] font-bold flex-shrink-0">−</span>
                           Réduire
                         </button>
                       )}
 
-                      {/* Expanded but still loading */}
                       {isExpanded && isPreloading && !hasExtras && (
                         <div className="flex items-center gap-2 text-xs text-muted-foreground py-2 px-3 bg-muted/40 rounded-xl">
                           <span className="w-3 h-3 border border-muted-foreground/40 border-t-muted-foreground rounded-full animate-spin flex-shrink-0" />
@@ -441,16 +500,27 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
             {content && prebookingCount > 0 && (
               <button
                 onClick={() => setActiveTab("prebooking")}
-                className="w-full flex items-center justify-between bg-warm-gold/10 border border-warm-gold/30 rounded-2xl px-5 py-4 hover:bg-warm-gold/15 transition-colors group"
+                className="w-full flex items-center justify-between rounded-2xl px-5 py-4 transition-colors group border"
+                style={{
+                  background: "hsl(35 80% 60% / 0.08)",
+                  borderColor: "hsl(35 80% 60% / 0.25)",
+                }}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">🎟️</span>
                   <div className="text-left">
-                    <div className="font-semibold text-foreground text-sm">À réserver dès maintenant</div>
-                    <div className="text-xs text-muted-foreground">{prebookingCount} activité{prebookingCount > 1 ? "s" : ""} à ne pas manquer</div>
+                    <div className="font-semibold text-foreground text-sm"
+                      style={{ fontFamily: "'Nunito', sans-serif" }}>
+                      À réserver dès maintenant
+                    </div>
+                    <div className="text-xs text-muted-foreground"
+                      style={{ fontFamily: "'Nunito', sans-serif" }}>
+                      {prebookingCount} activité{prebookingCount > 1 ? "s" : ""} à ne pas manquer
+                    </div>
                   </div>
                 </div>
-                <span className="text-warm-amber font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
+                <span className="font-bold text-lg group-hover:translate-x-1 transition-transform"
+                  style={{ color: "hsl(35 80% 50%)" }}>→</span>
               </button>
             )}
           </div>
@@ -471,17 +541,33 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
         {activeTab === "prebooking" && (
           <div className="space-y-5 animate-fade-in">
             <div>
-              <h2 className="font-display text-xl font-bold text-foreground">À pré-réserver</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Ces activités se remplissent vite — prenez les places !</p>
+              <h2
+                className="text-xl text-foreground"
+                style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400 }}
+              >
+                À pré-réserver
+              </h2>
+              <p className="text-xs text-muted-foreground/70 mt-0.5"
+                style={{ fontFamily: "'Nunito', sans-serif" }}>
+                Ces activités se remplissent vite — prenez les places !
+              </p>
             </div>
 
             {!content && (
               <div className="flex flex-col items-center py-12 space-y-4 text-center">
                 <div className="text-5xl">🎟️</div>
-                <p className="font-display text-lg font-semibold text-foreground">Générez d'abord vos activités</p>
-                <p className="text-sm text-muted-foreground">On détectera automatiquement ce qui nécessite une réservation</p>
+                <p
+                  className="text-lg text-foreground"
+                  style={{ fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400 }}
+                >
+                  Générez d'abord vos activités
+                </p>
+                <p className="text-sm text-muted-foreground"
+                  style={{ fontFamily: "'Nunito', sans-serif" }}>
+                  On détectera automatiquement ce qui nécessite une réservation
+                </p>
                 <Button
-                  onClick={() => { setActiveTab("weekend"); }}
+                  onClick={() => setActiveTab("weekend")}
                   variant="outline"
                   className="rounded-xl"
                 >
@@ -493,7 +579,10 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
             {content && content.prebooking?.activities?.length === 0 && (
               <div className="flex flex-col items-center py-12 space-y-3 text-center">
                 <div className="text-4xl">✅</div>
-                <p className="text-sm text-muted-foreground">Aucune activité urgente à réserver cette semaine</p>
+                <p className="text-sm text-muted-foreground"
+                  style={{ fontFamily: "'Nunito', sans-serif" }}>
+                  Aucune activité urgente à réserver cette semaine
+                </p>
               </div>
             )}
 
@@ -511,6 +600,13 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
                   ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── Tab: Carte ── */}
+        {activeTab === "map" && (
+          <div className="animate-fade-in -mx-4 -my-5">
+            <MapPage activities={allActivities} />
           </div>
         )}
       </div>
