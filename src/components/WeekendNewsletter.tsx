@@ -986,7 +986,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           subtitle={ageSubtitle || undefined}
           activities={cinemaActivities}
           loading={activitiesLoading}
-          initialCount={2}
+          initialCount={3}
           loadMoreCount={2}
           withCinemas
           dismissedIds={dismissedIds}
