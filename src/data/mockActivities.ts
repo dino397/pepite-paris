@@ -235,7 +235,7 @@ export const mockActivities: Activity[] = [
     location: "Philharmonie de Paris",
     arrondissement: "19ème",
     duration: "~1h15",
-    booking_url: "https://philharmoniedeparis.fr/fr/philharmonie-des-enfants",
+    booking_url: "https://philharmoniedeparis.fr/fr/activite/philharmonie-des-enfants/28833-philharmonie-des-enfants",
     travel_walk: "45 min",
     travel_bike: "20 min",
     travel_car: "22 min",
