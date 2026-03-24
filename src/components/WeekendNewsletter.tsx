@@ -901,7 +901,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(() => new Set());
   const [dismissedReco, setDismissedReco] = useState(false);
 
-  const weekKey = getDayKey();
+  const weekKey = getDayKey(); // used for refresh deduplication
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -942,14 +942,58 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
   const loadActivities = useCallback(async () => {
     setActivitiesLoading(true);
     try {
-      const { data: rows } = await supabase
-        .from("scraped_activities")
-        .select("*")
-        .eq("week_key", weekKey)
-        .order("created_at");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setActivitiesLoading(false); return; }
 
-      if (rows && rows.length > 0) {
-        setLiveActivities(rows.map((r, i) => dbRowToActivity(r as DbActivity, i)));
+      // Récupère la météo courante pour personnaliser la génération
+      const satISO = formatDateISO(saturday);
+      const sunISO = formatDateISO(sunday);
+      let weatherPayload = null;
+      try {
+        const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=48.8566&longitude=2.3522&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=Europe%2FParis&start_date=${satISO}&end_date=${sunISO}`);
+        const wData = await wRes.json();
+        if (wData.daily) {
+          const codes = wData.daily.weathercode;
+          weatherPayload = {
+            saturday: { description: getWeatherInfo(codes[0]).desc, tempMax: Math.round(wData.daily.temperature_2m_max[0]) },
+            sunday:   { description: getWeatherInfo(codes[1]).desc, tempMax: Math.round(wData.daily.temperature_2m_max[1]) },
+          };
+        }
+      } catch { /* ignore, weather optional */ }
+
+      const res = await supabase.functions.invoke("generate-activities", {
+        body: { weatherData: weatherPayload, forceRegenerate: false },
+      });
+
+      if (res.error) throw res.error;
+      const content = res.data?.content;
+      if (content?.weekend?.activities && content.weekend.activities.length > 0) {
+        // Map AI activities to the Activity shape used by the UI
+        const aiActivities: Activity[] = content.weekend.activities.map((a: Record<string, unknown>, i: number) => {
+          const rawCat = String(a.category ?? "activite");
+          const cat = (["cinema", "theatre", "expo", "activite", "sortie", "culture", "sport", "créatif", "spectacle", "maison"].includes(rawCat)
+            ? (rawCat === "sortie" || rawCat === "maison" || rawCat === "sport" || rawCat === "créatif" ? "activite" : rawCat === "spectacle" ? "theatre" : rawCat === "culture" ? "expo" : rawCat)
+            : "activite") as Activity["category"];
+          return {
+            id: i + 1,
+            category: cat,
+            title: String(a.title ?? ""),
+            description: String(a.description ?? ""),
+            date: "",
+            location: String(a.practical_info ?? ""),
+            arrondissement: "",
+            duration: String(a.duration ?? ""),
+            booking_url: String(a.booking_url ?? ""),
+            travel_walk: "",
+            travel_bike: "",
+            travel_car: "",
+            is_exceptional: Boolean(a.highlighted),
+            is_future: false,
+            badge: (a.tags as string[] | undefined)?.[0] ?? undefined,
+            poster_url: undefined,
+          };
+        });
+        setLiveActivities(aiActivities);
       } else {
         setLiveActivities(null);
       }
@@ -959,7 +1003,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
     } finally {
       setActivitiesLoading(false);
     }
-  }, [weekKey]);
+  }, [saturday, sunday]);
 
   const fetchWeather = useCallback(async () => {
     setWeatherLoading(true);
@@ -1158,7 +1202,9 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <footer className="text-center pb-8">
           <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
             <span className="text-lg">🌸</span>
-            Bon week-end avec Ariel et Gala !
+            {children.length > 0
+              ? `Bon week-end avec ${children.map((c) => c.name).join(" et ")} !`
+              : "Bon week-end en famille !"}
             <span className="text-lg">🌸</span>
           </div>
         </footer>
