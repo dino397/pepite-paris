@@ -181,7 +181,7 @@ export const mockActivities: Activity[] = [
     location: "Théâtre Dunois",
     arrondissement: "13ème",
     duration: "~40 min",
-    booking_url: "https://www.theatredunois.org",
+    booking_url: "https://www.theatredunois.org/saison/le-petit-chaperon-rouge/",
     travel_walk: "28 min",
     travel_bike: "11 min",
     travel_car: "13 min",
