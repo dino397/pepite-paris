@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import pepiteIllustration from "@/assets/pepite-illustration.png";
+import pepiteIllustration from "@/assets/pepite-illustration-v2.png";
 
 interface AuthFormProps {
   onSuccess: () => void;
