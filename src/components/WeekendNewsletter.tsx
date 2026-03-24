@@ -670,7 +670,10 @@ function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () 
   return (
     <div className="space-y-3">
       <SectionTitle emoji="✨">La pépite de la semaine</SectionTitle>
-      <div className="ghibli-card overflow-hidden border-ghibli-gold/40 ring-1 ring-ghibli-gold/20 relative">
+      <div className="ghibli-card group relative overflow-hidden flex flex-row h-[160px] border-ghibli-gold/40 ring-1 ring-ghibli-gold/20">
+        {/* Gold top bar */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
+
         {/* Dismiss */}
         {onDismiss && (
           <button
@@ -682,45 +685,54 @@ function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () 
           </button>
         )}
 
-        {/* Gold top bar */}
-        <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
-
-        {/* Visual — full width, no text overlay */}
+        {/* Poster — same specs as other cards */}
         {activity.poster_url ? (
-          <div className="w-full h-44 overflow-hidden">
+          <div className="flex-shrink-0 w-28 bg-muted overflow-hidden">
             <img
               src={activity.poster_url}
               alt={`Visuel ${activity.title}`}
-              className="w-full h-full object-cover object-top"
+              className="w-full h-full object-cover object-center"
               loading="lazy"
             />
           </div>
         ) : (
-          <div className={`w-full h-28 flex items-center justify-center ${cat.bgClass}`}>
-            <span className="text-5xl">{cat.emoji}</span>
+          <div className={`flex-shrink-0 w-14 flex items-center justify-center ${cat.bgClass}`}>
+            <span className="text-3xl">{cat.emoji}</span>
           </div>
         )}
 
-        {/* Info block below */}
-        <div className="p-3 flex flex-col gap-1.5">
-          <h3 className="font-display font-bold text-foreground text-sm leading-snug pr-6">
-            {activity.title}
-            {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
-          </h3>
-          <div className="flex flex-wrap gap-1">
-            <span className={`ghibli-tag border text-[10px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
-              {cat.label}
-            </span>
-            {activity.badge && (
-              <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[10px]">
-                {activity.badge}
+        {/* Content */}
+        <div className="flex-1 min-w-0 p-3 flex flex-col justify-between overflow-hidden">
+          <div>
+            <h3 className="font-display font-bold text-foreground text-sm leading-snug pr-5">
+              {activity.title}
+              {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
+            </h3>
+            <div className="flex flex-wrap gap-1 mb-1.5 mt-1">
+              <span className={`ghibli-tag border text-[10px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
+                {cat.label}
               </span>
-            )}
+              {activity.badge && (
+                <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[10px]">
+                  {activity.badge}
+                </span>
+              )}
+            </div>
+            <p
+              className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                minHeight: "calc(2 * 1.45em)",
+              }}
+            >
+              {activity.description}
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground leading-[1.45] line-clamp-2">
-            {activity.description}
-          </p>
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap mt-0.5">
+
+          {/* Bottom: meta row */}
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap mt-1">
             {locationLabel && (
               <a
                 href={mapsUrl ?? "#"}
