@@ -36,15 +36,15 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col overflow-hidden">
 
-      {/* Illustration — visible on both mobile and desktop */}
-      <div className="relative flex-shrink-0 overflow-hidden md:w-1/2 md:h-screen" style={{ height: "66vh" }}>
+      {/* Illustration — pleine largeur, plus haute pour voir les bateaux */}
+      <div className="relative flex-shrink-0 overflow-hidden w-full" style={{ height: "72vh" }}>
         <img
           src={pepiteIllustration}
           alt=""
           aria-hidden="true"
-          className="w-full h-full object-cover object-[center_40%] md:object-center"
+          className="w-full h-full object-cover object-[center_55%]"
           width={1024}
           height={1280}
         />
@@ -119,13 +119,12 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           }
         `}</style>
 
-        {/* Fondu bas sur mobile, fondu droite sur desktop */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/70 to-transparent md:hidden" />
-        <div className="hidden md:block absolute top-0 right-0 bottom-0 w-24 bg-gradient-to-l from-background via-background/60 to-transparent" />
+        {/* Fondu bas vers le fond */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/70 to-transparent" />
       </div>
 
       {/* Brand + form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8 pt-4 md:pt-8 relative z-10">
+      <div className="flex flex-col items-center px-6 pb-8 -mt-16 relative z-10">
 
         {/* Brand — Cormorant Garamond, intemporel */}
         <div className="text-center mb-6">
