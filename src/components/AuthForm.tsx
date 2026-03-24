@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import pepiteIllustration from "@/assets/pepite-illustration-v5.jpg";
