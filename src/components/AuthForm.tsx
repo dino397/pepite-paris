@@ -36,15 +36,15 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col md:flex-row overflow-hidden">
 
-      {/* Illustration — bassin immense qui continue sous la card */}
-      <div className="relative flex-shrink-0 overflow-hidden" style={{ height: "66vh" }}>
+      {/* Illustration — visible on both mobile and desktop */}
+      <div className="relative flex-shrink-0 overflow-hidden md:w-1/2 md:h-screen" style={{ height: "66vh" }}>
         <img
           src={pepiteIllustration}
           alt=""
           aria-hidden="true"
-          className="w-full h-full object-cover object-top"
+          className="w-full h-full object-cover object-[center_40%] md:object-center"
           width={1024}
           height={1280}
         />
