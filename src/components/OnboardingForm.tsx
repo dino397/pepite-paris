@@ -92,6 +92,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
   const [transportModes, setTransportModes] = useState<string[]>([]);
   const [maxTravelMinutes, setMaxTravelMinutes] = useState<number>(30);
   const [weekendPicks, setWeekendPicks] = useState<string[]>([]);
+  const [weekendDislikes, setWeekendDislikes] = useState<string[]>([]);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterOptIn, setNewsletterOptIn] = useState(true);
   const [familyMembers, setFamilyMembers] = useState<{ name: string; email: string }[]>([]);
@@ -147,6 +148,14 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
     setWeekendPicks((prev) => {
       if (prev.includes(val)) return prev.filter((p) => p !== val);
       if (prev.length >= 4) { toast.info("Sélectionnez au maximum 4 activités 🎯"); return prev; }
+      return [...prev, val];
+    });
+  };
+
+  const toggleWeekendDislike = (val: string) => {
+    setWeekendDislikes((prev) => {
+      if (prev.includes(val)) return prev.filter((p) => p !== val);
+      if (prev.length >= 3) { toast.info("Sélectionnez au maximum 3 activités à éviter 🙅"); return prev; }
       return [...prev, val];
     });
   };
@@ -492,28 +501,73 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
 
           {/* Step 3 */}
           {step === 3 && (
-            <div className="space-y-3">
-              <div className="flex gap-1">
-                {[0,1,2,3].map((i) => (
-                  <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < weekendPicks.length ? "bg-primary" : "bg-muted"}`} />
-                ))}
+            <div className="space-y-4">
+              {/* Section 1 — Favoris */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">❤️ Ce qu'on adorerait faire</p>
+                  <span className="text-xs text-muted-foreground/60">{weekendPicks.length}/4</span>
+                </div>
+                <div className="flex gap-1 mb-1">
+                  {[0,1,2,3].map((i) => (
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < weekendPicks.length ? "bg-primary" : "bg-muted"}`} />
+                  ))}
+                </div>
+                <div className="space-y-1.5">
+                  {WEEKEND_ACTIVITIES.map((act) => (
+                    <button
+                      key={act.value}
+                      onClick={() => toggleWeekendPick(act.value)}
+                      className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all flex justify-between items-center ${
+                        weekendPicks.includes(act.value)
+                          ? "gradient-meadow text-primary-foreground border-primary shadow-sm"
+                          : "bg-background/70 text-foreground border-border/50 hover:border-primary"
+                      }`}
+                    >
+                      {act.label}
+                      {weekendPicks.includes(act.value) && <span className="text-xs ml-2">✓</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-1.5">
-                {WEEKEND_ACTIVITIES.map((act) => (
-                  <button
-                    key={act.value}
-                    onClick={() => toggleWeekendPick(act.value)}
-                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all flex justify-between items-center ${
-                      weekendPicks.includes(act.value)
-                        ? "gradient-meadow text-primary-foreground border-primary shadow-sm"
-                        : "bg-background/70 text-foreground border-border/50 hover:border-primary"
-                    }`}
-                  >
-                    {act.label}
-                    {weekendPicks.includes(act.value) && <span className="text-xs ml-2">✓</span>}
-                  </button>
-                ))}
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/40" /></div>
+                <div className="relative flex justify-center">
+                  <span className="bg-card/90 px-3 text-xs text-muted-foreground/60 italic">et à l'inverse…</span>
+                </div>
               </div>
+
+              {/* Section 2 — À éviter */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">🙅 Ce qu'on éviterait plutôt</p>
+                  <span className="text-xs text-muted-foreground/60">{weekendDislikes.length}/3</span>
+                </div>
+                <div className="flex gap-1 mb-1">
+                  {[0,1,2].map((i) => (
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i < weekendDislikes.length ? "bg-destructive/60" : "bg-muted"}`} />
+                  ))}
+                </div>
+                <div className="space-y-1.5">
+                  {WEEKEND_ACTIVITIES.filter((act) => !weekendPicks.includes(act.value)).map((act) => (
+                    <button
+                      key={act.value}
+                      onClick={() => toggleWeekendDislike(act.value)}
+                      className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium border transition-all flex justify-between items-center ${
+                        weekendDislikes.includes(act.value)
+                          ? "bg-destructive/10 text-destructive border-destructive/40 shadow-sm"
+                          : "bg-background/70 text-foreground border-border/50 hover:border-destructive/40"
+                      }`}
+                    >
+                      {act.label}
+                      {weekendDislikes.includes(act.value) && <span className="text-xs ml-2">✗</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="flex gap-2 pt-1">
                 <button onClick={() => setStep(2)} className="flex-1 h-11 rounded-2xl border border-border/60 text-sm font-medium text-muted-foreground hover:text-foreground transition-all">
                   Retour
@@ -581,12 +635,16 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
               </div>
 
               {/* Family members newsletter */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-                  👨‍👩‍👧 Autres membres de la famille
-                </p>
+              <div className="rounded-2xl border-2 border-primary/20 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">👨‍👩‍👧</span>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">Partager avec la famille</p>
+                    <p className="text-xs text-muted-foreground leading-snug mt-0.5">L'autre parent, les grands-parents… tout le monde reçoit les pépites du week-end !</p>
+                  </div>
+                </div>
                 {familyMembers.map((member, i) => (
-                  <div key={i} className="flex gap-2 items-center bg-muted/40 rounded-2xl px-3 py-2.5">
+                  <div key={i} className="flex gap-2 items-center bg-background/80 rounded-xl px-3 py-2.5">
                     <Input
                       value={member.name}
                       onChange={(e) => updateFamilyMember(i, "name", e.target.value)}
@@ -614,7 +672,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 <button
                   type="button"
                   onClick={addFamilyMember}
-                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium pl-1"
+                  className="w-full h-10 rounded-xl border-2 border-dashed border-primary/40 text-primary hover:border-primary hover:bg-primary/5 transition-all flex items-center justify-center gap-2 text-sm font-semibold"
                 >
                   <Plus className="h-4 w-4" /> Ajouter un membre de la famille
                 </button>
