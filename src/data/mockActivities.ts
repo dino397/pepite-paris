@@ -253,7 +253,7 @@ export const mockActivities: Activity[] = [
     location: "Smile World",
     arrondissement: "15ème",
     duration: "~2h",
-    booking_url: "https://smileworld.fr",
+    booking_url: "https://smileworld.fr/reservation/",
     travel_walk: "18 min",
     travel_bike: "6 min",
     travel_car: "8 min",
