@@ -53,8 +53,9 @@ export interface FutureEvent {
 }
 
 
-import posterPerduRetrouve from "@/assets/poster-perdu-retrouve.jpg";
-import posterLoups from "@/assets/poster-loups.jpg";
+import posterMufasa from "@/assets/poster-mufasa.jpg";
+import posterPaddington from "@/assets/poster-paddington.jpg";
+import posterVaiana2 from "@/assets/poster-vaiana2.jpg";
 import posterPirouette from "@/assets/poster-pirouette.jpg";
 import posterArbreSansFin from "@/assets/poster-arbre-sans-fin.jpg";
 import posterChaperonRouge from "@/assets/poster-chaperon-rouge.jpg";
@@ -69,92 +70,70 @@ export const mockActivities: Activity[] = [
   {
     id: 1,
     category: "cinema",
-    title: "Perdu ? Retrouvé !",
-    description: "Ariel va adorer : un garçon retrouve son pingouin perdu au bout du monde. Doux, drôle, parfait pour les petits.",
+    title: "Mufasa : Le Roi Lion",
+    description: "La saga des rois de la savane revient au cinéma. Un récit d'origine bouleversant, des chansons inoubliables — un moment magique en famille.",
     date: "2025-03-29",
     location: "MK2 Odéon",
     arrondissement: "6ème",
-    duration: "45 min",
-    booking_url: "https://www.mk2.com/salle/mk2-odeon",
+    duration: "118 min",
+    booking_url: "https://www.mk2.com/film/mufasa-le-roi-lion",
     travel_walk: "12 min",
     travel_bike: "5 min",
     travel_car: "4 min",
-    is_exceptional: false,
+    is_exceptional: true,
     is_future: false,
-    badge: "dessin animé · 45 min",
-    poster_url: posterPerduRetrouve,
+    badge: "Disney · dès 4 ans",
+    poster_url: posterMufasa,
     google_maps_url: "https://maps.google.com/?q=MK2+Od%C3%A9on+Paris",
     cinemas: [
-      { name: "MK2 Odéon", url: "https://www.mk2.com/salle/mk2-odeon", arrondissement: "6ème", travel_walk: "12 min", showtimes: "Sam 10h15 / Dim 10h30" },
-      { name: "Les Ursulines", url: "https://www.studiodesursulines.com", arrondissement: "5ème", travel_walk: "15 min", showtimes: "Dim 11h" }
+      { name: "MK2 Odéon", url: "https://www.mk2.com/film/mufasa-le-roi-lion", arrondissement: "6ème", travel_walk: "12 min", showtimes: "Sam 10h15 / Dim 10h30" },
+      { name: "UGC Danton", url: "https://www.ugc.fr/cinema.html?id=12", arrondissement: "6ème", travel_walk: "14 min", showtimes: "Sam & Dim 11h" }
     ]
   },
   {
     id: 2,
     category: "cinema",
-    title: "Loups tendres et loufoques",
-    description: "Courts-métrages animés rigolos sur des loups attachants. Gala va se marrer, Ariel va craquer.",
+    title: "Paddington au Pérou",
+    description: "L'ours le plus attachant du cinéma part à l'aventure en Amazonie. Hilarant, tendre, et une jungle à couper le souffle — parfait pour toute la famille.",
     date: "2025-03-29",
-    location: "Escurial",
-    arrondissement: "13ème",
-    duration: "50 min",
-    booking_url: "https://www.cinema-escurial.fr",
-    travel_walk: "25 min",
-    travel_bike: "10 min",
-    travel_car: "12 min",
+    location: "Les Ursulines",
+    arrondissement: "5ème",
+    duration: "106 min",
+    booking_url: "https://www.studiodesursulines.com",
+    travel_walk: "15 min",
+    travel_bike: "6 min",
+    travel_car: "5 min",
     is_exceptional: false,
     is_future: false,
-    badge: "dessin animé · 50 min",
-    poster_url: posterLoups,
-    google_maps_url: "https://maps.google.com/?q=Cin%C3%A9ma+Escurial+Paris+13",
+    badge: "aventure · dès 4 ans",
+    poster_url: posterPaddington,
+    google_maps_url: "https://maps.google.com/?q=Studio+des+Ursulines+Paris+5",
     cinemas: [
-      { name: "Escurial", url: "https://www.cinema-escurial.fr", arrondissement: "13ème", travel_walk: "25 min", showtimes: "Dim 11h" },
-      { name: "MK2 Beaubourg", url: "https://www.mk2.com/salle/mk2-beaubourg", arrondissement: "3ème", travel_walk: "22 min", showtimes: "Sam 10h" }
+      { name: "Les Ursulines", url: "https://www.studiodesursulines.com", arrondissement: "5ème", travel_walk: "15 min", showtimes: "Sam 10h30 / Dim 11h" },
+      { name: "Escurial", url: "https://www.cinema-escurial.fr", arrondissement: "13ème", travel_walk: "25 min", showtimes: "Dim 10h" }
     ]
   },
   {
     id: 12,
     category: "cinema",
-    title: "La Petite Sirène — version restaurée",
-    description: "Le classique Disney de retour en salle dans une copie 4K éblouissante. La magie de la mer sur grand écran.",
+    title: "Vaiana 2",
+    description: "Vaiana reprend la mer pour une mission encore plus grande, entourée d'une nouvelle équipe de navigateurs. Disney au sommet de sa forme, coloré et entraînant.",
     date: "2025-03-29",
-    location: "Grand Rex",
-    arrondissement: "2ème",
-    duration: "83 min",
-    booking_url: "https://www.legrandrex.com",
-    travel_walk: "30 min",
-    travel_bike: "12 min",
-    travel_car: "15 min",
-    is_exceptional: true,
-    is_future: false,
-    badge: "classique · 83 min",
-    poster_url: posterLoups,
-    google_maps_url: "https://maps.google.com/?q=Grand+Rex+Paris+2",
-    cinemas: [
-      { name: "Le Grand Rex", url: "https://www.legrandrex.com", arrondissement: "2ème", travel_walk: "30 min", showtimes: "Sam 10h30 / Dim 11h" },
-      { name: "UGC Ciné Cité Les Halles", url: "https://www.ugc.fr/cinema.html?id=56", arrondissement: "1er", travel_walk: "25 min", showtimes: "Sam & Dim 10h" }
-    ]
-  },
-  {
-    id: 13,
-    category: "cinema",
-    title: "Mini Ciné — Programme courts-métrages",
-    description: "Sélection de courts-métrages animés du monde entier, sans dialogue. Universel et poétique.",
-    date: "2025-03-29",
-    location: "Forum des Images",
-    arrondissement: "1er",
-    duration: "55 min",
-    booking_url: "https://www.forumdesimages.fr",
-    travel_walk: "22 min",
-    travel_bike: "9 min",
-    travel_car: "11 min",
+    location: "MK2 Beaubourg",
+    arrondissement: "3ème",
+    duration: "100 min",
+    booking_url: "https://www.mk2.com/film/vaiana-2",
+    travel_walk: "20 min",
+    travel_bike: "8 min",
+    travel_car: "9 min",
     is_exceptional: false,
     is_future: false,
-    badge: "animation · 55 min",
-    poster_url: posterPerduRetrouve,
-    google_maps_url: "https://maps.google.com/?q=Forum+des+Images+Paris+1",
+    badge: "Disney · dès 4 ans",
+    poster_url: posterVaiana2,
+    google_maps_url: "https://maps.google.com/?q=MK2+Beaubourg+Paris+3",
     cinemas: [
-      { name: "Forum des Images", url: "https://www.forumdesimages.fr", arrondissement: "1er", travel_walk: "22 min", showtimes: "Dim 10h45" }
+      { name: "MK2 Beaubourg", url: "https://www.mk2.com/film/vaiana-2", arrondissement: "3ème", travel_walk: "20 min", showtimes: "Sam 10h / Dim 10h15" },
+      { name: "Le Grand Rex", url: "https://www.legrandrex.com", arrondissement: "2ème", travel_walk: "28 min", showtimes: "Sam & Dim 10h30" }
     ]
   },
   {
