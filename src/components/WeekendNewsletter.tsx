@@ -1016,9 +1016,10 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           subtitle={ageSubtitle || undefined}
           activities={cinemaActivities}
           loading={activitiesLoading}
-          initialCount={3}
-          loadMoreCount={2}
+          initialCount={2}
+          loadMoreCount={3}
           withCinemas
+          prefer2D3D
           dismissedIds={dismissedIds}
           onDismiss={handleDismiss}
         />
@@ -1031,6 +1032,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           activities={theatreActivities}
           loading={activitiesLoading}
           initialCount={2}
+          loadMoreCount={3}
           dismissedIds={dismissedIds}
           onDismiss={handleDismiss}
         />
@@ -1043,6 +1045,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           activities={expoActivities}
           loading={activitiesLoading}
           initialCount={2}
+          loadMoreCount={3}
           dismissedIds={dismissedIds}
           onDismiss={handleDismiss}
         />
@@ -1055,6 +1058,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           activities={otherActivities}
           loading={activitiesLoading}
           initialCount={2}
+          loadMoreCount={3}
           dismissedIds={dismissedIds}
           onDismiss={handleDismiss}
         />
