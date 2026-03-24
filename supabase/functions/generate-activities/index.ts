@@ -61,7 +61,7 @@ serve(async (req) => {
       const { data: cached } = await supabase
         .from("newsletter_cache")
         .select("content")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("week_key", weekKey)
         .single();
 
