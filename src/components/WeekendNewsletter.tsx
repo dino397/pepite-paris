@@ -413,11 +413,11 @@ function GhibliActivityCard({
         <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
       )}
 
-      {/* Dismiss button */}
+      {/* Dismiss button — always visible */}
       {onDismiss && (
         <button
-          onClick={onDismiss}
-          className="absolute top-2 right-2 z-20 flex items-center justify-center w-5 h-5 rounded-full bg-background/80 border border-border/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+          className="absolute top-2 right-2 z-20 flex items-center justify-center w-5 h-5 rounded-full bg-background/70 border border-border/50 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40 hover:scale-110"
           aria-label="Supprimer cette activité"
         >
           <X className="h-3 w-3" />
@@ -573,6 +573,7 @@ function ActivitySection({
   activities,
   loading,
   initialCount = 2,
+  loadMoreCount = 3,
   withCinemas = false,
   dismissedIds,
   onDismiss,
@@ -583,17 +584,29 @@ function ActivitySection({
   activities: Activity[];
   loading: boolean;
   initialCount?: number;
+  loadMoreCount?: number;
   withCinemas?: boolean;
   dismissedIds: Set<number>;
   onDismiss: (id: number) => void;
 }) {
   const [visibleCount, setVisibleCount] = useState(initialCount);
 
-  const visible = activities.filter((a) => !dismissedIds.has(a.id));
+  const all = activities;
+  const visible = all.filter((a) => !dismissedIds.has(a.id));
   const displayed = visible.slice(0, visibleCount);
   const hasMore = visible.length > visibleCount;
 
+  // When user dismisses a card, bump visibleCount so next card auto-fills
+  const handleDismissWithReplace = (id: number) => {
+    onDismiss(id);
+    setVisibleCount((n) => n + 1);
+  };
+
   if (!loading && visible.length === 0) return null;
+
+  const moreLabel = withCinemas
+    ? `Voir ${loadMoreCount} film${loadMoreCount > 1 ? "s" : ""} de plus`
+    : `Voir ${loadMoreCount} idée${loadMoreCount > 1 ? "s" : ""} de plus`;
 
   return (
     <section>
@@ -611,23 +624,23 @@ function ActivitySection({
               <GhibliActivityCardWithCinemas
                 key={a.id}
                 activity={a}
-                onDismiss={() => onDismiss(a.id)}
+                onDismiss={() => handleDismissWithReplace(a.id)}
               />
             ) : (
               <GhibliActivityCard
                 key={a.id}
                 activity={a}
-                onDismiss={() => onDismiss(a.id)}
+                onDismiss={() => handleDismissWithReplace(a.id)}
               />
             )
           )}
           {hasMore && (
             <button
-              onClick={() => setVisibleCount((n) => n + 3)}
+              onClick={() => setVisibleCount((n) => n + loadMoreCount)}
               className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-dashed border-border/60 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
             >
               <ChevronDown className="h-3.5 w-3.5" />
-              Voir 3 idées de plus
+              {moreLabel}
             </button>
           )}
         </div>
@@ -984,6 +997,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           activities={cinemaActivities}
           loading={activitiesLoading}
           initialCount={2}
+          loadMoreCount={2}
           withCinemas
           dismissedIds={dismissedIds}
           onDismiss={handleDismiss}
