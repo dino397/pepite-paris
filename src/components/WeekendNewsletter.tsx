@@ -571,6 +571,7 @@ function ActivitySection({
   initialCount = 2,
   loadMoreCount = 3,
   withCinemas = false,
+  prefer2D3D = false,
   dismissedIds,
   onDismiss,
 }: {
@@ -582,20 +583,49 @@ function ActivitySection({
   initialCount?: number;
   loadMoreCount?: number;
   withCinemas?: boolean;
+  prefer2D3D?: boolean;
   dismissedIds: Set<number>;
   onDismiss: (id: number) => void;
 }) {
-  const [visibleCount, setVisibleCount] = useState(initialCount);
+  const [extraCount, setExtraCount] = useState(0);
 
-  const all = activities;
-  const visible = all.filter((a) => !dismissedIds.has(a.id));
-  const displayed = visible.slice(0, visibleCount);
-  const hasMore = visible.length > visibleCount;
+  const visible = activities.filter((a) => !dismissedIds.has(a.id));
 
-  // When user dismisses a card, bump visibleCount so next card auto-fills
+  // For cinema: show 1×2D + 1×3D first, rest in order
+  let displayed: Activity[];
+  let rest: Activity[];
+
+  if (prefer2D3D) {
+    const first2D = visible.find((a) => a.film_format === "2D");
+    const first3D = visible.find((a) => a.film_format === "3D");
+    const picked: Activity[] = [];
+    if (first2D) picked.push(first2D);
+    if (first3D) picked.push(first3D);
+    // If only one format, fill up to initialCount with remaining
+    if (picked.length < initialCount) {
+      const pickedIds = new Set(picked.map((a) => a.id));
+      for (const a of visible) {
+        if (!pickedIds.has(a.id)) picked.push(a);
+        if (picked.length >= initialCount) break;
+      }
+    }
+    const pickedIds = new Set(picked.map((a) => a.id));
+    const remaining = visible.filter((a) => !pickedIds.has(a.id));
+    const extras = remaining.slice(0, extraCount);
+    displayed = [...picked, ...extras];
+    rest = remaining.slice(extraCount);
+  } else {
+    const total = initialCount + extraCount;
+    displayed = visible.slice(0, total);
+    rest = visible.slice(total);
+  }
+
+  const hasMore = rest.length > 0;
+
+  // When dismissed, auto-reveal one more
   const handleDismissWithReplace = (id: number) => {
     onDismiss(id);
-    setVisibleCount((n) => n + 1);
+    setExtraCount((n) => n + 1);
   };
 
   if (!loading && visible.length === 0) return null;
@@ -632,7 +662,7 @@ function ActivitySection({
           )}
           {hasMore && (
             <button
-              onClick={() => setVisibleCount((n) => n + loadMoreCount)}
+              onClick={() => setExtraCount((n) => n + loadMoreCount)}
               className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-dashed border-border/60 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
             >
               <ChevronDown className="h-3.5 w-3.5" />
