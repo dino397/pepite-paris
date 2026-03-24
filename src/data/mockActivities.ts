@@ -113,6 +113,51 @@ export const mockActivities: Activity[] = [
     ]
   },
   {
+    id: 12,
+    category: "cinema",
+    title: "La Petite Sirène — version restaurée",
+    description: "Le classique Disney de retour en salle dans une copie 4K éblouissante. La magie de la mer sur grand écran.",
+    date: "2025-03-29",
+    location: "Grand Rex",
+    arrondissement: "2ème",
+    duration: "83 min",
+    booking_url: "https://www.legrandrex.com",
+    travel_walk: "30 min",
+    travel_bike: "12 min",
+    travel_car: "15 min",
+    is_exceptional: true,
+    is_future: false,
+    badge: "classique · 83 min",
+    poster_url: posterLoups,
+    google_maps_url: "https://maps.google.com/?q=Grand+Rex+Paris+2",
+    cinemas: [
+      { name: "Le Grand Rex", url: "https://www.legrandrex.com", arrondissement: "2ème", travel_walk: "30 min", showtimes: "Sam 10h30 / Dim 11h" },
+      { name: "UGC Ciné Cité Les Halles", url: "https://www.ugc.fr/cinema.html?id=56", arrondissement: "1er", travel_walk: "25 min", showtimes: "Sam & Dim 10h" }
+    ]
+  },
+  {
+    id: 13,
+    category: "cinema",
+    title: "Mini Ciné — Programme courts-métrages",
+    description: "Sélection de courts-métrages animés du monde entier, sans dialogue. Universel et poétique.",
+    date: "2025-03-29",
+    location: "Forum des Images",
+    arrondissement: "1er",
+    duration: "55 min",
+    booking_url: "https://www.forumdesimages.fr",
+    travel_walk: "22 min",
+    travel_bike: "9 min",
+    travel_car: "11 min",
+    is_exceptional: false,
+    is_future: false,
+    badge: "animation · 55 min",
+    poster_url: posterPerduRetrouve,
+    google_maps_url: "https://maps.google.com/?q=Forum+des+Images+Paris+1",
+    cinemas: [
+      { name: "Forum des Images", url: "https://www.forumdesimages.fr", arrondissement: "1er", travel_walk: "22 min", showtimes: "Dim 10h45" }
+    ]
+  },
+  {
     id: 3,
     category: "theatre",
     title: "Pirouette",
