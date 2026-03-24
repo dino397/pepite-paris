@@ -1,0 +1,1 @@
+ALTER TABLE public.family_profiles ADD COLUMN IF NOT EXISTS weekend_dislikes text[] DEFAULT '{}'::text[];

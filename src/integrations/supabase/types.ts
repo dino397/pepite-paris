@@ -103,6 +103,7 @@ export type Database = {
           transport_modes: string[] | null
           updated_at: string
           user_id: string
+          weekend_dislikes: string[] | null
           weekend_picks: string[] | null
         }
         Insert: {
@@ -119,6 +120,7 @@ export type Database = {
           transport_modes?: string[] | null
           updated_at?: string
           user_id: string
+          weekend_dislikes?: string[] | null
           weekend_picks?: string[] | null
         }
         Update: {
@@ -135,6 +137,7 @@ export type Database = {
           transport_modes?: string[] | null
           updated_at?: string
           user_id?: string
+          weekend_dislikes?: string[] | null
           weekend_picks?: string[] | null
         }
         Relationships: []
