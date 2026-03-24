@@ -941,7 +941,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         <ActivitySection
           emoji="🎬"
           title="Cinéma"
-          subtitle="dessin animé · 2–8 ans"
+          subtitle="Adapté aux 3-8 ans"
           activities={cinemaActivities}
           loading={activitiesLoading}
           initialCount={2}
