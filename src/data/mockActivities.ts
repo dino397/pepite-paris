@@ -163,7 +163,7 @@ export const mockActivities: Activity[] = [
     location: "Théâtre du Lucernaire",
     arrondissement: "6ème",
     duration: "~50 min",
-    booking_url: "https://www.lucernaire.fr",
+    booking_url: "https://www.lucernaire.fr/spectacle/larbre-sans-fin/",
     travel_walk: "5 min",
     travel_bike: "2 min",
     travel_car: "3 min",
