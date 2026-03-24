@@ -116,7 +116,7 @@ export const mockActivities: Activity[] = [
     id: 3,
     category: "theatre",
     title: "Pirouette",
-    description: "Marionnettes et danse mêlées dans un tourbillon coloré. Idéal pour éveiller Ariel aux arts vivants.",
+    description: "Marionnettes et danse mêlées dans un tourbillon coloré et poétique. Un spectacle vivant parfait pour initier vos enfants aux arts de la scène en douceur.",
     date: "2025-03-29",
     location: "Théâtre Essaïon",
     arrondissement: "4ème",

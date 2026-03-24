@@ -136,7 +136,7 @@ Génère exactement ce JSON:
         "duration": "2h",
         "distance_km": 5,
         "transport": ["voiture"],
-        "description": "1 phrase courte et directe. Si highlighted=true: 2 phrases max, directes et concrètes (pas besoin de nommer chaque enfant).",
+        "description": "Exactement 2 phrases : 1/ description concrète de l'activité. 2/ pourquoi c'est top pour votre famille (sans citer un enfant en particulier, parler de 'vos enfants' ou 'la famille'). Remplir les 2 lignes.",
         "practical_info": "Infos pratiques: adresse indicative, tarifs, horaires types",
         "requires_booking": false,
         "booking_url": null,
@@ -176,7 +176,7 @@ RÈGLES ABSOLUES:
 - Toutes les activités doivent être RÉALISTES et accessibles depuis ${profile.city}
 - Respecter le transport disponible (${transportDesc}) et le trajet max (${maxTravelDesc})
 - Adapter aux âges: ${childrenDesc}
-- highlighted: true pour exactement 1 activité "Pépite de la semaine" — sa description doit tenir en 2 phrases max, directes et cool
+- Chaque description = exactement 2 phrases : 1/ l'activité en elle-même, 2/ pourquoi c'est top pour votre famille — jamais de prénom d'enfant spécifique
 - JSON valide uniquement, aucun autre texte`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
