@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { RefreshCw, ExternalLink, MapPin, Clock, Ticket, Sparkles, CalendarDays, Plus, X, LogOut } from "lucide-react";
+import { RefreshCw, ExternalLink, MapPin, Clock, Ticket, Sparkles, Plus, X, LogOut, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import pepiteIllustration from "@/assets/pepite-illustration.png";
 import {
   mockWeather,
   mockBookings,
@@ -188,7 +189,7 @@ function WeatherStrip({ data, loading }: { data: WeatherDay[]; loading: boolean 
   );
 }
 
-// ─── WEEKEND PLAN (merged bookings + agenda) ─────────────────────────────────
+// ─── WEEKEND PLAN ─────────────────────────────────────────────────────────────
 
 interface AgendaEvent {
   id: string;
@@ -221,17 +222,14 @@ function WeekendPlanSection({
   const [formNotes, setFormNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Combine real bookings + mock bookings for the weekend
   const weekendISOSat = formatDateISO(saturday);
   const weekendISOSun = formatDateISO(sunday);
 
-  // Filter agenda events for this weekend
   const weekendAgendaEvents = agendaEvents.filter((ev) => {
     const d = ev.event_date;
     return d === weekendISOSat || d === weekendISOSun;
   });
 
-  // Mock bookings always shown
   const allItems = [
     ...mockBookings.map((b, i) => ({
       id: `booking-${i}`,
@@ -297,10 +295,7 @@ function WeekendPlanSection({
       )}
 
       {allItems.map((item) => (
-        <div
-          key={item.id}
-          className="flex items-start gap-2.5 group"
-        >
+        <div key={item.id} className="flex items-start gap-2.5 group">
           <span className="text-base flex-shrink-0 mt-0.5">{item.emoji}</span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground leading-tight">{item.title}</p>
@@ -363,14 +358,12 @@ function googleMapsUrl(location: string, arrondissement: string): string {
   return `https://maps.google.com/?q=${query}`;
 }
 
-/** Parse "X min" → X minutes as number, or Infinity if missing */
 function parseMins(s: string | undefined | null): number {
   if (!s) return Infinity;
   const m = s.match(/(\d+)/);
   return m ? parseInt(m[1], 10) : Infinity;
 }
 
-/** Priority: walk ≤12 min → walk / bike ≤25 min → bike / else fastest */
 function fastestTravel(activity: Activity): { emoji: string; label: string } | null {
   const walk = parseMins(activity.travel_walk);
   const bike = parseMins(activity.travel_bike);
@@ -379,7 +372,6 @@ function fastestTravel(activity: Activity): { emoji: string; label: string } | n
   if (walk <= 12) return { emoji: "🚶", label: activity.travel_walk! };
   if (bike <= 25)  return { emoji: "🚲", label: activity.travel_bike! };
 
-  // fallback: fastest among remaining options
   const options = [
     { emoji: "🚶", label: activity.travel_walk, mins: walk },
     { emoji: "🚲", label: activity.travel_bike, mins: bike },
@@ -390,11 +382,26 @@ function fastestTravel(activity: Activity): { emoji: string; label: string } | n
   return { emoji: best.emoji, label: best.label! };
 }
 
-function GhibliActivityCard({ activity, reco = false }: { activity: Activity; reco?: boolean }) {
+function GhibliActivityCard({
+  activity,
+  reco = false,
+  onDismiss,
+}: {
+  activity: Activity;
+  reco?: boolean;
+  onDismiss?: () => void;
+}) {
   const cat = CAT_CONFIG[activity.category] ?? CAT_CONFIG.activite;
   const showPoster = SHOW_POSTER_CATEGORIES.has(activity.category) && activity.poster_url;
   const mapsUrl = activity.google_maps_url || (activity.location ? googleMapsUrl(activity.location, activity.arrondissement) : null);
   const travel = fastestTravel(activity);
+
+  // For booking link: prefer source_url (specific page) then booking_url, then maps
+  const bookingLink = (activity as any).source_url && (activity as any).source_url !== "#"
+    ? (activity as any).source_url
+    : activity.booking_url && activity.booking_url !== "#"
+    ? activity.booking_url
+    : null;
 
   return (
     <div
@@ -406,7 +413,18 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
         <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
       )}
 
-      {/* Poster — fixed side column */}
+      {/* Dismiss button */}
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="absolute top-2 right-2 z-20 flex items-center justify-center w-5 h-5 rounded-full bg-background/80 border border-border/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          aria-label="Supprimer cette activité"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
+
+      {/* Poster */}
       {showPoster && (
         <div className="flex-shrink-0 w-28 bg-muted overflow-hidden">
           <img
@@ -431,7 +449,6 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
 
       {/* Content */}
       <div className="flex-1 min-w-0 p-3 flex flex-col justify-between overflow-hidden">
-        {/* Top: title + tags */}
         <div>
           <div className="flex items-start gap-1.5 flex-wrap mb-1">
             <h3 className="font-display font-bold text-foreground text-sm leading-snug">
@@ -449,7 +466,6 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
               </span>
             )}
           </div>
-          {/* Description — exactly 2 lines */}
           <p
             className="text-xs text-muted-foreground leading-[1.45] overflow-hidden"
             style={{
@@ -488,9 +504,9 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
               <Clock className="h-3 w-3" /> {activity.duration}
             </span>
           )}
-          {activity.booking_url && activity.booking_url !== "#" && (
+          {bookingLink && (
             <a
-              href={activity.booking_url}
+              href={bookingLink}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-0.5 text-primary font-semibold hover:underline"
@@ -504,16 +520,24 @@ function GhibliActivityCard({ activity, reco = false }: { activity: Activity; re
   );
 }
 
-function GhibliActivityCardWithCinemas({ activity, reco = false }: { activity: Activity; reco?: boolean }) {
+function GhibliActivityCardWithCinemas({
+  activity,
+  reco = false,
+  onDismiss,
+}: {
+  activity: Activity;
+  reco?: boolean;
+  onDismiss?: () => void;
+}) {
   return (
     <div className="space-y-2">
-      <GhibliActivityCard activity={activity} reco={reco} />
+      <GhibliActivityCard activity={activity} reco={reco} onDismiss={onDismiss} />
       {activity.cinemas && activity.cinemas.length > 0 && (
         <div className="grid grid-cols-2 gap-2 pl-1">
           {activity.cinemas.map((c) => (
             <div key={c.name} className="rounded-xl bg-ghibli-sky/8 border border-ghibli-sky/20 p-2.5 text-xs space-y-1">
               <a
-                href={c.url}
+                href={c.url && c.url !== "#" ? c.url : "#"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold text-primary hover:underline block leading-tight"
@@ -522,14 +546,16 @@ function GhibliActivityCardWithCinemas({ activity, reco = false }: { activity: A
               </a>
               <div className="text-muted-foreground">📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
               <div className="text-muted-foreground">🗓️ {c.showtimes}</div>
-              <a
-                href={c.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-primary hover:underline"
-              >
-                🔗 Billets
-              </a>
+              {c.url && c.url !== "#" && (
+                <a
+                  href={c.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-primary hover:underline"
+                >
+                  🔗 Billets
+                </a>
+              )}
             </div>
           ))}
         </div>
@@ -538,13 +564,85 @@ function GhibliActivityCardWithCinemas({ activity, reco = false }: { activity: A
   );
 }
 
+// ─── SECTION WITH VOIR PLUS ───────────────────────────────────────────────────
+
+function ActivitySection({
+  emoji,
+  title,
+  subtitle,
+  activities,
+  loading,
+  initialCount = 2,
+  withCinemas = false,
+  dismissedIds,
+  onDismiss,
+}: {
+  emoji: string;
+  title: string;
+  subtitle?: string;
+  activities: Activity[];
+  loading: boolean;
+  initialCount?: number;
+  withCinemas?: boolean;
+  dismissedIds: Set<number>;
+  onDismiss: (id: number) => void;
+}) {
+  const [showMore, setShowMore] = useState(false);
+
+  const visible = activities.filter((a) => !dismissedIds.has(a.id));
+  const displayed = showMore ? visible : visible.slice(0, initialCount);
+  const hasMore = visible.length > initialCount;
+
+  if (!loading && visible.length === 0) return null;
+
+  return (
+    <section>
+      <SectionTitle emoji={emoji}>{title}</SectionTitle>
+      {subtitle && <p className="text-xs text-muted-foreground -mt-2 mb-4">{subtitle}</p>}
+      {loading ? (
+        <div className="space-y-3">
+          <GhibliSkeleton />
+          <GhibliSkeleton />
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {displayed.map((a) =>
+            withCinemas ? (
+              <GhibliActivityCardWithCinemas
+                key={a.id}
+                activity={a}
+                onDismiss={() => onDismiss(a.id)}
+              />
+            ) : (
+              <GhibliActivityCard
+                key={a.id}
+                activity={a}
+                onDismiss={() => onDismiss(a.id)}
+              />
+            )
+          )}
+          {hasMore && !showMore && (
+            <button
+              onClick={() => setShowMore(true)}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-dashed border-border/60 text-xs font-medium text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
+            >
+              <ChevronDown className="h-3.5 w-3.5" />
+              Voir plus d'idées
+            </button>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ─── RECO CARD ────────────────────────────────────────────────────────────────
 
-function RecoCard({ activity }: { activity: Activity }) {
+function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () => void }) {
   return (
     <div className="space-y-3">
       <SectionTitle emoji="✨">Coup de cœur de la semaine</SectionTitle>
-      <GhibliActivityCardWithCinemas activity={activity} reco />
+      <GhibliActivityCardWithCinemas activity={activity} reco onDismiss={onDismiss} />
     </div>
   );
 }
@@ -554,13 +652,11 @@ function RecoCard({ activity }: { activity: Activity }) {
 function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
   return (
     <div className="space-y-6">
-
-      {/* ── Next weekend — compact agenda list ── */}
       <div className="rounded-2xl bg-ghibli-meadow/8 border border-ghibli-meadow/20 p-4">
         <p className="text-xs font-semibold uppercase tracking-widest text-ghibli-meadow mb-3">
           Week-end du {mockFutureWeekend.label}
         </p>
-      <div className="space-y-0 divide-y divide-border/40">
+        <div className="space-y-0 divide-y divide-border/40">
           {mockFutureWeekend.events.map((e, i) => (
             <div key={i} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
               <span className="text-lg flex-shrink-0">{e.emoji}</span>
@@ -581,7 +677,6 @@ function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
         </div>
       </div>
 
-      {/* ── Pre-booking — activity-style cards ── */}
       <div>
         <div className="flex items-center gap-2 mb-3">
           <h2 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-widest">
@@ -595,12 +690,9 @@ function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
               key={evt.id}
               className="ghibli-card flex flex-row h-[120px] overflow-hidden group hover:shadow-md transition-shadow"
             >
-              {/* Emoji block — mimics poster column */}
               <div className="flex-shrink-0 w-16 flex items-center justify-center bg-ghibli-gold/10 text-3xl">
                 {evt.emoji}
               </div>
-
-              {/* Content */}
               <div className="flex-1 min-w-0 p-3 flex flex-col justify-between overflow-hidden">
                 <div>
                   <h3 className="font-display font-bold text-foreground text-sm leading-snug mb-1">
@@ -645,45 +737,6 @@ function FutureBanner({ futureEvents }: { futureEvents: FutureEvent[] }) {
   );
 }
 
-// ─── SCRAPE BANNER ────────────────────────────────────────────────────────────
-
-function ScrapeBanner({
-  status,
-  activitiesFound,
-  onTrigger,
-  triggering,
-}: {
-  status: "idle" | "done" | "running" | "error" | "no_data";
-  activitiesFound: number;
-  onTrigger: () => void;
-  triggering: boolean;
-}) {
-  if (status === "done" && activitiesFound > 0) return null;
-
-  const cfg = {
-    idle:    { bg: "bg-ghibli-gold/8 border-ghibli-gold/25",   text: "text-ghibli-earth", label: "Activités non encore générées pour ce week-end." },
-    no_data: { bg: "bg-ghibli-gold/8 border-ghibli-gold/25",   text: "text-ghibli-earth", label: "Aucune activité scrapée pour ce week-end." },
-    running: { bg: "bg-ghibli-sky/10 border-ghibli-sky/25",    text: "text-ghibli-deep",  label: "Scraping en cours… (~2 min)" },
-    error:   { bg: "bg-destructive/5 border-destructive/20",   text: "text-destructive",  label: "Erreur lors du scraping." },
-    done:    { bg: "bg-ghibli-gold/8 border-ghibli-gold/25",   text: "text-ghibli-earth", label: "" },
-  }[status] ?? { bg: "bg-ghibli-gold/8 border-ghibli-gold/25", text: "text-ghibli-earth", label: "" };
-
-  return (
-    <div className={`rounded-2xl border ${cfg.bg} px-4 py-3 flex items-center justify-between gap-3 flex-wrap`}>
-      <span className={`text-sm ${cfg.text}`}>{cfg.label}</span>
-      {status !== "running" && (
-        <button
-          onClick={onTrigger}
-          disabled={triggering}
-          className="text-xs font-semibold text-primary border border-primary/30 rounded-xl px-3 py-1.5 hover:bg-primary/5 transition-colors disabled:opacity-50"
-        >
-          {triggering ? "Lancement…" : "🌿 Scraper maintenant"}
-        </button>
-      )}
-    </div>
-  );
-}
-
 // ─── MAIN ─────────────────────────────────────────────────────────────────────
 
 export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => void }) {
@@ -696,23 +749,22 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
 
   const [liveActivities, setLiveActivities] = useState<Activity[] | null>(null);
   const [activitiesLoading, setActivitiesLoading] = useState(true);
-  const [scrapeStatus, setScrapeStatus] = useState<"idle" | "done" | "running" | "error" | "no_data">("idle");
-  const [scrapeCount, setScrapeCount] = useState(0);
-  const [triggering, setTriggering] = useState(false);
 
   const [agendaEvents, setAgendaEvents] = useState<AgendaEvent[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
 
+  // Dismissed activity ids
+  const [dismissedIds, setDismissedIds] = useState<Set<number>>(() => new Set());
+  const [dismissedReco, setDismissedReco] = useState(false);
+
   const weekKey = getDayKey();
 
-  // Get current user
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) setUserId(data.user.id);
     });
   }, []);
 
-  // Load agenda events
   const loadAgendaEvents = useCallback(async () => {
     if (!userId) return;
     const { data } = await supabase
@@ -727,21 +779,9 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
     if (userId) loadAgendaEvents();
   }, [userId, loadAgendaEvents]);
 
-  // Load activities
   const loadActivities = useCallback(async () => {
     setActivitiesLoading(true);
     try {
-      const { data: run } = await supabase
-        .from("scrape_runs")
-        .select("status, activities_found")
-        .eq("week_key", weekKey)
-        .order("started_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (run?.status === "running") { setScrapeStatus("running"); setActivitiesLoading(false); return; }
-      if (run?.status === "error") setScrapeStatus("error");
-
       const { data: rows } = await supabase
         .from("scraped_activities")
         .select("*")
@@ -750,10 +790,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
 
       if (rows && rows.length > 0) {
         setLiveActivities(rows.map((r, i) => dbRowToActivity(r as DbActivity, i)));
-        setScrapeStatus("done");
-        setScrapeCount(rows.length);
       } else {
-        setScrapeStatus(run?.status === "done" ? "no_data" : "idle");
         setLiveActivities(null);
       }
     } catch (err) {
@@ -763,25 +800,6 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
       setActivitiesLoading(false);
     }
   }, [weekKey]);
-
-  const triggerScrape = async (force = false) => {
-    setTriggering(true);
-    setScrapeStatus("running");
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scrape-activities`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-          body: JSON.stringify({ force }),
-        }
-      );
-      const data = await res.json();
-      if (data.success || data.fromCache) await loadActivities();
-      else setScrapeStatus("error");
-    } catch { setScrapeStatus("error"); }
-    finally { setTriggering(false); }
-  };
 
   const fetchWeather = useCallback(async () => {
     setWeatherLoading(true);
@@ -811,16 +829,14 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
 
   useEffect(() => { fetchWeather(); loadActivities(); }, [fetchWeather, loadActivities]);
 
-  useEffect(() => {
-    if (scrapeStatus !== "running") return;
-    const timer = setInterval(() => loadActivities(), 8000);
-    return () => clearInterval(timer);
-  }, [scrapeStatus, loadActivities]);
-
   const handleRefresh = async () => {
     setSpinning(true);
     await Promise.all([fetchWeather(), loadActivities(), loadAgendaEvents()]);
     setTimeout(() => setSpinning(false), 800);
+  };
+
+  const handleDismiss = (id: number) => {
+    setDismissedIds((prev) => new Set(prev).add(id));
   };
 
   const activities = liveActivities ?? mockActivities;
@@ -828,19 +844,48 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
   const expoActivities = activities.filter((a) => a.category === "expo");
   const otherActivities = activities.filter((a) => a.category === "activite");
   const cinemaActivities = activities.filter((a) => a.category === "cinema");
-  const recoActivity = theatreActivities[0] ?? activities[3] ?? activities[0];
-  const isLive = liveActivities !== null && liveActivities.length > 0;
+  const recoActivity = !dismissedReco
+    ? (theatreActivities[0] ?? activities[3] ?? activities[0])
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Decorative top strip */}
-      <div className="h-1.5 w-full gradient-meadow" />
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-8 py-8 space-y-8 animate-fade-in">
+      {/* ── HERO HEADER with illustration ── */}
+      <div className="relative overflow-hidden" style={{ minHeight: 220 }}>
+        {/* Illustration */}
+        <img
+          src={pepiteIllustration}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover object-[center_28%]"
+        />
 
-        {/* ── HEADER ── */}
-        <header className="flex items-start justify-between">
-          <div>
+        {/* Animated clouds */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute rounded-full blur-sm opacity-40"
+            style={{ width: 140, height: 42, background: "radial-gradient(ellipse, #fff8ee 60%, transparent 100%)", top: "8%", left: "6%", animation: "cloudDrift1 22s ease-in-out infinite" }} />
+          <div className="absolute rounded-full blur-sm opacity-35"
+            style={{ width: 90, height: 28, background: "radial-gradient(ellipse, #fdebd0 60%, transparent 100%)", top: "12%", left: "10%", animation: "cloudDrift1 22s ease-in-out infinite" }} />
+          <div className="absolute rounded-full blur-sm opacity-40"
+            style={{ width: 180, height: 48, background: "radial-gradient(ellipse, #fff8ee 60%, transparent 100%)", top: "4%", left: "55%", animation: "cloudDrift2 28s ease-in-out infinite" }} />
+          <div className="absolute rounded-full blur-sm opacity-30"
+            style={{ width: 120, height: 32, background: "radial-gradient(ellipse, #fdebd0 60%, transparent 100%)", top: "10%", left: "62%", animation: "cloudDrift2 28s ease-in-out infinite" }} />
+        </div>
+        <style>{`
+          @keyframes cloudDrift1 { 0%, 100% { transform: translateX(0px); } 50% { transform: translateX(28px); } }
+          @keyframes cloudDrift2 { 0%, 100% { transform: translateX(0px); } 50% { transform: translateX(-22px); } }
+        `}</style>
+
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/75 to-transparent" />
+
+        {/* Decorative top strip */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 gradient-meadow z-10" />
+
+        {/* Header content */}
+        <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-8 pt-10 pb-6 flex items-start justify-between">
+          <div className="drop-shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <span className="text-2xl animate-sway inline-block">🌿</span>
               <h1 className="font-display font-bold text-2xl text-foreground leading-tight">
@@ -848,16 +893,11 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
               </h1>
             </div>
             <p className="text-sm text-muted-foreground ml-9">{weekendLabel}</p>
-            {isLive && (
-              <span className="ml-9 mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/8 border border-primary/20 rounded-full px-2.5 py-0.5">
-                <Sparkles className="h-3 w-3" /> {scrapeCount} activités en direct
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-1 mt-1">
             <button
               onClick={handleRefresh}
-              className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/8 transition-all"
+              className="p-2 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/8 transition-all backdrop-blur-sm bg-background/40"
               title="Actualiser"
             >
               <RefreshCw className={`h-4 w-4 transition-transform duration-700 ${spinning ? "rotate-[720deg]" : ""}`} />
@@ -865,24 +905,20 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
             {onSignOut && (
               <button
                 onClick={async () => { await supabase.auth.signOut(); onSignOut(); }}
-                className="p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-all"
+                className="p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/8 transition-all backdrop-blur-sm bg-background/40"
                 title="Se déconnecter"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             )}
           </div>
-        </header>
+        </div>
+      </div>
 
-        {/* ── SCRAPE BANNER ── */}
-        <ScrapeBanner
-          status={activitiesLoading ? "running" : scrapeStatus}
-          activitiesFound={scrapeCount}
-          onTrigger={() => triggerScrape(true)}
-          triggering={triggering}
-        />
+      {/* ── CONTENT ── */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-8 pb-8 space-y-8 animate-fade-in -mt-2">
 
-        {/* ── MÉTÉO + PROGRAMME (merged) ── */}
+        {/* ── MÉTÉO + PROGRAMME ── */}
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <WeatherStrip data={weatherData.length ? weatherData : mockWeather} loading={weatherLoading} />
           <WeekendPlanSection
@@ -897,66 +933,55 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
         {/* ── COUP DE CŒUR ── */}
         {recoActivity && (
           <section>
-            <RecoCard activity={recoActivity} />
+            <RecoCard activity={recoActivity} onDismiss={() => setDismissedReco(true)} />
           </section>
         )}
 
         {/* ── CINÉMA ── */}
-        {(activitiesLoading ? true : cinemaActivities.length > 0) && (
-          <section>
-            <SectionTitle emoji="🎬">Cinéma</SectionTitle>
-            <p className="text-xs text-muted-foreground -mt-2 mb-4">dessin animé · 2–8 ans</p>
-            {activitiesLoading ? (
-              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
-            ) : (
-              <div className="space-y-3">
-                {cinemaActivities.slice(0, 2).map((a) => <GhibliActivityCardWithCinemas key={a.id} activity={a} />)}
-              </div>
-            )}
-          </section>
-        )}
+        <ActivitySection
+          emoji="🎬"
+          title="Cinéma"
+          subtitle="dessin animé · 2–8 ans"
+          activities={cinemaActivities}
+          loading={activitiesLoading}
+          initialCount={2}
+          withCinemas
+          dismissedIds={dismissedIds}
+          onDismiss={handleDismiss}
+        />
 
         {/* ── THÉÂTRE ── */}
-        {(activitiesLoading ? true : theatreActivities.length > 0) && (
-          <section>
-            <SectionTitle emoji="🎭">Théâtre & Spectacles</SectionTitle>
-            {activitiesLoading ? (
-              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
-            ) : (
-              <div className="space-y-3">
-                {theatreActivities.slice(0, 3).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
-              </div>
-            )}
-          </section>
-        )}
+        <ActivitySection
+          emoji="🎭"
+          title="Théâtre & Spectacles"
+          activities={theatreActivities}
+          loading={activitiesLoading}
+          initialCount={2}
+          dismissedIds={dismissedIds}
+          onDismiss={handleDismiss}
+        />
 
         {/* ── EXPOS ── */}
-        {(activitiesLoading ? true : expoActivities.length > 0) && (
-          <section>
-            <SectionTitle emoji="🖼️">Expositions & Musées</SectionTitle>
-            {activitiesLoading ? (
-              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
-            ) : (
-              <div className="space-y-3">
-                {expoActivities.slice(0, 3).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
-              </div>
-            )}
-          </section>
-        )}
+        <ActivitySection
+          emoji="🖼️"
+          title="Expositions & Musées"
+          activities={expoActivities}
+          loading={activitiesLoading}
+          initialCount={2}
+          dismissedIds={dismissedIds}
+          onDismiss={handleDismiss}
+        />
 
         {/* ── ACTIVITÉS ── */}
-        {(activitiesLoading ? true : otherActivities.length > 0) && (
-          <section>
-            <SectionTitle emoji="🌿">Activités</SectionTitle>
-            {activitiesLoading ? (
-              <div className="space-y-3"><GhibliSkeleton /><GhibliSkeleton /></div>
-            ) : (
-              <div className="space-y-3">
-                {otherActivities.slice(0, 3).map((a) => <GhibliActivityCard key={a.id} activity={a} />)}
-              </div>
-            )}
-          </section>
-        )}
+        <ActivitySection
+          emoji="🌿"
+          title="Activités"
+          activities={otherActivities}
+          loading={activitiesLoading}
+          initialCount={2}
+          dismissedIds={dismissedIds}
+          onDismiss={handleDismiss}
+        />
 
         {/* ── À VENIR ── */}
         <section>
