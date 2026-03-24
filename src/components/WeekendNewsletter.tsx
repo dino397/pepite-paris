@@ -382,26 +382,48 @@ function fastestTravel(activity: Activity): { emoji: string; label: string } | n
   return { emoji: best.emoji, label: best.label! };
 }
 
+// Pick the cinema with the shortest walk time
+function closestCinema(cinemas: Activity["cinemas"]) {
+  if (!cinemas || cinemas.length === 0) return null;
+  return cinemas.reduce((best, c) => parseMins(c.travel_walk) < parseMins(best.travel_walk) ? c : best);
+}
+
 function GhibliActivityCard({
   activity,
   reco = false,
   onDismiss,
+  nearestCinema,
 }: {
   activity: Activity;
   reco?: boolean;
   onDismiss?: () => void;
+  nearestCinema?: ReturnType<typeof closestCinema>;
 }) {
   const cat = CAT_CONFIG[activity.category] ?? CAT_CONFIG.activite;
   const showPoster = SHOW_POSTER_CATEGORIES.has(activity.category) && activity.poster_url;
-  const mapsUrl = activity.google_maps_url || (activity.location ? googleMapsUrl(activity.location, activity.arrondissement) : null);
   const travel = fastestTravel(activity);
 
-  // For booking link: prefer source_url (specific page) then booking_url, then maps
-  const bookingLink = (activity as any).source_url && (activity as any).source_url !== "#"
+  // For cinema: use nearest cinema's url & maps link
+  const cinema = nearestCinema;
+  const mapsUrl = cinema
+    ? `https://maps.google.com/?q=${encodeURIComponent(cinema.name + " Paris " + cinema.arrondissement)}`
+    : activity.google_maps_url || (activity.location ? googleMapsUrl(activity.location, activity.arrondissement) : null);
+
+  const bookingLink = cinema?.url && cinema.url !== "#"
+    ? cinema.url
+    : (activity as any).source_url && (activity as any).source_url !== "#"
     ? (activity as any).source_url
     : activity.booking_url && activity.booking_url !== "#"
     ? activity.booking_url
     : null;
+
+  const locationLabel = cinema
+    ? `${cinema.name} · ${cinema.arrondissement}`
+    : activity.location
+    ? `${activity.location}${activity.arrondissement ? ` · ${activity.arrondissement}` : ""}`
+    : null;
+
+  const travelLabel = cinema ? { emoji: "🚶", label: cinema.travel_walk } : travel;
 
   return (
     <div
@@ -451,7 +473,7 @@ function GhibliActivityCard({
       <div className="flex-1 min-w-0 p-3 flex flex-col justify-between overflow-hidden">
         <div>
           <div className="flex items-start gap-1.5 flex-wrap mb-1">
-            <h3 className="font-display font-bold text-foreground text-sm leading-snug">
+            <h3 className="font-display font-bold text-foreground text-sm leading-snug pr-5">
               {activity.title}
               {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
             </h3>
@@ -481,7 +503,7 @@ function GhibliActivityCard({
 
         {/* Bottom: meta row */}
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap mt-1">
-          {activity.location && (
+          {locationLabel && (
             <a
               href={mapsUrl ?? "#"}
               target="_blank"
@@ -490,16 +512,21 @@ function GhibliActivityCard({
               title="Ouvrir dans Google Maps"
             >
               <MapPin className="h-3 w-3 flex-shrink-0" />
-              <span>{activity.location}{activity.arrondissement ? ` · ${activity.arrondissement}` : ""}</span>
+              <span>{locationLabel}</span>
               <ExternalLink className="h-2.5 w-2.5 ml-0.5 opacity-60" />
             </a>
           )}
-          {travel && (
+          {travelLabel && (
             <span className="flex items-center gap-0.5 font-medium">
-              {travel.emoji} {travel.label}
+              {travelLabel.emoji} {travelLabel.label}
             </span>
           )}
-          {activity.duration && (
+          {cinema?.showtimes && (
+            <span className="flex items-center gap-0.5 text-[10px]">
+              🕙 {cinema.showtimes}
+            </span>
+          )}
+          {!cinema && activity.duration && (
             <span className="flex items-center gap-0.5 ml-auto">
               <Clock className="h-3 w-3" /> {activity.duration}
             </span>
@@ -509,9 +536,9 @@ function GhibliActivityCard({
               href={bookingLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-0.5 text-primary font-semibold hover:underline"
+              className="flex items-center gap-0.5 text-primary font-semibold hover:underline ml-auto"
             >
-              <Ticket className="h-3 w-3" /> Réserver
+              <Ticket className="h-3 w-3" /> Billets
             </a>
           )}
         </div>
@@ -529,39 +556,8 @@ function GhibliActivityCardWithCinemas({
   reco?: boolean;
   onDismiss?: () => void;
 }) {
-  return (
-    <div className="space-y-2">
-      <GhibliActivityCard activity={activity} reco={reco} onDismiss={onDismiss} />
-      {activity.cinemas && activity.cinemas.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 pl-1">
-          {activity.cinemas.map((c) => (
-            <div key={c.name} className="rounded-xl bg-ghibli-sky/8 border border-ghibli-sky/20 p-2.5 text-xs space-y-1">
-              <a
-                href={c.url && c.url !== "#" ? c.url : "#"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold text-primary hover:underline block leading-tight"
-              >
-                {c.name}
-              </a>
-              <div className="text-muted-foreground">📍 {c.arrondissement} · 🚶 {c.travel_walk}</div>
-              <div className="text-muted-foreground">🗓️ {c.showtimes}</div>
-              {c.url && c.url !== "#" && (
-                <a
-                  href={c.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-primary hover:underline"
-                >
-                  🔗 Billets
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  const cinema = closestCinema(activity.cinemas);
+  return <GhibliActivityCard activity={activity} reco={reco} onDismiss={onDismiss} nearestCinema={cinema} />;
 }
 
 // ─── SECTION WITH VOIR PLUS ───────────────────────────────────────────────────
@@ -990,7 +986,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           subtitle={ageSubtitle || undefined}
           activities={cinemaActivities}
           loading={activitiesLoading}
-          initialCount={2}
+          initialCount={3}
           loadMoreCount={2}
           withCinemas
           dismissedIds={dismissedIds}
