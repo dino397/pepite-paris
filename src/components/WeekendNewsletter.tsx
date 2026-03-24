@@ -1031,7 +1031,9 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
     }
   }, []);
 
-  useEffect(() => { fetchWeather(); loadActivities(); }, [fetchWeather, loadActivities]);
+  // Fetch weather on mount, but wait for userId before calling generate-activities
+  useEffect(() => { fetchWeather(); }, [fetchWeather]);
+  useEffect(() => { if (userId) loadActivities(); }, [userId, loadActivities]);
 
   const handleRefresh = async () => {
     setSpinning(true);
