@@ -124,7 +124,7 @@ Génère exactement ce JSON:
 {
   "weekend": {
     "label": "${formatDate(saturday)} & ${formatDate(sunday)}",
-    "weather_summary": "Résumé météo en 1 phrase avec conseil pratique",
+    "weather_summary": "Résumé météo en 1 phrase max, direct et concret (ex: 'Samedi nuageux → parfait pour une sortie ciné ou musée, dimanche ensoleillé → fillez au parc !')",
     "activities": [
       {
         "id": "unique_id",
@@ -136,7 +136,7 @@ Génère exactement ce JSON:
         "duration": "2h",
         "distance_km": 5,
         "transport": ["voiture"],
-        "description": "Description engageante. Pour les activités highlighted=true: 3 phrases détaillées expliquant pourquoi c'est la pépite de la semaine et en quoi elle convient à CHACUN des enfants nommés (${childrenDesc}). Pour les autres: 2 phrases suffisent.",
+        "description": "1 phrase courte et directe. Si highlighted=true: 2 phrases max, directes et concrètes (pas besoin de nommer chaque enfant).",
         "practical_info": "Infos pratiques: adresse indicative, tarifs, horaires types",
         "requires_booking": false,
         "booking_url": null,
@@ -176,7 +176,7 @@ RÈGLES ABSOLUES:
 - Toutes les activités doivent être RÉALISTES et accessibles depuis ${profile.city}
 - Respecter le transport disponible (${transportDesc}) et le trajet max (${maxTravelDesc})
 - Adapter aux âges: ${childrenDesc}
-- highlighted: true pour exactement 1 activité "Pépite de la semaine" — elle doit convenir à TOUS les enfants et sa description doit être en 3 phrases nommant chaque enfant
+- highlighted: true pour exactement 1 activité "Pépite de la semaine" — sa description doit tenir en 2 phrases max, directes et cool
 - JSON valide uniquement, aucun autre texte`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

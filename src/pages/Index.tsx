@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthForm from "@/components/AuthForm";
 import OnboardingForm from "@/components/OnboardingForm";
-import AppPage from "@/components/AppPage";
+import WeekendNewsletter from "@/components/WeekendNewsletter";
 
 type AppState = "loading" | "auth" | "onboarding" | "app";
 
@@ -158,14 +158,16 @@ export default function Index() {
     );
   }
 
-  if (state === "app" && userId && profile) {
+  if (state === "app" && userId) {
     return (
-      <AppPage
-        userId={userId}
-        profile={profile}
-        children={children}
-        agendaEvents={agendaEvents}
-        onAgendaChange={() => loadAgendaEvents(userId)}
+      <WeekendNewsletter
+        onSignOut={() => {
+          setUserId(null);
+          setProfile(null);
+          setChildren([]);
+          setAgendaEvents([]);
+          setState("auth");
+        }}
       />
     );
   }
