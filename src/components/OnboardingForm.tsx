@@ -152,6 +152,14 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
     });
   };
 
+  const toggleWeekendDislike = (val: string) => {
+    setWeekendDislikes((prev) => {
+      if (prev.includes(val)) return prev.filter((p) => p !== val);
+      if (prev.length >= 3) { toast.info("Sélectionnez au maximum 3 activités à éviter 🙅"); return prev; }
+      return [...prev, val];
+    });
+  };
+
   const handleFinish = async () => {
     setLoading(true);
     try {
