@@ -83,6 +83,10 @@ serve(async (req) => {
       ? profile.weekend_picks.join(", ")
       : "";
 
+    const weekendDislikesDesc = (profile as any).weekend_dislikes?.length > 0
+      ? (profile as any).weekend_dislikes.join(", ")
+      : "";
+
     const transportDesc = profile.transport_modes?.length > 0
       ? profile.transport_modes.join(", ")
       : "voiture";
