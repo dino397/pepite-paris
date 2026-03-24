@@ -66,7 +66,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: "weekend", label: "Ce week-end", icon: <Sun className="h-4 w-4" /> },
   { id: "agenda", label: "Mon agenda", icon: <CalendarDays className="h-4 w-4" /> },
   { id: "prebooking", label: "À réserver", icon: <Ticket className="h-4 w-4" /> },
-  { id: "map", label: "Carte", icon: <Map className="h-4 w-4" /> },
+  { id: "map", label: "Carte", icon: <MapIcon className="h-4 w-4" /> },
 ];
 
 const CATEGORY_LABELS: Record<string, string> = {
