@@ -217,7 +217,7 @@ export const mockActivities: Activity[] = [
     location: "Atelier des Lumières",
     arrondissement: "11ème",
     duration: "~1h",
-    booking_url: "https://www.atelier-lumieres.com",
+    booking_url: "https://www.atelier-lumieres.com/fr/reservation",
     travel_walk: "35 min",
     travel_bike: "15 min",
     travel_car: "18 min",
