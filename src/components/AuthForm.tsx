@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import pepiteIllustration from "@/assets/pepite-illustration-v5.jpg";
+import pepiteIllustration from "@/assets/pepite-illustration-v6.jpg";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -50,9 +50,9 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           src={pepiteIllustration}
           alt=""
           aria-hidden="true"
-          className="w-full h-full object-cover object-[center_55%]"
+          className="w-full h-full object-cover object-[center_75%] md:object-[center_85%]"
           width={1024}
-          height={1280}
+          height={1024}
         />
 
         {/* Nuages animés — dérivent doucement via keyframes Tailwind */}
