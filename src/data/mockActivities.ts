@@ -58,7 +58,7 @@ import posterLoups from "@/assets/poster-loups.jpg";
 import posterVaiana2 from "@/assets/poster-vaiana2.jpg";
 import posterPirouette from "@/assets/poster-pirouette.jpg";
 import posterArbreSansFin from "@/assets/poster-arbre-sans-fin.jpg";
-import posterChaperonRouge from "@/assets/poster-chaperon-rouge.jpg";
+import posterFeeChaussettes from "@/assets/poster-fee-chaussettes.jpg";
 import posterDigitalAbysse from "@/assets/poster-digital-abysse.jpg";
 import posterRenaissance from "@/assets/poster-renaissance.jpg";
 import posterPhilharmonie from "@/assets/poster-philharmonie.jpg";
