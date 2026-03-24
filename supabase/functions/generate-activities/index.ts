@@ -21,10 +21,18 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Missing authorization header");
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !user) throw new Error("Unauthorized");
+
+    // Use getClaims for local JWT verification (no network round-trip → faster, no timeout)
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseAnon = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claimsData, error: claimsError } = await supabaseAnon.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) throw new Error("Unauthorized");
+    const userId = claimsData.claims.sub;
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const body = await req.json();
     const { weatherData, forceRegenerate, categoryToRefresh } = body;
@@ -32,7 +40,7 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from("family_profiles")
       .select("*")
-      .eq("user_id", user.id)
+       .eq("user_id", userId)
       .single();
 
     if (!profile) throw new Error("Profile not found");
@@ -46,14 +54,14 @@ serve(async (req) => {
     const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay() + 1);
-    const weekKey = `activities-${user.id}-${startOfWeek.toISOString().split("T")[0]}`;
+    const weekKey = `activities-${userId}-${startOfWeek.toISOString().split("T")[0]}`;
 
     // Check cache
     if (!forceRegenerate) {
       const { data: cached } = await supabase
         .from("newsletter_cache")
         .select("content")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("week_key", weekKey)
         .single();
 
@@ -220,7 +228,7 @@ RÈGLES ABSOLUES:
 
     // Save to cache
     await supabase.from("newsletter_cache").upsert({
-      user_id: user.id,
+      user_id: userId,
       week_key: weekKey,
       content: parsedContent,
     }, { onConflict: "user_id,week_key" });
