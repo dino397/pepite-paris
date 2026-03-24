@@ -50,9 +50,9 @@ export default function AuthForm({ onSuccess }: AuthFormProps) {
           src={pepiteIllustration}
           alt=""
           aria-hidden="true"
-          className="w-full h-full object-cover object-[center_55%]"
+          className="w-full h-full object-cover object-[center_75%] md:object-[center_85%]"
           width={1024}
-          height={1280}
+          height={1024}
         />
 
         {/* Nuages animés — dérivent doucement via keyframes Tailwind */}
