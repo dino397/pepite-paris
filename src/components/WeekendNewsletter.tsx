@@ -997,6 +997,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           activities={cinemaActivities}
           loading={activitiesLoading}
           initialCount={2}
+          loadMoreCount={2}
           withCinemas
           dismissedIds={dismissedIds}
           onDismiss={handleDismiss}
