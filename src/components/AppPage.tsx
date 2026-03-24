@@ -98,9 +98,9 @@ export default function AppPage({ userId, profile, children, agendaEvents, onAge
   const [loading, setLoading] = useState(false);
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [extraActivities, setExtraActivities] = useState<Record<string, Activity[]>>({});
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [preloadingCategories, setPreloadingCategories] = useState<Set<string>>(new Set());
-  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(() => new Set<string>());
+  const [preloadingCategories, setPreloadingCategories] = useState<Set<string>>(() => new Set<string>());
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set<string>());
 
   const weatherDataRef = useRef<WeatherData | null>(null);
 
