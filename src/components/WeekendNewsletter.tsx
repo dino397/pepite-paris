@@ -649,10 +649,113 @@ function ActivitySection({
 // ─── RECO CARD ────────────────────────────────────────────────────────────────
 
 function RecoCard({ activity, onDismiss }: { activity: Activity; onDismiss?: () => void }) {
+  const cat = CAT_CONFIG[activity.category] ?? CAT_CONFIG.activite;
+  const travel = fastestTravel(activity);
+  const cinema = closestCinema(activity.cinemas);
+  const bookingLink = cinema?.url && cinema.url !== "#"
+    ? cinema.url
+    : activity.booking_url && activity.booking_url !== "#"
+    ? activity.booking_url
+    : null;
+  const locationLabel = cinema
+    ? `${cinema.name} · ${cinema.arrondissement}`
+    : activity.location
+    ? `${activity.location}${activity.arrondissement ? ` · ${activity.arrondissement}` : ""}`
+    : null;
+  const mapsUrl = cinema
+    ? `https://maps.google.com/?q=${encodeURIComponent(cinema.name + " Paris " + cinema.arrondissement)}`
+    : activity.google_maps_url || (activity.location ? googleMapsUrl(activity.location, activity.arrondissement ?? "") : null);
+  const travelLabel = cinema ? { emoji: "🚶", label: cinema.travel_walk } : travel;
+
   return (
     <div className="space-y-3">
       <SectionTitle emoji="✨">La pépite de la semaine</SectionTitle>
-      <GhibliActivityCardWithCinemas activity={activity} reco onDismiss={onDismiss} />
+      <div className="ghibli-card overflow-hidden border-ghibli-gold/40 ring-1 ring-ghibli-gold/20 relative">
+        {/* Dismiss */}
+        {onDismiss && (
+          <button
+            onClick={onDismiss}
+            className="absolute top-2 right-2 z-20 flex items-center justify-center w-5 h-5 rounded-full bg-background/70 border border-border/50 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40 hover:scale-110"
+            aria-label="Supprimer cette activité"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        )}
+
+        {/* Gold top bar */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
+
+        {/* Visual — full width, no text overlay */}
+        {activity.poster_url ? (
+          <div className="w-full h-44 overflow-hidden">
+            <img
+              src={activity.poster_url}
+              alt={`Visuel ${activity.title}`}
+              className="w-full h-full object-cover object-top"
+              loading="lazy"
+            />
+          </div>
+        ) : (
+          <div className={`w-full h-28 flex items-center justify-center ${cat.bgClass}`}>
+            <span className="text-5xl">{cat.emoji}</span>
+          </div>
+        )}
+
+        {/* Info block below */}
+        <div className="p-3 flex flex-col gap-1.5">
+          <h3 className="font-display font-bold text-foreground text-sm leading-snug pr-6">
+            {activity.title}
+            {activity.is_exceptional && <span className="ml-1 text-ghibli-gold">🌟</span>}
+          </h3>
+          <div className="flex flex-wrap gap-1">
+            <span className={`ghibli-tag border text-[10px] ${cat.bgClass} ${cat.textClass} ${cat.borderClass}`}>
+              {cat.label}
+            </span>
+            {activity.badge && (
+              <span className="ghibli-tag bg-muted text-muted-foreground border border-border text-[10px]">
+                {activity.badge}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground leading-[1.45] line-clamp-2">
+            {activity.description}
+          </p>
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap mt-0.5">
+            {locationLabel && (
+              <a
+                href={mapsUrl ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-0.5 hover:text-primary hover:underline transition-colors font-medium"
+              >
+                <MapPin className="h-3 w-3 flex-shrink-0" />
+                <span>{locationLabel}</span>
+                <ExternalLink className="h-2.5 w-2.5 ml-0.5 opacity-60" />
+              </a>
+            )}
+            {travelLabel && (
+              <span className="flex items-center gap-0.5 font-medium">
+                {travelLabel.emoji} {travelLabel.label}
+              </span>
+            )}
+            {!cinema && activity.duration && (
+              <span className="flex items-center gap-0.5 ml-auto">
+                <Clock className="h-3 w-3" /> {activity.duration}
+              </span>
+            )}
+            {bookingLink && (
+              <a
+                href={bookingLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-0.5 text-primary font-semibold hover:underline ml-auto"
+              >
+                <Ticket className="h-3 w-3" /> Billets
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
