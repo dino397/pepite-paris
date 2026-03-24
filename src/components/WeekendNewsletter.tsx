@@ -413,11 +413,11 @@ function GhibliActivityCard({
         <div className="absolute top-0 left-0 right-0 h-0.5 gradient-sunset z-10" />
       )}
 
-      {/* Dismiss button */}
+      {/* Dismiss button — always visible */}
       {onDismiss && (
         <button
-          onClick={onDismiss}
-          className="absolute top-2 right-2 z-20 flex items-center justify-center w-5 h-5 rounded-full bg-background/80 border border-border/60 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
+          onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+          className="absolute top-2 right-2 z-20 flex items-center justify-center w-5 h-5 rounded-full bg-background/70 border border-border/50 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive hover:border-destructive/40 hover:scale-110"
           aria-label="Supprimer cette activité"
         >
           <X className="h-3 w-3" />
