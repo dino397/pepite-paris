@@ -145,7 +145,7 @@ export const mockActivities: Activity[] = [
     location: "Théâtre Essaïon",
     arrondissement: "4ème",
     duration: "~45 min",
-    booking_url: "https://www.essaion-theatre.com",
+    booking_url: "https://essaion-theatre.com/spectacle/pirouette-la-danse-des-4-saisons/",
     travel_walk: "20 min",
     travel_bike: "8 min",
     travel_car: "10 min",
