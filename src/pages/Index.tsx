@@ -82,8 +82,23 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
+    let initialized = false;
+
+    // First, get the current session synchronously
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      initialized = true;
+      if (session?.user) {
+        setUserId(session.user.id);
+        loadAppData(session.user.id);
+      } else {
+        setState("auth");
+      }
+    });
+
+    // Then listen for future auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (!initialized) return; // Wait for getSession to resolve first
         if (session?.user) {
           setUserId(session.user.id);
           await loadAppData(session.user.id);
@@ -93,15 +108,6 @@ export default function Index() {
         }
       }
     );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserId(session.user.id);
-        loadAppData(session.user.id);
-      } else {
-        setState("auth");
-      }
-    });
 
     return () => subscription.unsubscribe();
   }, [loadAppData]);
