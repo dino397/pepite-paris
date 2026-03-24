@@ -38,7 +38,6 @@ export interface Activity {
   cinemas?: Cinema[];
   poster_url?: string;
   google_maps_url?: string;
-  film_format?: "2D" | "3D";
 }
 
 export interface FutureEvent {
