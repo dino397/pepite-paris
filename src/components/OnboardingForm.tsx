@@ -175,7 +175,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
           max_travel_minutes: maxTravelMinutes,
           weekend_picks: weekendPicks,
           weekend_dislikes: weekendDislikes,
-        } as Parameters<typeof supabase.from<"family_profiles">>[0] extends never ? never : any)
+        } as any)
         .select()
         .single();
 
