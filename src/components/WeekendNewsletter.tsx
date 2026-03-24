@@ -990,7 +990,6 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           initialCount={2}
           loadMoreCount={3}
           withCinemas
-          prefer2D3D
           dismissedIds={dismissedIds}
           onDismiss={handleDismiss}
         />
