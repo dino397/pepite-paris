@@ -1,0 +1,60 @@
+name: Weekly Scrape
+
+on:
+  schedule:
+    - cron: '0 20 * * 0'  # Dimanche 20h UTC
+  workflow_dispatch:
+    inputs:
+      category:
+        description: 'Category to scrape (leave empty for all)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - aggregator
+          - theatre
+          - activite
+          - musee
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install scraper dependencies
+        working-directory: scraper
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: scraper
+        run: npx playwright install chromium --with-deps
+
+      - name: Run scraper
+        working-directory: scraper
+        run: |
+          if [ -n "${{ github.event.inputs.category }}" ]; then
+            npx tsx index.ts --category ${{ github.event.inputs.category }}
+          else
+            npx tsx index.ts
+          fi
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  refresh-cinema:
+    runs-on: ubuntu-latest
+    needs: scrape
+    steps:
+      - name: Refresh cinema from TMDB
+        run: |
+          curl -s --max-time 120 -X POST "${{ secrets.SUPABASE_URL }}/functions/v1/refresh-cinema" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"force": true}'

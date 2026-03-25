@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -23,16 +23,10 @@ serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
 
-    // Use getClaims for local JWT verification (no network round-trip → faster, no timeout)
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabaseAnon = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: claimsData, error: claimsError } = await supabaseAnon.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) throw new Error("Unauthorized");
-    const userId = claimsData.claims.sub;
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) throw new Error("Unauthorized");
+    const userId = user.id;
 
     const body = await req.json();
     const { weatherData, forceRegenerate, categoryToRefresh } = body;
@@ -107,10 +101,104 @@ serve(async (req) => {
       ? `Samedi: ${weatherData.saturday?.description || "variable"} ${weatherData.saturday?.tempMax || "?"}°C / Dimanche: ${weatherData.sunday?.description || "variable"} ${weatherData.sunday?.tempMax || "?"}°C`
       : "météo inconnue";
 
-    const systemPrompt = `Tu es un assistant expert en activités famille en France. Tu génères des suggestions d'activités concrètes, réalistes et disponibles dans la ville mentionnée, adaptées aux âges des enfants et à la météo. Tu réponds UNIQUEMENT en JSON valide. Pas de markdown, pas d'explications.`;
+    // Fetch real cinema data from cinema_showings
+    const cinemaWeekKey = startOfWeek.toISOString().split("T")[0];
+    const minChildAge = children && children.length > 0
+      ? Math.min(...children.map((c: { age_years: number }) => c.age_years))
+      : 3;
+
+    const { data: cinemaShowings } = await supabase
+      .from("cinema_showings")
+      .select("title, overview, poster_url, certification, age_min, cinemas, vote_average")
+      .eq("week_key", cinemaWeekKey)
+      .lte("age_min", minChildAge)
+      .order("vote_average", { ascending: false })
+      .limit(15);
+
+    const hasCinemaData = cinemaShowings && cinemaShowings.length > 0;
+
+    // Build cinema context: films + nearby cinemas list
+    let cinemaContext = "";
+    let cinemaInstruction = "";
+
+    if (hasCinemaData) {
+      // Extract unique cinemas from all films
+      const allCinemas = new Map<string, { name: string; arrondissement: string; booking_url: string }>();
+      for (const f of cinemaShowings!) {
+        const cinemas = Array.isArray(f.cinemas) ? f.cinemas as Array<{ name: string; arrondissement: string; booking_url: string }> : [];
+        for (const c of cinemas) {
+          if (c.name && !allCinemas.has(c.name)) {
+            allCinemas.set(c.name, c);
+          }
+        }
+      }
+
+      cinemaContext = `\n\nFILMS RÉELLEMENT À L'AFFICHE CETTE SEMAINE (source: TMDB) :\n` +
+        cinemaShowings!.map((f) => {
+          const cinemas = Array.isArray(f.cinemas) ? f.cinemas as Array<{ name: string; arrondissement: string; booking_url: string; showtimes?: string }> : [];
+          const cinemasStr = cinemas.map(c => `    • ${c.name} (${c.arrondissement}) — séances: ${c.showtimes || "horaires non disponibles"} — résa: ${c.booking_url}`).join("\n");
+          return `- "${f.title}" (${f.certification}, dès ${f.age_min} ans) — poster_url: ${f.poster_url || "null"}\n  ${(f.overview || "").slice(0, 100)}\n  Cinémas:\n${cinemasStr}`;
+        }).join("\n") +
+        `\n\nLISTE EXHAUSTIVE DES CINÉMAS AUTORISÉS (ne recommande QUE ceux-ci) :\n` +
+        [...allCinemas.values()].map(c => `- ${c.name} (${c.arrondissement}) → ${c.booking_url}`).join("\n");
+
+      cinemaInstruction = `\nFILMS: Utilise UNIQUEMENT les films de la liste "FILMS RÉELLEMENT À L'AFFICHE". Sélectionne les 2-3 plus adaptés aux enfants de cette famille. Préfère les films en 2D plutôt qu'en 3D. Pour chaque film, choisis UNIQUEMENT des cinémas de la liste "CINÉMAS PARISIENS" ci-dessous — N'INVENTE AUCUN cinéma qui n'est pas dans cette liste. Choisis les 2 plus PROCHES de ${profile.city}. Conserve EXACTEMENT les poster_url et booking_url fournis — ne les invente pas. Pour les séances, utilise UNIQUEMENT les horaires fournis dans le champ showtimes de chaque cinéma — N'INVENTE AUCUN horaire.`;
+    } else {
+      cinemaInstruction = `\nPas de données cinéma disponibles. Suggère des films réalistes actuellement à l'affiche.`;
+    }
+
+    // Fetch real theatre/spectacle data
+    const { data: theatreShowings } = await supabase
+      .from("theatre_showings")
+      .select("title, description, venue, arrondissement, age_min, age_max, duration, price, booking_url, showtimes, tags")
+      .eq("week_key", cinemaWeekKey)
+      .lte("age_min", minChildAge)
+      .limit(15);
+
+    const hasTheatreData = theatreShowings && theatreShowings.length > 0;
+
+    let theatreContext = "";
+    let theatreInstruction = "";
+
+    if (hasTheatreData) {
+      theatreContext = `\n\nSPECTACLES ENFANTS RÉELLEMENT À L'AFFICHE (source: Billetreduc, Theatreonline) :\n` +
+        theatreShowings!.map((s) =>
+          `- "${s.title}" @ ${s.venue} (${s.arrondissement}) — ${s.duration} — ${s.price} — dès ${s.age_min} ans\n  ${(s.description || "").slice(0, 100)}\n  Séances: ${s.showtimes} | Résa: ${s.booking_url}`
+        ).join("\n");
+
+      theatreInstruction = `\nSPECTACLES: Utilise UNIQUEMENT les spectacles de la liste "SPECTACLES ENFANTS" pour la catégorie theatre. Sélectionne les 2-3 plus adaptés aux âges des enfants et les plus proches de ${profile.city}. Conserve EXACTEMENT les booking_url fournis.`;
+    } else {
+      theatreInstruction = `\nPas de données spectacles disponibles. Suggère des spectacles réalistes à l'affiche.`;
+    }
+
+    // Fetch real expo data
+    const { data: expoShowings } = await supabase
+      .from("expo_showings")
+      .select("title, description, venue, arrondissement, age_min, age_max, duration, price, booking_url, tags")
+      .eq("week_key", cinemaWeekKey)
+      .lte("age_min", minChildAge)
+      .limit(15);
+
+    const hasExpoData = expoShowings && expoShowings.length > 0;
+
+    let expoContext = "";
+    let expoInstruction = "";
+
+    if (hasExpoData) {
+      expoContext = `\n\nEXPOSITIONS ENFANTS EN COURS À PARIS (sources: Sortiraparis, Paris.fr) :\n` +
+        expoShowings!.map((e) =>
+          `- "${e.title}" @ ${e.venue} (${e.arrondissement}) — ${e.duration} — ${e.price} — dès ${e.age_min} ans\n  ${(e.description || "").slice(0, 100)}\n  Résa: ${e.booking_url}`
+        ).join("\n");
+
+      expoInstruction = `\nEXPOS: Utilise UNIQUEMENT les expos de la liste "EXPOSITIONS ENFANTS" pour la catégorie expo. Sélectionne les 2-3 plus adaptées aux âges et les plus proches de ${profile.city}. Conserve EXACTEMENT les booking_url fournis.`;
+    } else {
+      expoInstruction = `\nPas de données expos disponibles. Suggère des expos réalistes en cours.`;
+    }
+
+    const systemPrompt = `Tu es un expert en sorties famille à Paris et en France. Tu recommandes des activités PRÉCISES et RÉELLES : des TITRES DE FILMS (pas des cinémas), des NOMS DE SPECTACLES (pas des théâtres), des NOMS D'EXPOSITIONS (pas des musées). Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, sans explication.`;
 
     const categoryInstruction = categoryToRefresh
-      ? `IMPORTANT: Génère UNIQUEMENT des activités de catégorie "${categoryToRefresh}" (différentes de celles habituelles). Le reste du JSON doit quand même être valide mais avec 0 activités dans les autres catégories pour weekend.activities. Génère 2 activités de catégorie "${categoryToRefresh}".`
+      ? `IMPORTANT: Génère UNIQUEMENT des activités de catégorie "${categoryToRefresh}" (différentes de celles habituelles). Génère 2 activités de cette catégorie, les autres catégories avec 0 activités.`
       : "";
 
     const userPrompt = `Génère des activités famille pour le week-end du ${formatDate(saturday)} & ${formatDate(sunday)}.
@@ -118,88 +206,94 @@ serve(async (req) => {
 FAMILLE:
 - Parent: ${profile.parent_name || "Parent"}, ville: ${profile.city || "France"}
 - Enfants: ${childrenDesc}
-- Préférences générales: ${prefsDesc}
-${weekendPicksDesc ? `- Activités favorites souhaitées ce week-end: ${weekendPicksDesc}` : ""}
-${weekendDislikesDesc ? `- Activités à ÉVITER ABSOLUMENT (ne jamais proposer ces types): ${weekendDislikesDesc}` : ""}
-- Transport disponible: ${transportDesc}
-- Trajet max accepté: ${maxTravelDesc}
+- Préférences: ${prefsDesc}
+${weekendPicksDesc ? `- Activités favorites: ${weekendPicksDesc}` : ""}
+${weekendDislikesDesc ? `- CATÉGORIES À EXCLURE OBLIGATOIREMENT: ${weekendDislikesDesc}. NE GÉNÈRE AUCUNE activité de ces catégories.` : ""}
+- Transport: ${transportDesc}
+- Trajet max: ${maxTravelDesc}
 
-MÉTÉO DU WEEK-END: ${weatherDesc}
+MÉTÉO: ${weatherDesc}
+${cinemaInstruction}${cinemaContext}
+${theatreInstruction}${theatreContext}
+${expoInstruction}${expoContext}
 
 ${categoryInstruction}
 
-Génère exactement ce JSON:
+IMPORTANT — FORMAT DES ACTIVITÉS:
+- Pour "cinema": le titre doit être un TITRE DE FILM RÉEL actuellement à l'affiche (ex: "Vaiana 2", "Perdu ? Retrouvé !", "Le Robot Sauvage"), PAS un nom de cinéma. Ajoute un champ "cinemas" avec 2 cinémas proches.
+- Pour "theatre": le titre doit être un NOM DE SPECTACLE (ex: "Pirouette", "La Fée des chaussettes"), PAS un théâtre.
+- Pour "expo": le titre doit être un NOM D'EXPOSITION (ex: "Digital Abysses", "Renaissance"), PAS un musée.
+
+Génère ce JSON:
 {
   "weekend": {
     "label": "${formatDate(saturday)} & ${formatDate(sunday)}",
-    "weather_summary": "Résumé météo en 1 phrase max, direct et concret (ex: 'Samedi nuageux → parfait pour une sortie ciné ou musée, dimanche ensoleillé → fillez au parc !')",
     "activities": [
       {
-        "id": "unique_id",
-        "title": "Nom de l'activité",
-        "emoji": "🎯",
-        "category": "sortie | maison | culture | sport | créatif | spectacle | cinema | expo | activite",
-        "age_min": 3,
-        "age_max": 12,
-        "duration": "2h",
-        "distance_km": 5,
-        "transport": ["voiture"],
-        "description": "Exactement 2 phrases : 1/ description concrète de l'activité. 2/ pourquoi c'est top pour votre famille (sans citer un enfant en particulier, parler de 'vos enfants' ou 'la famille'). Remplir les 2 lignes.",
-        "practical_info": "Infos pratiques: adresse indicative, tarifs, horaires types",
-        "requires_booking": false,
-        "booking_url": null,
-        "booking_deadline": null,
-        "tags": ["en famille", "extérieur"],
+        "title": "Titre PRÉCIS de l'activité (film, spectacle, expo, lieu)",
+        "category": "cinema | theatre | expo | activite",
+        "description": "2 phrases: 1/ description concrète. 2/ pourquoi c'est top pour la famille.",
+        "location": "Nom du lieu principal",
+        "arrondissement": "6ème",
+        "duration": "~45 min",
+        "booking_url": "https://url-de-reservation.com ou null",
+        "badge": "dessin animé · dès 3 ans",
+        "poster_url": "https://url-affiche.jpg ou null",
+        "indoor": true,
         "highlighted": false,
-        "indoor": false
+        "cinemas": [
+          {"name": "MK2 Odéon", "arrondissement": "6ème", "travel_walk": "12 min", "showtimes": "Sam 10h15 / Dim 10h30", "url": "https://..."}
+        ]
       }
     ]
   },
   "prebooking": {
-    "title": "À réserver maintenant",
     "activities": [
       {
-        "id": "unique_id",
-        "title": "Nom activité nécessitant réservation",
-        "emoji": "🎟️",
-        "category": "spectacle | cinema | atelier | sport",
+        "title": "Nom du spectacle/événement (DOIT exister dans les données fournies)",
+        "category": "spectacle | cinema | atelier",
         "description": "Description courte et attractive",
-        "practical_info": "Lieu, date, tarifs",
-        "booking_url": "URL si connue ou null",
-        "booking_deadline": "Date limite indicative",
-        "urgency": "high | medium | low",
-        "tags": ["à réserver", "week-end"],
-        "age_min": 4,
-        "age_max": 14
+        "location": "Nom du lieu (EXACT de la base de données)",
+        "arrondissement": "4ème",
+        "booking_url": "URL EXACTE de la base de données (booking_url fourni) — NE PAS INVENTER",
+        "booking_deadline": "Réserver avant le ${formatDate(new Date(sunday.getTime() + 14 * 24 * 60 * 60 * 1000))}",
+        "age": "dès 3 ans"
       }
     ]
   }
 }
 
-RÈGLES ABSOLUES:
-- 6 activités dans weekend.activities (mix indoor/outdoor selon météo, catégories variées: cinema, expo, activite, sortie, maison, culture...)
-- Si pluie ou <12°C: au moins 4 activités indoor
-- Si beau temps: au moins 4 activités outdoor
-- 3 activités dans prebooking.activities (spectacles, ateliers, cinema... qui se réservent à l'avance)
-- Toutes les activités doivent être RÉALISTES et accessibles depuis ${profile.city}
-- Respecter le transport disponible (${transportDesc}) et le trajet max (${maxTravelDesc})
-- Adapter aux âges: ${childrenDesc}
-- Chaque description = exactement 2 phrases : 1/ l'activité en elle-même, 2/ pourquoi c'est top pour votre famille — jamais de prénom d'enfant spécifique
-- JSON valide uniquement, aucun autre texte`;
+RÈGLES STRICTES:
+- 6 activités weekend: au moins 2 cinema (titres de FILMS), 2 theatre/expo, 2 activite/sortie
+${weekendDislikesDesc ? `- EXCEPTION: Si une catégorie est dans les dislikes (${weekendDislikesDesc}), NE GÉNÈRE AUCUNE activité de cette catégorie. Remplace-la par des activités d'autres catégories.` : ""}
+- "cinemas" obligatoire pour category "cinema": exactement 2 cinémas, pris UNIQUEMENT dans la liste fournie. Pour les séances (showtimes), écris "Voir horaires" si aucune séance n'est fournie dans les données — N'INVENTE JAMAIS de faux horaires. Mets le booking_url réel du cinéma pour que l'utilisateur puisse vérifier
+- Si pluie/<12°C: majorité indoor. Si beau: majorité outdoor
+- OBLIGATOIRE: 3 pré-réservations dans "prebooking.activities" — spectacles, ateliers ou événements DIFFÉRENTS de ceux du weekend. Pioche UNIQUEMENT dans les spectacles et expos listés dans les données ci-dessus. Chaque pré-réservation DOIT:
+  * utiliser le booking_url EXACT fourni dans les données (ne PAS inventer d'URL)
+  * avoir une booking_deadline réaliste en ${formatDate(saturday).split(" ").pop()} ${saturday.getFullYear()} (nous sommes en ${saturday.getFullYear()}, PAS en 2024)
+  * être un événement qui existe dans les listes "SPECTACLES ENFANTS" ou "EXPOSITIONS ENFANTS" ci-dessus
+- Activités RÉELLES accessibles depuis ${profile.city} en ${transportDesc} (max ${maxTravelDesc})
+- Adaptées aux âges: ${childrenDesc}
+- "badge" court: "dessin animé · dès 3 ans" ou "marionnettes · 45 min" etc.
+- N'INVENTE PAS de cinémas, séances, ou URLs de réservation qui ne sont pas dans les données fournies
+- Pour TOUTES les activités et pré-réservations: utilise UNIQUEMENT les booking_url qui apparaissent dans les données fournies. Si aucun booking_url n'est fourni pour une activité, mets null
+- Nous sommes en ${saturday.getFullYear()}. N'utilise JAMAIS 2024 dans les dates
+- JSON valide uniquement`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4096,
+        system: systemPrompt,
         messages: [
-          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        response_format: { type: "json_object" },
       }),
     });
 
@@ -211,20 +305,129 @@ RÈGLES ABSOLUES:
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "Crédits insuffisants." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI gateway error: ${status}`);
+      throw new Error(`Anthropic API error: ${status}`);
     }
 
     const aiData = await response.json();
-    const rawContent = aiData.choices?.[0]?.message?.content;
+    const rawContent = aiData.content?.[0]?.text;
     if (!rawContent) throw new Error("Empty AI response");
 
-    const parsedContent = JSON.parse(rawContent);
+    // Strip markdown code fences if present (```json ... ```)
+    const cleaned = rawContent.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    const parsedContent = JSON.parse(cleaned);
+
+    // ─── Generate Ghibli-style posters for activities without poster_url ───
+    const TOGETHER_API_KEY = Deno.env.get("TOGETHER_API_KEY");
+    if (TOGETHER_API_KEY) {
+      const allActivities = [
+        ...(parsedContent.weekend?.activities || []),
+        ...(parsedContent.prebooking?.activities || []),
+      ];
+
+      const needsPoster = allActivities.filter(
+        (a: { poster_url?: string }) => !a.poster_url
+      );
+
+      if (needsPoster.length > 0) {
+        console.log(`[generate-activities] Generating ${needsPoster.length} Ghibli posters...`);
+
+        const categoryPrompts: Record<string, string> = {
+          cinema: "magical movie theater with film reels and starry lights",
+          theatre: "charming puppet theater stage with velvet curtains",
+          spectacle: "charming puppet theater stage with velvet curtains",
+          expo: "wonderous museum gallery with paintings coming alive",
+          activite: "children playing joyfully in a magical park with butterflies",
+          parc: "dreamy park with ancient trees and gentle sunlight",
+          zoo: "adorable animals in a lush magical garden",
+          concert: "musicians playing in a magical concert hall with floating notes",
+          sport: "energetic children climbing and playing sports",
+          escape: "adventurous children solving puzzles in a treasure room",
+          visite: "magical boat on the Seine with Paris monuments glowing",
+          atelier: "creative children painting and crafting in a colorful studio",
+        };
+
+        // Generate posters in parallel (max 4 at a time to avoid rate limits)
+        const generatePoster = async (activity: { title: string; category: string; poster_url?: string }) => {
+          try {
+            const slug = activity.title
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "")
+              .slice(0, 60);
+            const fileName = `posters/${slug}.png`;
+
+            // Check cache first
+            const { data: existing } = await supabase.storage
+              .from("activity-posters")
+              .list("posters", { search: `${slug}.png` });
+
+            if (existing && existing.length > 0) {
+              const { data: urlData } = supabase.storage
+                .from("activity-posters")
+                .getPublicUrl(fileName);
+              activity.poster_url = urlData.publicUrl;
+              return;
+            }
+
+            const scene = categoryPrompts[activity.category] || "children having a wonderful adventure";
+            const prompt = `Studio Ghibli watercolor illustration, ${scene}, inspired by "${activity.title}". Soft pastel colors, hand-painted texture, dreamy atmosphere, warm golden light, gentle brushstrokes, whimsical. No text, no letters.`;
+
+            const imgResponse = await fetch("https://api.together.xyz/v1/images/generations", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${TOGETHER_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "black-forest-labs/FLUX.1-schnell-Free",
+                prompt,
+                width: 512,
+                height: 512,
+                steps: 4,
+                n: 1,
+                response_format: "b64_json",
+              }),
+            });
+
+            if (!imgResponse.ok) {
+              console.warn(`[poster] Failed for "${activity.title}": ${imgResponse.status}`);
+              return;
+            }
+
+            const imgResult = await imgResponse.json();
+            const b64 = imgResult.data?.[0]?.b64_json;
+            if (!b64) return;
+
+            const binaryStr = atob(b64);
+            const bytes = new Uint8Array(binaryStr.length);
+            for (let i = 0; i < binaryStr.length; i++) {
+              bytes[i] = binaryStr.charCodeAt(i);
+            }
+
+            await supabase.storage
+              .from("activity-posters")
+              .upload(fileName, bytes, { contentType: "image/png", upsert: true });
+
+            const { data: urlData } = supabase.storage
+              .from("activity-posters")
+              .getPublicUrl(fileName);
+
+            activity.poster_url = urlData.publicUrl;
+            console.log(`[poster] ✅ ${activity.title}`);
+          } catch (err) {
+            console.warn(`[poster] Error for "${activity.title}":`, err);
+          }
+        };
+
+        // Process in batches of 4
+        for (let i = 0; i < needsPoster.length; i += 4) {
+          const batch = needsPoster.slice(i, i + 4);
+          await Promise.all(batch.map(generatePoster));
+        }
+      }
+    }
 
     // Save to cache
     await supabase.from("newsletter_cache").upsert({

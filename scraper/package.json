@@ -1,0 +1,21 @@
+{
+  "name": "pepite-scraper",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape": "tsx index.ts",
+    "scrape:aggregators": "tsx index.ts --category aggregator",
+    "scrape:theatres": "tsx index.ts --category theatre",
+    "scrape:activites": "tsx index.ts --category activite",
+    "scrape:musees": "tsx index.ts --category musee"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "playwright": "^1.50.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

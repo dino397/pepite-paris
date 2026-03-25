@@ -161,7 +161,7 @@ async function extractActivities(
   markdown: string,
   sourceUrl: string,
   weekendDates: { saturday: string; sunday: string },
-  lovableApiKey: string
+  anthropicApiKey: string
 ): Promise<ScrapedActivity[]> {
   const prompt = `Tu es un assistant qui extrait des activités pour enfants depuis du contenu web scraped.
 
@@ -197,29 +197,31 @@ Pour chaque activité trouvée, retourne un objet JSON avec :
 
 Retourne UNIQUEMENT un JSON valide : {"activities": [...]}. Maximum 6 activités par source. Si aucune trouvée : {"activities": []}.`;
 
-  const res = await fetch("https://api.lovable.dev/ai/v1/chat/completions", {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${lovableApiKey}`,
+      "x-api-key": anthropicApiKey,
+      "anthropic-version": "2023-06-01",
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
       messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
     }),
   });
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Gemini ${res.status}: ${err.slice(0, 200)}`);
+    throw new Error(`Anthropic ${res.status}: ${err.slice(0, 200)}`);
   }
 
   const data = await res.json();
-  const raw = data.choices?.[0]?.message?.content ?? "{}";
+  const raw = data.content?.[0]?.text ?? "{}";
 
   try {
-    const parsed = JSON.parse(raw);
+    const cleaned = raw.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+    const parsed = JSON.parse(cleaned);
     if (Array.isArray(parsed)) return parsed;
     const key = Object.keys(parsed).find((k) => Array.isArray(parsed[k]));
     if (key) return parsed[key];
@@ -238,7 +240,7 @@ Deno.serve(async (req) => {
   }
 
   const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
-  const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
+  const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -247,8 +249,8 @@ Deno.serve(async (req) => {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-  if (!lovableApiKey) {
-    return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
+  if (!anthropicApiKey) {
+    return new Response(JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
@@ -320,7 +322,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const activities = await extractActivities(markdown, source.url, weekendDates, lovableApiKey);
+        const activities = await extractActivities(markdown, source.url, weekendDates, anthropicApiKey);
         // Attach source-level og:image as fallback poster for all activities from this page
         activities.forEach((a) => { if (!a.poster_url && ogImage) a.poster_url = ogImage; });
         console.log(`  ${source.name}: ${activities.length} activités extraites`);
