@@ -883,7 +883,7 @@ function buildAgeSubtitle(children: ChildData[]): string {
 }
 
 export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => void }) {
-  const { saturday, sunday } = getNextWeekendDates();
+  const [{ saturday, sunday }] = useState(() => getNextWeekendDates());
   const weekendLabel = `${formatDate(saturday)} & ${formatDate(sunday)}`;
 
   const [weatherData, setWeatherData] = useState<WeatherDay[]>([]);
@@ -968,20 +968,33 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
       if (res.error) throw res.error;
       const content = res.data?.content;
       if (content?.weekend?.activities && content.weekend.activities.length > 0) {
-        // Map AI activities to the Activity shape used by the UI
         const aiActivities: Activity[] = content.weekend.activities.map((a: Record<string, unknown>, i: number) => {
           const rawCat = String(a.category ?? "activite");
-          const cat = (["cinema", "theatre", "expo", "activite", "sortie", "culture", "sport", "créatif", "spectacle", "maison"].includes(rawCat)
-            ? (rawCat === "sortie" || rawCat === "maison" || rawCat === "sport" || rawCat === "créatif" ? "activite" : rawCat === "spectacle" ? "theatre" : rawCat === "culture" ? "expo" : rawCat)
-            : "activite") as Activity["category"];
+          const catMap: Record<string, Activity["category"]> = {
+            cinema: "cinema", theatre: "theatre", expo: "expo", activite: "activite",
+            sortie: "activite", maison: "activite", sport: "activite", "créatif": "activite",
+            spectacle: "theatre", culture: "expo",
+          };
+          const cat = catMap[rawCat] ?? "activite";
+
+          // Map cinemas array if present
+          const rawCinemas = Array.isArray(a.cinemas) ? a.cinemas as Record<string, unknown>[] : undefined;
+          const cinemas = rawCinemas?.map((c) => ({
+            name: String(c.name ?? ""),
+            url: String(c.url ?? "#"),
+            arrondissement: String(c.arrondissement ?? ""),
+            travel_walk: String(c.travel_walk ?? ""),
+            showtimes: String(c.showtimes ?? ""),
+          }));
+
           return {
             id: i + 1,
             category: cat,
             title: String(a.title ?? ""),
             description: String(a.description ?? ""),
             date: "",
-            location: String(a.practical_info ?? ""),
-            arrondissement: "",
+            location: String(a.location ?? ""),
+            arrondissement: String(a.arrondissement ?? ""),
             duration: String(a.duration ?? ""),
             booking_url: String(a.booking_url ?? ""),
             travel_walk: "",
@@ -989,17 +1002,15 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
             travel_car: "",
             is_exceptional: Boolean(a.highlighted),
             is_future: false,
-            badge: (a.tags as string[] | undefined)?.[0] ?? undefined,
-            poster_url: undefined,
+            badge: typeof a.badge === "string" ? a.badge : undefined,
+            poster_url: typeof a.poster_url === "string" && a.poster_url !== "null" ? a.poster_url : undefined,
+            cinemas,
           };
         });
         setLiveActivities(aiActivities);
-      } else {
-        setLiveActivities(null);
       }
     } catch (err) {
-      console.error("loadActivities error:", err);
-      setLiveActivities(null);
+      console.warn("[loadActivities] Edge function error, using mock data:", err);
     } finally {
       setActivitiesLoading(false);
     }
@@ -1147,7 +1158,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           title="Cinéma"
           subtitle={ageSubtitle || undefined}
           activities={cinemaActivities}
-          loading={activitiesLoading}
+          loading={activitiesLoading && !liveActivities && activities.length === 0}
           initialCount={2}
           loadMoreCount={3}
           withCinemas
@@ -1161,7 +1172,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           title="Théâtre & Spectacles"
           subtitle={ageSubtitle || undefined}
           activities={theatreActivities}
-          loading={activitiesLoading}
+          loading={activitiesLoading && !liveActivities && activities.length === 0}
           initialCount={2}
           loadMoreCount={3}
           dismissedIds={dismissedIds}
@@ -1174,7 +1185,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           title="Expositions & Musées"
           subtitle={ageSubtitle || undefined}
           activities={expoActivities}
-          loading={activitiesLoading}
+          loading={activitiesLoading && !liveActivities && activities.length === 0}
           initialCount={2}
           loadMoreCount={3}
           dismissedIds={dismissedIds}
@@ -1187,7 +1198,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
           title="Activités"
           subtitle={ageSubtitle || undefined}
           activities={otherActivities}
-          loading={activitiesLoading}
+          loading={activitiesLoading && !liveActivities && activities.length === 0}
           initialCount={2}
           loadMoreCount={3}
           dismissedIds={dismissedIds}

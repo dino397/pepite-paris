@@ -331,7 +331,7 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                     value={addressQuery}
                     onChange={(e) => { setAddressQuery(e.target.value); setAddress(e.target.value); setCity(""); }}
                     onFocus={() => addressSuggestions.length > 0 && setShowSuggestions(true)}
-                    placeholder="Votre adresse (ex : 12 rue de Rivoli, Paris)"
+                    placeholder="29 rue du Louvre, 75001 Paris"
                     required
                     className="h-11 bg-background/70 border-border/50 rounded-2xl pl-9 pr-4 text-sm placeholder:text-muted-foreground/50"
                     autoComplete="off"
@@ -363,17 +363,9 @@ export default function OnboardingForm({ userId, onComplete }: OnboardingFormPro
                 )}
               </div>
 
-              {/* City auto-filled or manual */}
-              <Input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="Ville (remplie automatiquement)"
-                className="h-11 bg-background/70 border-border/50 rounded-2xl px-4 text-sm placeholder:text-muted-foreground/50"
-              />
-
               <button
                 onClick={() => setStep(1)}
-                disabled={!city || !address}
+                disabled={!address}
                 className="w-full h-11 rounded-2xl gradient-meadow text-primary-foreground font-semibold text-sm tracking-wide transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2 mt-1"
               >
                 Continuer <ChevronRight className="h-4 w-4" />
