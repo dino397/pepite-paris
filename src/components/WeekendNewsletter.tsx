@@ -891,7 +891,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
   const [spinning, setSpinning] = useState(false);
 
   const [liveActivities, setLiveActivities] = useState<Activity[] | null>(null);
-  const [activitiesLoading, setActivitiesLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
 
   const [agendaEvents, setAgendaEvents] = useState<AgendaEvent[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
