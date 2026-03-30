@@ -941,9 +941,11 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
 
   const loadActivities = useCallback(async () => {
     setActivitiesLoading(true);
+    // Timeout: fall back to mock data after 5s if Edge Function doesn't respond
+    const timeout = setTimeout(() => { setActivitiesLoading(false); }, 5000);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { setActivitiesLoading(false); return; }
+      if (!session) { clearTimeout(timeout); setActivitiesLoading(false); return; }
 
       // Récupère la météo courante pour personnaliser la génération
       const satISO = formatDateISO(saturday);
@@ -1001,6 +1003,7 @@ export default function WeekendNewsletter({ onSignOut }: { onSignOut?: () => voi
       console.error("loadActivities error:", err);
       setLiveActivities(null);
     } finally {
+      clearTimeout(timeout);
       setActivitiesLoading(false);
     }
   }, [saturday, sunday]);
