@@ -1,39 +1,30 @@
 import { useState } from "react";
 import Header from "@/components/Header";
 import FilterBar from "@/components/FilterBar";
-import ActivityList from "@/components/ActivityList";
-import MapPage from "@/components/MapPage";
-import { useActivities } from "@/hooks/useActivities";
-import type { Category } from "@/types/activity";
+import EventList from "@/components/EventList";
+import EventMap from "@/components/EventMap";
+import { useParisEvents } from "@/hooks/useParisEvents";
+import type { Category } from "@/types/event";
 
 export default function Index() {
-  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
+  const [category, setCategory] = useState<Category>("all");
   const [view, setView] = useState<"list" | "map">("list");
-
-  const { activities, loading } = useActivities(
-    selectedCategories.length > 0 ? selectedCategories : undefined
-  );
-
-  const toggleCategory = (cat: Category) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
-  };
+  const { events, loading, error } = useParisEvents(category);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <FilterBar
-        selectedCategories={selectedCategories}
-        onToggleCategory={toggleCategory}
+        category={category}
+        onCategoryChange={setCategory}
         view={view}
         onViewChange={setView}
-        count={activities.length}
+        count={events.length}
       />
       {view === "list" ? (
-        <ActivityList activities={activities} loading={loading} />
+        <EventList events={events} loading={loading} error={error} />
       ) : (
-        <MapPage activities={activities} />
+        <EventMap events={events} />
       )}
     </div>
   );

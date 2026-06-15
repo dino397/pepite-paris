@@ -1,31 +1,34 @@
 import { Map as MapIcon, List } from "lucide-react";
-import { CATEGORIES, type Category } from "@/types/activity";
+import { CATEGORIES, type Category } from "@/types/event";
 
 interface FilterBarProps {
-  selectedCategories: Category[];
-  onToggleCategory: (cat: Category) => void;
+  category: Category;
+  onCategoryChange: (cat: Category) => void;
   view: "list" | "map";
   onViewChange: (view: "list" | "map") => void;
   count: number;
 }
 
-export default function FilterBar({ selectedCategories, onToggleCategory, view, onViewChange, count }: FilterBarProps) {
+export default function FilterBar({ category, onCategoryChange, view, onViewChange, count }: FilterBarProps) {
   return (
-    <div className="sticky top-0 z-30 px-4 py-3" style={{ background: "hsl(42 38% 96% / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(38 22% 84% / 0.5)" }}>
+    <div
+      className="sticky top-0 z-30 px-4 py-3"
+      style={{ background: "hsl(42 38% 96% / 0.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid hsl(38 22% 84% / 0.5)" }}
+    >
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
         {CATEGORIES.map((cat) => {
-          const active = selectedCategories.length === 0 || selectedCategories.includes(cat.id);
+          const active = category === cat.id;
           return (
             <button
               key={cat.id}
-              onClick={() => onToggleCategory(cat.id)}
+              onClick={() => onCategoryChange(cat.id)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all"
               style={{
                 background: active ? "hsl(40 35% 99%)" : "transparent",
-                border: `1px solid ${active ? "hsl(38 22% 78%)" : "hsl(38 22% 88%)"}`,
-                color: active ? "hsl(30 25% 30%)" : "hsl(30 15% 60%)",
+                border: `1px solid ${active ? "hsl(168 42% 45%)" : "hsl(38 22% 88%)"}`,
+                color: active ? "hsl(168 42% 32%)" : "hsl(30 15% 60%)",
                 fontFamily: "'Nunito', sans-serif",
-                boxShadow: active ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
+                boxShadow: active ? "0 1px 4px rgba(0,0,0,0.06)" : "none",
               }}
             >
               <span>{cat.emoji}</span>
@@ -62,8 +65,8 @@ export default function FilterBar({ selectedCategories, onToggleCategory, view, 
         </div>
       </div>
 
-      <p className="text-[11px] text-muted-foreground/50 mt-1" style={{ fontFamily: "'Nunito', sans-serif" }}>
-        {count} activité{count > 1 ? "s" : ""} cette semaine
+      <p className="text-[11px] text-muted-foreground/50 mt-1.5" style={{ fontFamily: "'Nunito', sans-serif" }}>
+        {count} événement{count > 1 ? "s" : ""}
       </p>
     </div>
   );
