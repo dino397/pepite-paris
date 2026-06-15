@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity } from "./ActivityCard";
+import type { Activity } from "@/types/activity";
+import { CATEGORIES } from "@/types/activity";
 import { X, MapPin, Clock, ExternalLink } from "lucide-react";
 
 interface MapPageProps {
@@ -62,7 +63,7 @@ export default function MapPage({ activities }: MapPageProps) {
   const [mapLoaded, setMapLoaded] = useState(false);
 
   // Filter activities that have a location or can be placed on map
-  const mappableActivities = activities.filter((a) => a.latitude || a.location);
+  const mappableActivities = activities.filter((a) => a.location || a.arrondissement);
 
   useEffect(() => {
     if (!mapRef.current || leafletMapRef.current) return;
@@ -125,10 +126,7 @@ export default function MapPage({ activities }: MapPageProps) {
         let lat: number | undefined;
         let lng: number | undefined;
 
-        if (act.latitude && act.longitude) {
-          lat = act.latitude;
-          lng = act.longitude;
-        } else if (act.location) {
+        if (act.location) {
           // Try to find arrondissement in location string
           const arrMatch = act.location.match(/75(\d{3})/);
           if (arrMatch) {
@@ -137,7 +135,8 @@ export default function MapPage({ activities }: MapPageProps) {
           }
           // Fallback: Paris center with random-ish offset based on id hash
           if (!lat) {
-            const hash = act.id.charCodeAt(0) + act.id.charCodeAt(1);
+            const idStr = String(act.id);
+          const hash = (idStr.charCodeAt(0) || 0) + (idStr.charCodeAt(1) || 0);
             lat = PARIS_CENTER[0] + ((hash % 20) - 10) * 0.004;
             lng = PARIS_CENTER[1] + (((hash * 7) % 20) - 10) * 0.005;
           }
@@ -146,18 +145,18 @@ export default function MapPage({ activities }: MapPageProps) {
         if (lat && lng) {
           const key = `${lat.toFixed(3)},${lng.toFixed(3)}`;
           if (!positionGroups.has(key)) positionGroups.set(key, []);
-          positionGroups.get(key)!.push({ ...act, latitude: lat, longitude: lng });
+          positionGroups.get(key)!.push({ ...act, _lat: lat, _lng: lng } as Activity & { _lat: number; _lng: number });
         }
       });
 
       positionGroups.forEach((group) => {
-        group.forEach((act, idx) => {
+        group.forEach((act: any, idx: number) => {
           const [dlat, dlng] = jitter(idx, group.length);
-          const lat = act.latitude! + dlat;
-          const lng = act.longitude! + dlng;
+          const lat = (act._lat ?? 0) + dlat;
+          const lng = (act._lng ?? 0) + dlng;
 
           const emoji = CATEGORY_EMOJI[act.category] || "📍";
-          const color = act.highlighted ? "#2d7a5e" : "#5a8f7b";
+          const color = act.is_exceptional ? "#2d7a5e" : "#5a8f7b";
 
           // Custom emoji pin
           const icon = L.divIcon({
@@ -166,7 +165,7 @@ export default function MapPage({ activities }: MapPageProps) {
               <div style="
                 display: flex; align-items: center; justify-content: center;
                 width: 38px; height: 38px;
-                background: ${act.highlighted ? "linear-gradient(135deg, hsl(152,36%,46%), hsl(168,42%,32%))" : "hsl(40,35%,99%)"};
+                background: ${act.is_exceptional ? "linear-gradient(135deg, hsl(152,36%,46%), hsl(168,42%,32%))" : "hsl(40,35%,99%)"};
                 border: 2px solid ${color};
                 border-radius: 50% 50% 50% 0;
                 transform: rotate(-45deg);
@@ -212,7 +211,7 @@ export default function MapPage({ activities }: MapPageProps) {
               className="text-foreground">Aucune activité à afficher</p>
             <p className="text-sm text-muted-foreground mt-1"
               style={{ fontFamily: "'Nunito', sans-serif" }}>
-              Générez d'abord vos activités depuis l'onglet "Ce week-end"
+              Aucune activité disponible pour le moment
             </p>
           </div>
         </div>
@@ -259,7 +258,7 @@ export default function MapPage({ activities }: MapPageProps) {
           </button>
 
           <div className="flex items-start gap-3 pr-8">
-            <span className="text-3xl flex-shrink-0">{selectedActivity.emoji}</span>
+            <span className="text-3xl flex-shrink-0">{CATEGORIES.find(c => c.id === selectedActivity.category)?.emoji ?? "📍"}</span>
             <div>
               <h3
                 className="text-foreground leading-snug"
@@ -294,8 +293,8 @@ export default function MapPage({ activities }: MapPageProps) {
                 {selectedActivity.duration}
               </span>
             )}
-            {selectedActivity.age_min !== undefined && (
-              <span>👶 {selectedActivity.age_min}{selectedActivity.age_max ? `–${selectedActivity.age_max}` : "+"} ans</span>
+            {selectedActivity.badge && (
+              <span>{selectedActivity.badge}</span>
             )}
           </div>
 
